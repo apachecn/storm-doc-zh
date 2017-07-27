@@ -32,8 +32,7 @@ documentation: true
 的元组中的字段。默认情况下 Tuple 可以是 integers, longs, shorts, bytes, strings, doubles, floats, booleans, and byte arrays 
 等数据类型。也可以自定义序列化器，以在 Tuple 中使用自定义的类型。
 
-每一个流在声明的时候会有一个赋予一个ID。由于单流的 Spout 和 Bolt 比较常见, [OutputFieldsDeclarer]
-(javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html) 有更便捷的方法定义一个单流而不用指定ID。这种情况下流
+每一个流在声明的时候会有一个赋予一个ID。由于单流的 Spout 和 Bolt 比较常见, [OutputFieldsDeclarer](javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html) 有更便捷的方法定义一个单流而不用指定ID。这种情况下流
 会被赋予一个默认的ID，"default"。
 
 
@@ -74,11 +73,9 @@ Bolt 可以做简单流转换。复杂的流转换一般需要多个步骤因此
 images流需要两个步骤：一个 Bolt 做每个图片的滚动计数同时一个或者多个 Bolt 输出 Top X 的图片 (可以使用更具弹性的方式，用3个 Bolt 而不是先前的2个 Bolt，来完成这个特殊的流转换)。 
 
 Bolt 可以发射一个或者多个流。使用[OutputFieldsDeclarer](javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)
-的`declareStream`方法定义多个并，并且在 [OutputCollector]
-(javadocs/org/apache/storm/task/OutputCollector.html)的`emit`中指定需要发射到的目标流。
+的`declareStream`方法定义多个并，并且在 [OutputCollector](javadocs/org/apache/storm/task/OutputCollector.html)的`emit`中指定需要发射到的目标流。
 
-当定义一个 Bolt 的输入流, 一定要订阅另一个组件的特定的流。如果想订阅另一个组件的所有流，必须分别单独订阅每一个流。 [InputDeclarer]
-(javadocs/org/apache/storm/topology/InputDeclarer.html) 有订阅使用默认id定义的流的语法糖。`declarer.shuffleGrouping
+当定义一个 Bolt 的输入流, 一定要订阅另一个组件的特定的流。如果想订阅另一个组件的所有流，必须分别单独订阅每一个流。 [InputDeclarer](javadocs/org/apache/storm/topology/InputDeclarer.html) 有订阅使用默认id定义的流的语法糖。`declarer.shuffleGrouping
 ("1")` 订阅组件 "1" 的默认流，等价于 `declarer.shuffleGrouping("1", DEFAULT_STREAM_ID)`。
 
 Bolt 中最重要的方法是`execute` 方法，当有一个新 Tuple 输入的时候会进入这个方法。Bolt 使用[OutputCollector](javadocs/org/apache/storm/task/OutputCollector.html) 对象发射新 Tuple。Bolt
@@ -107,8 +104,7 @@ Bolt 中最重要的方法是`execute` 方法，当有一个新 Tuple 输入的�
 的 Tuple 可能会流入到不同的 task。
 3. **Partial Key grouping**: 流通过grouping中指定的 field 来分组，与 Fields 
 Grouping 相似。但是对于2个下行流 Bolt 来说是负载均衡的，可以在输入数据不平均的情况下提供更好的优化。
-以下地址[This paper](https://melmeric.files.wordpress
-.com/2014/11/the-power-of-both-choices-practical-load-balancing-for-distributed-stream-processing-engines.pdf) 
+以下地址[This paper](https://melmeric.files.wordpress.com/2014/11/the-power-of-both-choices-practical-load-balancing-for-distributed-stream-processing-engines.pdf) 
 更好的解释了它是如何工作的及它的优势。
 4. **All grouping**: 流在所有的 Bolt Tasks之间复制。小心使用。
 5. **Global grouping**: 整个流会进入一个其中的一个 Bolt task。特别指出，它会进入 id 最小的 task。
@@ -116,7 +112,7 @@ Grouping 相似。但是对于2个下行流 Bolt 来说是负载均衡的，可�
 会在他们订阅消息的上游 Bolt 的相同的线程中运行。
 (when possible)。
 7. **Direct grouping**: 这是一种特殊的分组方式. 一个流用这个方式分组意味着由这个 Tuple 的 __生产者__ 来决定哪个任务来接收它。 直接分组只能被用于定义为直接流的流上。 被发射到直接流的 tuple 
-必须使用 [emitDirect](javadocs/org/apache/storm/task/OutputCollector.html#emitDirect(int, int, java.util.List) 方法来发射。
+必须使用 [emitDirect](javadocs/org/apache/storm/task/OutputCollector.html#emitDirect)(int, int, java.util.List) 方法来发射。
 Bolt 可以使用[TopologyContext](javadocs/org/apache/storm/task/TopologyContext.html) 或者通过保持对[OutputCollector]
 (javadocs/org/apache/storm/task/OutputCollector.html)中的`emit` 方法的输出的跟踪来获取它的所有消费者的 ID (返回 Tuple 被发送到的目标 task的id)。
 8. **Local or shuffle grouping**: 如果目标 Bolt 有多个 task 在同一个 woker 进程中，Tuple 会将消息打散分发到同进程内的任务。否则，和 shuffle goruping 一样。
