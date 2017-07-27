@@ -17,8 +17,8 @@ documentation: true
 
 ### 拓扑
 
-实时应用程序的逻辑被封装在 Storm 拓扑中。 Storm 拓扑类似于 MapReduce 作业。 一个关键的区别是 MapReduce 作业最终会完成，而拓扑永远运行（除非 kill 掉它）。 
-一个拓扑是 Spout 和 Bolt 通过流分组连接起来的有向无环图。 这些概念会在下面的段落中具体描述。
+实时应用程序的逻辑被封装在 Storm 拓扑中。Storm 拓扑类似于 MapReduce 作业。一个关键的区别是 MapReduce 作业最终会完成，而拓扑永远运行（除非 kill 掉它）。
+一个拓扑是 Spout 和 Bolt 通过流分组连接起来的有向无环图。这些概念会在下面的段落中具体描述。
 
 **相关资料:**
 
@@ -28,7 +28,7 @@ documentation: true
 
 ### 流
 
-流是 Storm 中的核心概念。一个流是一个无界的、以分布式方式并行创建和处理的 Tuple 序列。 流以一个 schema 来定义，这个 schema 命名了流中
+流是 Storm 中的核心概念。一个流是一个无界的、以分布式方式并行创建和处理的 Tuple 序列。流以一个 schema 来定义，这个 schema 命名了流中
 的元组中的字段。默认情况下 Tuple 可以是 integers, longs, shorts, bytes, strings, doubles, floats, booleans, and byte arrays 
 等数据类型。也可以自定义序列化器，以在 Tuple 中使用自定义的类型。
 
@@ -44,7 +44,7 @@ documentation: true
 
 ### Spouts
 
-Spout 是一个拓扑中的流的源头。 通常 Spout 会从外部数据源（如 Kestel 队列，或者 Twitter API）读取 Tuple 然后把他们发射到拓扑。Spout 
+Spout 是一个拓扑中的流的源头。通常 Spout 会从外部数据源（如 Kestel 队列，或者 Twitter API）读取 Tuple 然后把他们发射到拓扑。Spout 
 可以是 __可靠的__ 或 __不可靠的__。可靠的 Spout 在 Tuple 处理失败的时候能够重放， 不可靠的 Spout 一旦把一个 Tuple 发射出去就撒手不管了。
 
 Spout 可以发射多个流。可以使用[OutputFieldsDeclarer](javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html) 类的 
@@ -52,10 +52,10 @@ declareStream 方法定义多个流，然后在[SpoutOutputCollector](javadocs/o
 对象的emit方法中指定要发送到的目标流。
 
 
-Spout 中的最重要的方法是 `nextTuple`。 `nextTuple` 要么向拓扑中发射一个新的 Tuple，要么在没有 Tuple 需要发射的情况下直接返回。 对于任何 Spout 实现，`nextTuple` 
+Spout 中的最重要的方法是 `nextTuple`。`nextTuple` 要么向拓扑中发射一个新的 Tuple，要么在没有 Tuple 需要发射的情况下直接返回。对于任何 Spout 实现，`nextTuple` 
 方法都必须非阻塞的, 因为 Spout 的所有方法都是在同一个线程中调用。
 
-Spout的另外几个重要的方法是 `ack` 和 `fail` 。 这些方法在 Storm 检测到 Spout 发送出去的 Tuple 被成功处理或者处理失败的时候调用。`ack`和` fail`只会在可靠的 Spout 中调用。 
+Spout的另外几个重要的方法是 `ack` 和 `fail` 。这些方法在 Storm 检测到 Spout 发送出去的 Tuple 被成功处理或者处理失败的时候调用。`ack`和` fail`只会在可靠的 Spout 中调用。 
 更多相关信息，请参见 
 [the 
 Javadoc](javadocs/org/apache/storm/spout/ISpout.html) 。
@@ -75,7 +75,7 @@ images流需要两个步骤：一个 Bolt 做每个图片的滚动计数同时�
 Bolt 可以发射一个或者多个流。使用[OutputFieldsDeclarer](javadocs/org/apache/storm/topology/OutputFieldsDeclarer.html)
 的`declareStream`方法定义多个并，并且在 [OutputCollector](javadocs/org/apache/storm/task/OutputCollector.html)的`emit`中指定需要发射到的目标流。
 
-当定义一个 Bolt 的输入流, 一定要订阅另一个组件的特定的流。如果想订阅另一个组件的所有流，必须分别单独订阅每一个流。 [InputDeclarer](javadocs/org/apache/storm/topology/InputDeclarer.html) 有订阅使用默认id定义的流的语法糖。`declarer.shuffleGrouping
+当定义一个 Bolt 的输入流, 一定要订阅另一个组件的特定的流。如果想订阅另一个组件的所有流，必须分别单独订阅每一个流。[InputDeclarer](javadocs/org/apache/storm/topology/InputDeclarer.html) 有订阅使用默认id定义的流的语法糖。`declarer.shuffleGrouping
 ("1")` 订阅组件 "1" 的默认流，等价于 `declarer.shuffleGrouping("1", DEFAULT_STREAM_ID)`。
 
 Bolt 中最重要的方法是`execute` 方法，当有一个新 Tuple 输入的时候会进入这个方法。Bolt 使用[OutputCollector](javadocs/org/apache/storm/task/OutputCollector.html) 对象发射新 Tuple。Bolt
@@ -94,7 +94,7 @@ Bolt 中最重要的方法是`execute` 方法，当有一个新 Tuple 输入的�
 
 ### 流分组
 
-拓扑定义的一部分，指定 Bolt 把哪个流作为自己的输入。 一个流分组定义了流如何在 Bolt 的 task 之间分区。
+拓扑定义的一部分，指定 Bolt 把哪个流作为自己的输入。一个流分组定义了流如何在 Bolt 的 task 之间分区。
 
 一共有8个内置的 Stream Grouping。可以通过实现接口[CustomStreamGrouping](javadocs/org/apache/storm/grouping/CustomStreamGrouping.html)
 接口来自定义流分区。
@@ -124,19 +124,18 @@ Bolt 可以使用[TopologyContext](javadocs/org/apache/storm/task/TopologyContex
 当在`TopologyBuilder`上调用`setBolt`方法的时候返回这个对象，用于定义一个 Bolt 的输入流以及这些流如何分组
 ### 可靠性
 
-Storm 保障每一个 Spout 的 Tuple 都会被拓扑完全处理。 它通过每一个 Spout 的 Tuple 触发生成 Tuple 跟踪树，通过确定 Tuple 
+Storm 保障每一个 Spout 的 Tuple 都会被拓扑完全处理。它通过每一个 Spout 的 Tuple 触发生成 Tuple 跟踪树，通过确定 Tuple 
 树何时被成功处理完成来实现可靠性。每一个拓扑都有一个关联的“message 
 timeout”。如果Storm检测到一个 Spout Tuple 没有在这个超时时间内被处理完成，则判定这个 Tuple 失败，并且重新发送。
 
-要利用这个可靠性的功能, 必须告诉 Storm 何时在 Tuple 树中创建一个新边界，并且需要在 Tuple 被完全处理完成的时候通知 Storm。 以上操作在 Bolt用于发射 Tuple 的 [OutputCollector]对象的
-(javadocs/org/apache/storm/task/OutputCollector.html) 对象来完成这个操作。 锚点在 
+要利用这个可靠性的功能, 必须告诉 Storm 何时在 Tuple 树中创建一个新边界，并且需要在 Tuple 被完全处理完成的时候通知 Storm。 以上操作在 Bolt用于发射 Tuple 的 [OutputCollector](javadocs/org/apache/storm/task/OutputCollector.html)对象来完成这个操作。锚点在 
 `emit` 方法中完成, 使用`ack`方法来声明自己已经成功完成了一个 Tuple 的处理。
 
 更详细的解释 [Guaranteeing message processing](Guaranteeing-message-processing.html)。
 
 ### Tasks
 
-每个 Spout 或者 Bolt 都以跨集群的多个 Task 方式执行。 每个 Task 对应一个 execution 的线程，流分组定义如何从一个 Task 发送 Tuple 到另一个 Task。 
+每个 Spout 或者 Bolt 都以跨集群的多个 Task 方式执行。每个 Task 对应一个 execution 的线程，流分组定义如何从一个 Task 发送 Tuple 到另一个 Task。 
 可以在方法`setSpout`或者`setBolt`中为每个 Spout 或者 Bolt 设置并行度，
 ### Workers
 
