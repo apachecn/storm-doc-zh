@@ -1,5 +1,5 @@
 ---
-title: Trident state
+title: Trident State
 layout: documentation
 ---
 
