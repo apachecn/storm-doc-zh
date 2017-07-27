@@ -1,6 +1,6 @@
 ---
 title: Trident state
-layout: 文档
+layout: documentation
 ---
 
 
