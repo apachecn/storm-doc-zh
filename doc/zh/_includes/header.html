@@ -2,7 +2,7 @@
   <div class="container-fluid">
      <div class="row">
           <div class="col-md-5">
-            <a href="/index.html"><img src="/images/logo.png" class="logo" /></a>
+            <a href="index.html"><img src="images/logo.png" class="logo" /></a>
           </div>
           <div class="col-md-5">
             {% if page.version %}
@@ -28,7 +28,7 @@
         </div>
         <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
           <ul class="nav navbar-nav">
-              <li><a href="/index.html" id="home">Home</a></li>
+              <li><a href="index.html" id="home">Home</a></li>
                 <li><a href="/getting-help.html" id="getting-help">Getting Help</a></li>
                 <li><a href="/about/integrates.html" id="project-info">Project Information</a></li>
                 <li class="dropdown">
@@ -36,7 +36,7 @@
                     <ul class="dropdown-menu">
                       {% for r in site.data.releases %}
                         {% if r.documented %}
-                          <li><a href="/releases/{{r.name}}/index.html">{{r.name}}</a></li>
+                          <li><a href="{{r.name}}/index.html">{{r.name}}</a></li>
                         {% endif %}
                       {% endfor %}
                     </ul>
