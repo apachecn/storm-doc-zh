@@ -3,7 +3,10 @@ title: Maven
 layout: documentation
 documentation: true
 ---
-要开发 topology ，您将需要您的类路径上的 Storm jar 。您应该在项目的类路径中包含未打包的 jar ，或者使用 Maven 将 Storm 包含为开发依赖项。Storm 托管在 Maven Central。要将 Storm 作为开发依赖项包含在项目中，请将以下内容添加到 pom.xml 中：
+要开发 topology, 您将需要您的类路径上的 Storm jar.
+您应该在项目的类路径中包含未打包的 jar, 或者使用 Maven 将 Storm 包含为开发依赖项.
+Storm 托管在 Maven Central.
+要将 Storm 作为开发依赖项包含在项目中, 请将以下内容添加到 pom.xml 中:
 
 ```xml
 <dependency>
@@ -14,8 +17,8 @@ documentation: true
 </dependency>
 ```
 
-这是 Storm 项目的 pom.xml [示例]({{page.git-blob-base}}/examples/storm-starter/pom.xml)。
+这是 Storm 项目的 pom.xml [示例]({{page.git-blob-base}}/examples/storm-starter/pom.xml).
 
 ### 发展 Storm
 
-详情请参考 [DEVELOPER.md]({{page.git-blob-base}}/DEVELOPER.md)。
+详情请参考 [DEVELOPER.md]({{page.git-blob-base}}/DEVELOPER.md).
