@@ -1,126 +1,127 @@
 ---
-title: Documentation
+title: 中文文档
 layout: documentation
 documentation: true
 ---
 
 
-> #### NOTE
+> #### NOTE（注意）
 
-> In the latest version, the class packages have been changed from "backtype.storm" to "org.apache.storm" so the topology code compiled with older version won't run on the Storm 1.0.0 just like that. Backward compatibility is available through following configuration 
+> 在最新版本中, class packages 已经从 "backtype.storm" 改变成 "org.apache.storm" 了, 所以使用旧版本编译的 topology 代码不会像在 Storm 1.0.0 上那样运行了. 通过以下配置提供向后的兼容性
 
 > `client.jartransformer.class: "org.apache.storm.hack.StormShadeTransformer"`
 
-> You need to add the above config in storm installation if you want to run the code compiled with older versions of storm. The config should be added in the machine you use to submit your topologies.
+> 如果要运行使用较旧版本 Storm 编译的代码, 则需要在 Storm 安装中添加上述配置. 该配置应该添加到您用于提交 topologies（拓扑）的机器中.
 
-> Refer to https://issues.apache.org/jira/browse/STORM-1202 for more details. 
+> 更多细节, 请参阅 [https://issues.apache.org/jira/browse/STORM-1202](https://issues.apache.org/jira/browse/STORM-1202). 
 
 
-### Basics of Storm
+### Storm 基础
 
 * [Javadoc](javadocs/index.html)
-* [Concepts](Concepts.html)
-* [Scheduler](Storm-Scheduler.html)
-* [Configuration](Configuration.html)
-* [Guaranteeing message processing](Guaranteeing-message-processing.html)
-* [Daemon Fault Tolerance](Daemon-Fault-Tolerance.html)
-* [Command line client](Command-line-client.html)
+* [概念](Concepts.html)
+* [调度器](Storm-Scheduler.html)
+* [配置](Configuration.html)
+* [保证消息处理](Guaranteeing-message-processing.html)
+* [Daemon（守护进程）容错](Daemon-Fault-Tolerance.html)
+* [命令行 client（客户端）](Command-line-client.html)
 * [REST API](STORM-UI-REST-API.html)
-* [Understanding the parallelism of a Storm topology](Understanding-the-parallelism-of-a-Storm-topology.html)
+* [理解 Storm topology 的 parallelism（并行度）](Understanding-the-parallelism-of-a-Storm-topology.html)
 * [FAQ](FAQ.html)
 
 ### Layers on Top of Storm
 
-#### Trident
+#### Storm Trident
 
-Trident is an alternative interface to Storm. It provides exactly-once processing, "transactional" datastore persistence, and a set of common stream analytics operations.
+Trident 是 Storm 的另一个 interface（接口）.
+它提供了 exactly-once（仅且一次）处理, "transactional（事务性的）" datastore persistence（数据存储持久化）, 以及一些常见的 stream analytics operations（流式分析操作）.
 
-* [Trident Tutorial](Trident-tutorial.html)     -- basic concepts and walkthrough
-* [Trident API Overview](Trident-API-Overview.html) -- operations for transforming and orchestrating data
-* [Trident State](Trident-state.html)        -- exactly-once processing and fast, persistent aggregation
-* [Trident spouts](Trident-spouts.html)       -- transactional and non-transactional data intake
-* [Trident RAS API](Trident-RAS-API.html)     -- using the Resource Aware Scheduler with Trident.
+* [Trident 教程](Trident-tutorial.html)     -- 基础的概念和预排工作
+* [Trident API 概述](Trident-API-Overview.html) -- 针对 transforming（转换）和 orchestrating 数据的操作
+* [Trident State（状态）](Trident-state.html)        -- exactly-once（仅且一次）处理以及 fast（快速的）, persistent aggregation（持久化的聚合）
+* [Trident spouts](Trident-spouts.html)       -- transactional（事务性的）和 non-transactional（非事务性的）数据引入
+* [Trident RAS API](Trident-RAS-API.html)     -- 与 Trident 一起使用 Resource Aware Scheduler .
 
-#### SQL
+#### Storm SQL
 
-The Storm SQL integration allows users to run SQL queries over streaming data in Storm.  
+该 Storm SQL 的集成可以让用户在 Storm 的 streaming data（流式数据）上来运行 SQL 查询.
 
-NOTE: Storm SQL is an `experimental` feature, so the internals of Storm SQL and supported features are subject to change. 
-But small change will not affect the user experience. We will notify the user when breaking UX change is introduced.
+NOTE（注意）: Storm SQL 是一个 `experimental（实验性的）` 功能, 所以 Storm SQL 的结构和所支持的功能在以后可能会发生变化.
+但是小的变化不会影响用户体验. 在引入 UX 更改时, 我们会及时通知用户.
 
-* [Storm SQL overview](storm-sql.html)
-* [Storm SQL example](storm-sql-example.html)
-* [Storm SQL reference](storm-sql-reference.html)
-* [Storm SQL internal](storm-sql-internal.html)
+* [Storm SQL 概述](storm-sql.html)
+* [Storm SQL 示例](storm-sql-example.html)
+* [Storm SQL 文献](storm-sql-reference.html)
+* [Storm SQL 结构](storm-sql-internal.html)
 
 #### Flux
 
 * [Flux Data Driven Topology Builder](flux.html)
 
-### Setup and Deploying
+### Storm 安装和部署
 
-* [Setting up a Storm cluster](Setting-up-a-Storm-cluster.html)
-* [Local mode](Local-mode.html)
-* [Troubleshooting](Troubleshooting.html)
-* [Running topologies on a production cluster](Running-topologies-on-a-production-cluster.html)
-* [Building Storm](Maven.html) with Maven
-* [Setting up a Secure Cluster](SECURITY.html)
-* [CGroup Enforcement](cgroups_in_storm.html)
-* [Pacemaker reduces load on zookeeper for large clusters](Pacemaker.html)
-* [Resource Aware Scheduler](Resource_Aware_Scheduler_overview.html)
-* [Daemon Metrics/Monitoring](storm-metrics-profiling-internal-actions.html)
-* [Windows users guide](windows-users-guide.html)
+* [安装一个 Storm 集群](Setting-up-a-Storm-cluster.html)
+* [Local mode（本地模式）](Local-mode.html)
+* [问题排查](Troubleshooting.html)
+* [在生产 cluster（集群）上运行 topologies（拓扑）](Running-topologies-on-a-production-cluster.html)
+* [构建 Storm](Maven.html) with Maven
+* [安装 Secure（安全的）Cluster（集群）](SECURITY.html)
+* [CGroup 的实施](cgroups_in_storm.html)
+* [Pacemaker 针对大集群减低在 zookeeper 上的负载](Pacemaker.html)
+* [Resource Aware Scheduler（资源意识调度器）](Resource_Aware_Scheduler_overview.html)
+* [Daemon Metrics/Monitoring（守护进程的度量/监控）](storm-metrics-profiling-internal-actions.html)
+* [Windows 平台的用户指南](windows-users-guide.html)
 
-### Intermediate
+### Storm 中级
 
-* [Serialization](Serialization.html)
-* [Common patterns](Common-patterns.html)
+* [Serialization（序列化）](Serialization.html)
+* [Common patterns（常见模式）](Common-patterns.html)
 * [Clojure DSL](Clojure-DSL.html)
-* [Using non-JVM languages with Storm](Using-non-JVM-languages-with-Storm.html)
-* [Distributed RPC](Distributed-RPC.html)
-* [Transactional topologies](Transactional-topologies.html)
-* [Hooks](Hooks.html)
-* [Metrics](Metrics.html)
+* [与 Storm 一起使用非 JVM 的语言](Using-non-JVM-languages-with-Storm.html)
+* [分布式的 RPC](Distributed-RPC.html)
+* [Transactional topologies（事务性的拓扑）](Transactional-topologies.html)
+* [Hooks（钩子）](Hooks.html)
+* [Metrics（度量）](Metrics.html)
 * [State Checkpointing](State-checkpointing.html)
-* [Windowing](Windowing.html)
+* [Windowing（窗口操作）](Windowing.html)
 * [Joining Streams](Joins.html)
 * [Blobstore(Distcahce)](distcache-blobstore.html)
 
-### Debugging
+### Storm 调试
 * [Dynamic Log Level Settings](dynamic-log-level-settings.html)
 * [Searching Worker Logs](Logs.html)
 * [Worker Profiling](dynamic-worker-profiling.html)
 * [Event Logging](Eventlogging.html)
 
-### Integration With External Systems, and Other Libraries
-* [Apache Kafka Integration](storm-kafka.html), [New Kafka Consumer Integration](storm-kafka-client.html)
-* [Apache HBase Integration](storm-hbase.html)
-* [Apache HDFS Integration](storm-hdfs.html)
-* [Apache Hive Integration](storm-hive.html)
-* [Apache Solr Integration](storm-solr.html)
-* [Apache Cassandra Integration](storm-cassandra.html)
-* [JDBC Integration](storm-jdbc.html)
-* [JMS Integration](storm-jms.html)
-* [Redis Integration](storm-redis.html)
-* [Event Hubs Intergration](storm-eventhubs.html)
-* [Elasticsearch Integration](storm-elasticsearch.html)
-* [MQTT Integration](storm-mqtt.html)
-* [Mongodb Integration](storm-mongodb.html)
-* [OpenTSDB Integration](storm-opentsdb.html)
-* [Kinesis Integration](storm-kinesis.html)
-* [Druid Integration](storm-druid.html)
-* [Kestrel Integration](Kestrel-and-Storm.html)
+### Storm 与外部系统, 以及其它库的集成
+* [Apache Kafka 集成](storm-kafka.html), [新的 Kafka Consumer（消费者）集成](storm-kafka-client.html)
+* [Apache HBase 集成](storm-hbase.html)
+* [Apache HDFS 集成](storm-hdfs.html)
+* [Apache Hive 集成](storm-hive.html)
+* [Apache Solr 集成](storm-solr.html)
+* [Apache Cassandra 集成](storm-cassandra.html)
+* [JDBC 集成](storm-jdbc.html)
+* [JMS 集成](storm-jms.html)
+* [Redis 集成](storm-redis.html)
+* [Event Hubs 集成](storm-eventhubs.html)
+* [Elasticsearch 集成](storm-elasticsearch.html)
+* [MQTT 集成](storm-mqtt.html)
+* [Mongodb 集成](storm-mongodb.html)
+* [OpenTSDB 集成](storm-opentsdb.html)
+* [Kinesis 集成](storm-kinesis.html)
+* [Druid 集成](storm-druid.html)
+* [Kestrel 集成](Kestrel-and-Storm.html)
 
 #### Container, Resource Management System Integration
 
-* [YARN Integration](https://github.com/yahoo/storm-yarn), [YARN Integration via Slider](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_yarn_resource_mgt/content/ref-7d103a48-7c2e-4b7b-aab5-62c739a32ee0.1.html)
-* [Mesos Integration](https://github.com/mesos/storm)
-* [Docker Integration](https://hub.docker.com/_/storm/)
-* [Kubernetes Integration](https://github.com/kubernetes/kubernetes/tree/master/examples/storm)
+* [YARN 集成](https://github.com/yahoo/storm-yarn), [通过 Slider 集成 YARN](http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.2/bk_yarn_resource_mgt/content/ref-7d103a48-7c2e-4b7b-aab5-62c739a32ee0.1.html)
+* [Mesos 集成](https://github.com/mesos/storm)
+* [Docker 集成](https://hub.docker.com/_/storm/)
+* [Kubernetes 集成](https://github.com/kubernetes/kubernetes/tree/master/examples/storm)
 
-### Advanced
+### Storm 高级
 
-* [Defining a non-JVM language DSL for Storm](Defining-a-non-jvm-language-dsl-for-storm.html)
-* [Multilang protocol](Multilang-protocol.html) (how to provide support for another language)
-* [Implementation docs](Implementation-docs.html)
+* [为 Storm 定义非 JVM 语言的 DSL](Defining-a-non-jvm-language-dsl-for-storm.html)
+* [多语言协议](Multilang-protocol.html)（如何为其它语言提供支持）
+* [实现文档](Implementation-docs.html)
 
