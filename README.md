@@ -45,7 +45,7 @@ Apache Storm 是一个免费的，开源的，分布式的实时计算系统.
 
 贡献者可自行编辑如下内容.
 
-### 2.2.0
+### 1.1.0
 * [@wangyangting](https://github.com/wangyangting)（那伊抹微笑）
 * [@jiangzhonglian](https://github.com/jiangzhonglian)（片刻）
 * [@chenyyx](https://github.com/chenyyx)（Joy yx）
