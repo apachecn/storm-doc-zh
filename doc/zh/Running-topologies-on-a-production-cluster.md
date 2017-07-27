@@ -36,7 +36,7 @@ StormSubmitter.submitTopology("mytopology", conf, topology);
   </plugin>
 ```
 
-然后运行 mvn assembly:assembly 来获取适当打包的 jar 。确保您 [排除了](http://maven.apache.org/plugins/maven-assembly-plugin/examples/single/including-and-excluding-artifacts.html) Storm jar，因为群集已经在类路径上有 Storm。
+然后运行 mvn assembly:assembly 来获取适当打包的 jar。确保您 [排除了](http://maven.apache.org/plugins/maven-assembly-plugin/examples/single/including-and-excluding-artifacts.html) Storm jar，因为群集已经在类路径上有 Storm。
 
 4）使用 `storm` 客户端将 topology 提交到集群，指定您的 jar 的路径，要运行的类名以及将使用的任何参数：
 
