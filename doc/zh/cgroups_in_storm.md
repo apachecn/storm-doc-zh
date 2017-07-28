@@ -6,17 +6,18 @@ documentation: true
 
 # CGroups in Storm
 
-CGroups are used by Storm to limit the resource usage of workers to guarantee fairness and QOS.  
+Storm 使用 CGroup 来限制 worker 的资源使用，以保证公平和 QOS。
 
-**Please note: CGroups is currently supported only on Linux platforms (kernel version 2.6.24 and above)** 
+**请注意：CGroups 目前仅支持 Linux 平台（内核版本 2.6.24 及更高版本）**
 
-## Setup
+## 设置
 
-To use CGroups make sure to install cgroups and configure cgroups correctly.  For more information about setting up and configuring, please visit:
+要使用 CGroups，请确保正确安装 cgroups 并配置 cgroup。有关设置和配置的更多信息，请访问:
 
 https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/ch-Using_Control_Groups.html
 
-A sample/default cgconfig.conf file is supplied in the <stormroot>/conf directory.  The contents are as follows:
+一个 示例/默认 的 cgconfig.conf 文件 <stormroot>/conf 目录。
+内容如下:
 
 ```
 mount {
@@ -46,26 +47,27 @@ group storm {
 }
 ```
 
-For a more detailed explanation of the format and configs for the cgconfig.conf file, please visit:
+有关 cgconfig.conf 文件的格式和配置的更详细说明，请访问:
 
 https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/ch-Using_Control_Groups.html#The_cgconfig.conf_File
 
-# Settings Related To CGroups in Storm
+# 与 Storm 中的 CGroup 相关的设置
 
-| Setting                       | Function                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|-------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| storm.cgroup.enable                | This config is used to set whether or not cgroups will be used.  Set "true" to enable use of cgroups.  Set "false" to not use cgroups. When this config is set to false, unit tests related to cgroups will be skipped. Default set to "false"                                                                                                                                                                                                                                                                                         |
-| storm.cgroup.hierarchy.dir   | The path to the cgroup hierarchy that storm will use.  Default set to "/cgroup/storm_resources"                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| storm.cgroup.resources       | A list of subsystems that will be regulated by CGroups. Default set to cpu and memory.  Currently only cpu and memory are supported                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| storm.supervisor.cgroup.rootdir     | The root cgroup used by the supervisor.  The path to the cgroup will be \<storm.cgroup.hierarchy.dir>/\<storm.supervisor.cgroup.rootdir>.  Default set to "storm"                                                                                                                                                                                                                                                                                                                                                                           |
-| storm.cgroup.cgexec.cmd            | Absolute path to the cgexec command used to launch workers within a cgroup. Default set to "/bin/cgexec"                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| storm.worker.cgroup.memory.mb.limit | The memory limit in MB for each worker.  This can be set on a per supervisor node basis.  This config is used to set the cgroup config memory.limit_in_bytes.  For more details about memory.limit_in_bytes, please visit:  https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-memory.html.    Please note, if you are using the Resource Aware Scheduler, please do NOT set this config as this config will override the values calculated by the Resource Aware Scheduler |
-| storm.worker.cgroup.cpu.limit       | The cpu share for each worker. This can be set on a per supervisor node basis.  This config is used to set the cgroup config cpu.share. For more details about cpu.share, please visit:   https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-cpu.html. Please note, if you are using the Resource Aware Scheduler, please do NOT set this config as this config will override the values calculated by the Resource Aware Scheduler.                                       |
+| 设置 | 功能 |
+| --- | --- |
+| storm.cgroup.enable                | 此配置用于设置是否使用 cgroup。设置 "true" 以启用 cgroups 的使用。设置 "false" 不使用 cgroups。当该配置设置为 false 时，将跳过与 cgroup 相关的单元测试。默认设置为 "false" |
+| storm.cgroup.hierarchy.dir   | 到风暴将使用的 cgroup 层次结构的路径。默认设置为  "/cgroup/storm_resources" |
+| storm.cgroup.resources       | 将由 CGroups 监管的子系统列表。默认设置为 cpu 和内存。目前只支持 cpu 和内存 |
+| storm.supervisor.cgroup.rootdir     | supervisor 使用的根 cgroup。cgroup 的路径将是 \<storm.cgroup.hierarchy.dir>/\<storm.supervisor.cgroup.rootdir>。默认设置为 "storm" |
+| storm.cgroup.cgexec.cmd            | 用于在 cgroup 中启动工作的 cgexec 命令的绝对路径。默认设置为 "/bin/cgexec" |
+| storm.worker.cgroup.memory.mb.limit | 每个 worker 的内存限制为MB。这可以基于每个 supervisor 节点设置。该配置用于设置 cgroup config memory.limit_in_bytes。有关 memory.limit_in_bytes 的更多详细信息，请访问：https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-memory.html。请注意，如果您使用资源感知计划程序，请不要设置此配置，因为此配置将覆盖资源意识计划程序计算的值 |
+| storm.worker.cgroup.cpu.limit       | 每个 worker 的cpu份额。这可以基于每个 supervisor 节点设置。此配置用于设置 cgroup config cpu.share。有关 cpu.share 的更多详细信息，请访问：https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Resource_Management_Guide/sec-cpu.html。请注意，如果您使用资源感知调度程序，请不要设置此配置，因为此配置将覆盖资源意识计划程序计算的值 |
 
-Since limiting CPU usage via cpu.shares only limits the proportional CPU usage of a process, to limit the amount of CPU usage of all the worker processes on a supervisor node, please set the config supervisor.cpu.capacity. Where each increment represents 1% of a core thus if a user sets supervisor.cpu.capacity: 200, the user is indicating the use of 2 cores.
+由于通过 cpu.shares 限制 CPU 使用率仅限制进程的 CPU 占用比例，以限制 supervisor 节点上所有 worker 进程的CPU使用量，请设置config supervisor.cpu.capacity。
+其中每个增量代表核心的1％，因此如果用户设置 supervisor.cpu.capacity: 200，则用户指示使用2个内核。
 
-## Integration with Resource Aware Scheduler
+## 与资源意识调度程序集成
 
-CGroups can be used in conjunction with the Resource Aware Scheduler.  CGroups will then enforce the resource usage of workers as allocated by the Resource Aware Scheduler.  To use cgroups with the Resource Aware Scheduler, simply enable cgroups and be sure NOT to set storm.worker.cgroup.memory.mb.limit and storm.worker.cgroup.cpu.limit configs.
-
-
+CGroup 可以与资源意识调度程序一起使用。
+然后，CGroup 将强制资源意识调度程序分配的 worker 的资源使用情况。
+要将资源感知计划程序使用 cgroup，只需启用 cgroups，并确保不要设置 storm.worker.cgroup.memory.mb.limit 和 storm.worker.cgroup.cpu.limit 配置。
