@@ -1,13 +1,13 @@
 ---
-title: Running Topologies on a Production Cluster
+title: 在生产集群上运行 Topology
 layout: documentation
 documentation: true
 ---
-Running topologies on a production cluster is similar to running in [Local mode](Local-mode.html). Here are the steps:
+在生产集群上运行 Topology 类似于在 [本地模式](Local-mode.html) 下运行.以下是步骤：
 
-1) Define the topology (Use [TopologyBuilder](javadocs/org/apache/storm/topology/TopologyBuilder.html) if defining using Java)
+1）定义 Topology （如果使用 Java 定义, 则使用 [TopologyBuilder](javadocs/org/apache/storm/topology/TopologyBuilder.html) ）
 
-2) Use [StormSubmitter](javadocs/org/apache/storm/StormSubmitter.html) to submit the topology to the cluster. `StormSubmitter` takes as input the name of the topology, a configuration for the topology, and the topology itself. For example:
+2）使用 [StormSubmitter](javadocs/org/apache/storm/StormSubmitter.html) 将 topology 提交到集群. `StormSubmitter` 以 topology 的名称, topology 的配置和 topology 本身作为输入.例如：
 
 ```java
 Config conf = new Config();
@@ -16,9 +16,9 @@ conf.setMaxSpoutPending(5000);
 StormSubmitter.submitTopology("mytopology", conf, topology);
 ```
 
-3) Create a jar containing your code and all the dependencies of your code (except for Storm -- the Storm jars will be added to the classpath on the worker nodes).
+3）创建一个包含你的代码和代码的所有依赖项的 jar （除了 Storm - Storm jar 将被添加到 worker 节点上的 classpath 中）.
 
-If you're using Maven, the [Maven Assembly Plugin](http://maven.apache.org/plugins/maven-assembly-plugin/) can do the packaging for you. Just add this to your pom.xml:
+如果您使用 Maven,  [Maven Assembly Plugin](http://maven.apache.org/plugins/maven-assembly-plugin/) 插件可以为您做包装.只需将其添加到您的 pom.xml 中即可：
 
 ```xml
   <plugin>
@@ -35,43 +35,58 @@ If you're using Maven, the [Maven Assembly Plugin](http://maven.apache.org/plugi
     </configuration>
   </plugin>
 ```
-Then run mvn assembly:assembly to get an appropriately packaged jar. Make sure you [exclude](http://maven.apache.org/plugins/maven-assembly-plugin/examples/single/including-and-excluding-artifacts.html) the Storm jars since the cluster already has Storm on the classpath.
 
-4) Submit the topology to the cluster using the `storm` client, specifying the path to your jar, the classname to run, and any arguments it will use:
+然后运行 mvn assembly:assembly 来获取适当打包的 jar.
+确保您 [排除了](http://maven.apache.org/plugins/maven-assembly-plugin/examples/single/including-and-excluding-artifacts.html) Storm jar, 因为群集已经在类路径上有 Storm.
+
+4）使用 `storm` 客户端将 topology 提交到集群, 指定您的 jar 的路径, 要运行的类名以及将使用的任何参数:
 
 `storm jar path/to/allmycode.jar org.me.MyTopology arg1 arg2 arg3`
 
-`storm jar` will submit the jar to the cluster and configure the `StormSubmitter` class to talk to the right cluster. In this example, after uploading the jar `storm jar` calls the main function on `org.me.MyTopology` with the arguments "arg1", "arg2", and "arg3".
+`storm jar` 将 jar 提交到集群并配置 `StormSubmitter` 该类与正确的集群进行通信.在这个例子中, 上传 jar 后 `storm jar` ,  `org.me.MyTopology` 使用参数 "arg1", "arg2", and "arg3" 调用 main 函数.
 
-You can find out how to configure your `storm` client to talk to a Storm cluster on [Setting up development environment](Setting-up-development-environment.html).
+您可以找到如何配置 `storm` 客户端与 Storm 集群进行交流, 以 [设置开发环境](Setting-up-development-environment.html).
 
-### Common configurations
+### 常用配置
 
-There are a variety of configurations you can set per topology. A list of all the configurations you can set can be found [here](javadocs/org/apache/storm/Config.html). The ones prefixed with "TOPOLOGY" can be overridden on a topology-specific basis (the other ones are cluster configurations and cannot be overridden). Here are some common ones that are set for a topology:
+您可以根据 topology 设置各种配置.您可以在 [这里](javadocs/org/apache/storm/Config.html) 找到您可以设置的所有配置的列表.
+以 "TOPOLOGY" 为前缀的可以在 topology 特定的基础上被覆盖（其他的是集群配置, 不能被覆盖）.
+以下是为 topology 设置的一些常见的:
 
-1. **Config.TOPOLOGY_WORKERS**: This sets the number of worker processes to use to execute the topology. For example, if you set this to 25, there will be 25 Java processes across the cluster executing all the tasks. If you had a combined 150 parallelism across all components in the topology, each worker process will have 6 tasks running within it as threads.
-2. **Config.TOPOLOGY_ACKER_EXECUTORS**: This sets the number of executors that will track tuple trees and detect when a spout tuple has been fully processed. Ackers are an integral part of Storm's reliability model and you can read more about them on [Guaranteeing message processing](Guaranteeing-message-processing.html). By not setting this variable or setting it as null, Storm will set the number of acker executors to be equal to the number of workers configured for this topology. If this variable is set to 0, then Storm will immediately ack tuples as soon as they come off the spout, effectively disabling reliability.
-3. **Config.TOPOLOGY_MAX_SPOUT_PENDING**: This sets the maximum number of spout tuples that can be pending on a single spout task at once (pending means the tuple has not been acked or failed yet). It is highly recommended you set this config to prevent queue explosion.
-4. **Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS**: This is the maximum amount of time a spout tuple has to be fully completed before it is considered failed. This value defaults to 30 seconds, which is sufficient for most topologies. See [Guaranteeing message processing](Guaranteeing-message-processing.html) for more information on how Storm's reliability model works.
-5. **Config.TOPOLOGY_SERIALIZATIONS**: You can register more serializers to Storm using this config so that you can use custom types within tuples.
+1. **Config.TOPOLOGY_WORKERS**: 设置用于执行 topology 的 worker 进程数.
+    例如, 如果将其设置为25, 则集群中将有25个 Java 进程执行所有任务.
+    如果 topology 中的所有组件都具有150个并行度, 则每个 worker 进程将在其中运行6个任务作为线程.
+2. **Config.TOPOLOGY_ACKER_EXECUTORS**: 这将设置跟踪元组树 executor 的数量, 并检测出 spout 元组何时完全处理.
+    Ackers 是 Storm 可靠性模型的组成部分, 您可以在 [保证消息处理](Guaranteeing-message-processing.html) 中阅读更多信息.
+    通过不设置此变量或将其设置为 null, Storm 将 executor 的数量设置为等于为此 topology 配置的 worker 数.
+    如果这个变量设置为0, 那么 Storm 会立即从元器件脱落出来, 使其可靠性降低.
+3. **Config.TOPOLOGY_MAX_SPOUT_PENDING**: 这将一次设置单个 spout 任务中可以挂起的 spout 元组的最大数量（挂起意味着元组尚未被确认或失败）.
+    强烈建议您设置此配置以防止队列爆炸.
+4. **Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS**: 这是一个 spout 元组在被认为失败之前必须完全完成的最长时间.
+    此值默认为30秒, 这对大多数拓扑结构都是足够的.
+    有关 Storm 的可靠性模型如何工作的更多信息, 请参阅 [保证消息处理](Guaranteeing-message-processing.html).
+5. **Config.TOPOLOGY_SERIALIZATIONS**: 您可以使用此配置向 Storm 注册更多序列化程序, 以便您可以在元组内使用自定义类型.
 
+### Killing 一个 topology
 
-### Killing a topology
-
-To kill a topology, simply run:
+要 kill 一个 topology, 只需运行:
 
 `storm kill {stormname}`
 
-Give the same name to `storm kill` as you used when submitting the topology.
+提供与 `storm kill` 提交 topology 时使用的名称相同的名称.
 
-Storm won't kill the topology immediately. Instead, it deactivates all the spouts so that they don't emit any more tuples, and then Storm waits Config.TOPOLOGY_MESSAGE_TIMEOUT_SECS seconds before destroying all the workers. This gives the topology enough time to complete any tuples it was processing when it got killed.
+Storm不会立即杀死 topology.
+相反, 它会停用所有的端口, 以使它们不再发出任何元组, 然后 Storm 会在销毁 所有 workers 之前等待 Config.
+TOPOLOGY_MESSAGE_TIMEOUT_SECS 秒.这给了 topology 足够的时间来完成它被杀死时处理的任何元组.
 
-### Updating a running topology
+### Updating 一个正在运行的 topology
 
-To update a running topology, the only option currently is to kill the current topology and resubmit a new one. A planned feature is to implement a `storm swap` command that swaps a running topology with a new one, ensuring minimal downtime and no chance of both topologies processing tuples at the same time. 
+要更新正在运行的 topology, 目前唯一的选项是终止当前 topology 并重新提交新的 topology.
+一个计划的功能是实现一个 `storm swap` 交换正在运行的 topology 结构的命令, 以确保最短的停机时间, 并且两个 topology 不会同时处理元组.
 
 ### Monitoring topologies
 
-The best place to monitor a topology is using the Storm UI. The Storm UI provides information about errors happening in tasks and fine-grained stats on the throughput and latency performance of each component of each running topology.
+监控 topology 的最佳位置是使用 Storm UI.
+Storm UI 提供有关每个运行 topology 的每个组件的吞吐量和延迟性能的任务和精细统计信息中发生的错误的信息.
 
-You can also look at the worker logs on the cluster machines.
+您还可以查看群集机器上的 worker 日志.
