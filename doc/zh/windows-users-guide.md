@@ -1,32 +1,33 @@
 ---
-title: Windows Users Guide
+title: Windows 用户指南
 layout: documentation
 documentation: true
 ---
 
-This page guides how to set up environment on Windows for Apache Storm.
+本页介绍如何在 Windows 上为 Apache Storm 设置环境。
 
-## Symbolic Link
+## 符号链接
 
-Starting at 1.0.0, Apache Storm utilizes `symbolic link` to aggregate log directory and resource directory into worker directory.
-Unfortunately, `creating symbolic link` on Windows needs non-default privilege, so users should configure it manually to make sure Storm processes can create symbolic link on runtime.
-Depending on the Windows version (i.e. non-professional), setting symbolic links privilege by a security policy is not possible since the tool is not installed.
+从 1.0.0 开始，Apache Storm `符号链接` 将日志目录和资源目录聚合到 worker 目录中。
+不幸的是，`创建符号链接` 在 Windows 上需要非默认权限，所以用户应该手动配置它，以确保 Storm 进程可以在运行时创建符号链接。
+根据 Windows 版本（即非专业版），由于安装了该工具，因此无法通过安全策略设置符号链接特权。
 
-When creating a symbolic link is not possible, the Supervisor process will stop as soon as it tries to start workers since the permission exception is considered a fatal error.
+当创建符号链接不可能时，Supervisor 进程将在尝试启动 worker 时立即停止，因为权限异常被认为是致命的错误。
 
-Below pages (MS technet) guide how to configure that policy to the account which Storm runs on.
+下面的页面 (MS technet) 指导如何将该策略配置到 Storm 运行的帐户。
 
-* [How to Configure Security Policy Settings](https://technet.microsoft.com/en-us/library/dn452420.aspx)
-* [Create symbolic links](https://technet.microsoft.com/en-us/library/dn221947.aspx)
+* [如何配置安全策略设置](https://technet.microsoft.com/en-us/library/dn452420.aspx)
+* [创建符号链接](https://technet.microsoft.com/en-us/library/dn221947.aspx)
 
-One tricky point is, `administrator` group already has this privilege, but it's activated only process is run as `administrator` account.
-So if your account belongs to `administrator` group (and you don't want to change it), you may want to open `command prompt` with `run as administrator` and execute processes within that console.
-If you don't want to execute Storm processes directly (not on command prompt), please execute processes with `runas /user:administrator` to run as administrator account.
+一个棘手的一点是，`administrator` 组已经有了这个特权，但只有进程被激活才能作为 `administrator` 帐号运行。
+所以，如果您的帐户属于 `administrator` 组（和你不想改变它），你可能要打开 `command prompt` 与 `run as administrator` 和控制台内执行的过程。
+如果您不想直接执行 Storm 进程（而不是在命令提示符下），请执行 `runas /user:administrator` å以管理员帐户运行的进程。
 
-Starting with Windows 10 Creators Update, it will be possible to activate a Developer Mode that supports creating symbolic links without `run as administrator`
-[Symlinks in Windows 10!](https://blogs.windows.com/buildingapps/2016/12/02/symlinks-windows-10/)
+从 Windows 10 创建者更新开始，可以激活支持创建符号链接的开发人员模式，而不以管理员身份运行 [Windows 10 中的符号链接](https://blogs.windows.com/buildingapps/2016/12/02/symlinks-windows-10/) !
 
-Alternatively you can disable usage of symbolic links by setting the config `storm.disable.symlinks` to `true`
-on Nimbus and all of the Supervisor nodes.  This will also disable features that require symlinks.  Currently this is only downloading
-dependent blobs, but may change in the future.  Some topologies may rely on symbolic links to resources in the current working directory of the worker that are
-created as a convienence, so it is not a 100% backwards compatible change.
+另外，您可以通过配置设置来禁用符号链接的使用storm.disable.symlinks，以true 在雨云和所有的主管节点。这也将禁用需要符号链接的功能。目前，这只是下载依赖的Blob，但可能会在将来发生变化。一些拓扑结构可能依赖于作为便利创建的工作者的当前工作目录中的资源的符号链接，因此它不是100％向后兼容的更改。
+
+或者，您可以通过在 Nimbus 和所有 Supervisor 节点上将 config `storm.disable.symlinks` 配置为 `true` 来禁用符号链接的使用。 
+这也将禁用需要符号链接的功能。 
+目前，这只是下载依赖的 Blob，但可能会在将来发生变化。 
+一些 topology 结构可能依赖于作为便利创建的工作者的当前工作目录中的资源的符号链接，因此它不是100％向后兼容的更改。
