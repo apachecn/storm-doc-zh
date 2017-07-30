@@ -1,26 +1,30 @@
 ---
-title: Trident API Overview
+title: Trident API 综述
 layout: documentation
 documentation: true
 ---
 
-The core data model in Trident is the "Stream", processed as a series of batches. A stream is partitioned among the nodes in the cluster, and operations applied to a stream are applied in parallel across each partition.
+"Stream" 是 Trident 中的核心数据模型, 它被当做一系列的 batch 来处理.在 Storm 集群的节点之间, 一个 stream 被划分成很多 partition （分区）, 对流的 operation （操作）是在每个 partition 上并行进行的.
 
-There are five kinds of operations in Trident:
+注:
+1. "Stream" 是 Trident 中的核心数据模型:有些地方也说是 TridentTuple , 没有个标准的说法.
+2. 一个 stream 被划分成很多 partition : partition 是 stream 的一个子集, 里面可能有多个 batch , 一个 batch 也可能位于不同的 partition 上.
 
-1. Operations that apply locally to each partition and cause no network transfer
-2. Repartitioning operations that repartition a stream but otherwise don't change the contents (involves network transfer)
-3. Aggregation operations that do network transfer as part of the operation
-4. Operations on grouped streams
-5. Merges and joins
+Trident 有 5 类操作:
+
+1. Partition-local operations , 对每个 partition 的局部操作, 不产生网络传输
+2. Repartitioning operations: 对 stream （数据流）的重新划分（仅仅是划分, 但不改变内容）, 产生网络传输
+3. 作为 operation （操作）的一部分进行网络传输的 Aggregation operations （聚合操作）.
+4. Operations on grouped streams （作用在分组流上的操作）
+5. Merges 和 joins 操作
 
 ## Partition-local operations
 
-Partition-local operations involve no network transfer and are applied to each batch partition independently.
+Partition-local operations （分区本地操作）不涉及网络传输, 并且独立地应用于每个 batch partition （批处理分区）.
 
 ### Functions
 
-A function takes in a set of input fields and emits zero or more tuples as output. The fields of the output tuple are appended to the original input tuple in the stream. If a function emits no tuples, the original input tuple is filtered out. Otherwise, the input tuple is duplicated for each output tuple. Suppose you have this function:
+一个 function 收到一个输入 tuple 后可以输出 0 或多个 tuple , 输出 tuple 的字段被追加到接收到的输入 tuple 后面.如果对某个 tuple 执行 function 后没有输出 tuple, 则该 tuple 被 filter（过滤）, 否则, 就会为每个输出 tuple 复制一份输入 tuple 的副本.假设有如下的 function :
 
 ```java
 public class MyFunction extends BaseFunction {
@@ -32,7 +36,7 @@ public class MyFunction extends BaseFunction {
 }
 ```
 
-Now suppose you have a stream in the variable "mystream" with the fields ["a", "b", "c"] with the following tuples:
+假设有个叫 "mystream" 的 stream （流）, 该流中有如下 tuple （ tuple 的字段为["a", "b", "c"] ）:
 
 ```
 [1, 2, 3]
@@ -40,13 +44,13 @@ Now suppose you have a stream in the variable "mystream" with the fields ["a", "
 [3, 0, 8]
 ```
 
-If you run this code:
+如果您运行下面的代码:
 
 ```java
 mystream.each(new Fields("b"), new MyFunction(), new Fields("d")))
 ```
 
-The resulting tuples would have fields ["a", "b", "c", "d"] and look like this:
+则 resulting tuples （输出 tuple ）中的字段为 ["a", "b", "c", "d"], 如下所示:
 
 ```
 [1, 2, 3, 0]
@@ -56,7 +60,7 @@ The resulting tuples would have fields ["a", "b", "c", "d"] and look like this:
 
 ### Filters
 
-Filters take in a tuple as input and decide whether or not to keep that tuple or not. Suppose you had this filter:
+Filters 收到一个输入 tuple , 并决定是否保留该 tuple .假设nin拥有这个 filters:
 
 ```java
 public class MyFilter extends BaseFilter {
@@ -66,7 +70,7 @@ public class MyFilter extends BaseFilter {
 }
 ```
 
-Now suppose you had these tuples with fields ["a", "b", "c"]:
+现在, 假设您有如下这些 tuple , 包含字段 ["a", "b", "c"]:
 
 ```
 [1, 2, 3]
@@ -74,13 +78,13 @@ Now suppose you had these tuples with fields ["a", "b", "c"]:
 [2, 3, 4]
 ```
 
-If you ran this code:
+如果您运行如下代码:
 
 ```java
 mystream.filter(new MyFilter())
 ```
 
-The resulting tuples would be:
+则得到的 resulting tuples （结果 tuples）为:
 
 ```
 [1, 2, 3]
@@ -88,11 +92,9 @@ The resulting tuples would be:
 
 ### map and flatMap
 
-`map` returns a stream consisting of the result of applying the given mapping function to the tuples of the stream. This
-can be used to apply a one-one transformation to the tuples.
+`map` 返回一个 stream , 它包含将给定的 mapping function （映射函数）应用到 stream 的 tuples 的结果. 这个可以用来对 tuples 应用 one-one transformation （一一变换）.
 
-For example, if there is a stream of words and you wanted to convert it to a stream of upper case words,
-you could define a mapping function as follows,
+例如, 如果有一个 stream of words （单词流）, 并且您想将其转换为 stream of upper case words （大写字母的流）, 你可以定义一个 mapping function （映射函数）如下,
 
 ```java
 public class UpperCase extends MapFunction {
@@ -103,17 +105,15 @@ public class UpperCase extends MapFunction {
 }
 ```
 
-The mapping function can then be applied on the stream to produce a stream of uppercase words.
+然后可以将 mapping function （映射函数）应用于 stream 以产生 stream of uppercase words （大写字的流）.
 
 ```java
 mystream.map(new UpperCase())
 ```
 
-`flatMap` is similar to `map` but has the effect of applying a one-to-many transformation to the values of the stream,
-and then flattening the resulting elements into a new stream.
+`flatMap` 类似于 `map` , 但具有将 one-to-many transformation （一对多变换）应用于 values of the stream （流的值）的效果, 然后将所得到的元素 flattening （平坦化）为新的 stream .
 
-For example, if there is a stream of sentences and you wanted to convert it to a stream of words,
-you could define a flatMap function as follows,
+例如, 如果有 stream of sentences （句子流）, 并且您想将其转换成 stream of words （单词流）, 你可以定义一个 flatMap 函数如下,
 
 ```java
 public class Split extends FlatMapFunction {
@@ -128,39 +128,38 @@ public class Split extends FlatMapFunction {
 }
 ```
 
-The flatMap function can then be applied on the stream of sentences to produce a stream of words,
+然后可以将 flatMap 函数应用于 stream of sentences （句子流）以产生一个 stream of words （单词流）,
 
 ```java
 mystream.flatMap(new Split())
 ```
 
-Of course these operations can be chained, so a stream of uppercase words can be obtained from a stream of sentences as follows,
+当然这些操作可以被 chained （链接）, 因此可以从如下的 stream of sentences （句子流）中获得 stream of uppercase words （大写字的流）,
 
 ```java
 mystream.flatMap(new Split()).map(new UpperCase())
 ```
 
-If you don't pass output fields as parameter, map and flatMap preserves the input fields to output fields.
+如果不将 output fields （输出字段）作为 parameter （参数）传递, 则 map 和 flatMap 会将 input fields （输入字段）保留为 output fields （输出字段）.
 
-If you want to apply MapFunction or FlatMapFunction with replacing old fields with new output fields, 
-you can call map / flatMap with additional Fields parameter as follows,
+如果要使用 MapFunction 或 FlatMapFunction 使用 new output fields （新的输出字段）替换 old fields （旧字段）, 您可以使用附加的 Fields 参数调用 map/flatMap , 如下所示,
 
 ```java
 mystream.map(new UpperCase(), new Fields("uppercased"))
 ```
 
-Output stream wil have only one output field "uppercased" regardless of what output fields previous stream had.
-Same thing applies to flatMap, so following is valid as well,
+Output stream （输出流）只有一个 output field （输出字段） "uppercased" , 而不管以前的流有什么输出字段.
+同样的事情适用于 flatMap, 所以以下是有效的,
  
 ```java
 mystream.flatMap(new Split(), new Fields("word"))
 ```
 
 ### peek
-`peek` can be used to perform an additional action on each trident tuple as they flow through the stream.
- This could be useful for debugging to see the tuples as they flow past a certain point in a pipeline.
+`peek` 可用于在每个 trident tuple 流过 stream 时对其执行 additional action （附加操作）.
+  这可能对于在流经 pipeline 中 certain point （某一点）的元组来 debugging （调试） tuples 是有用的.
 
-For example, the below code would print the result of converting the words to uppercase before they are passed to `groupBy`
+例如, 下面的代码将打印在将这些单词转换为 `groupBy` 之前将单词转换为大写的结果
 ```java
  mystream.flatMap(new Split()).map(new UpperCase())
          .peek(new Consumer() {
@@ -174,9 +173,9 @@ For example, the below code would print the result of converting the words to up
 ```
 
 ### min and minBy
-`min` and `minBy` operations return minimum value on each partition of a batch of tuples in a trident stream.
+`min` 和 `minBy` operations （操作）在 trident stream 中的 a batch of tuples （一批元组）的每个 partition （分区）上返回 minimum value （最小值）.
 
-Suppose, a trident stream contains fields ["device-id", "count"] and the following partitions of tuples
+假设 trident stream 包含字段 ["device-id", "count"] 和 partitions of tuples （元组的以下分区）
 
 ```
 Partition 0:
@@ -209,12 +208,12 @@ Partition 2:
 
 ```
 
-`minBy` operation can be applied on the above stream of tuples like below which results in emitting tuples with minimum values of `count` field in each partition.
+`minBy` operation （操作）可以应用在上面的 stream of tuples （元组流）中, 如下所示, 这导致在每个 partition （分区）中以最小值 `count` field （字段）发出 tuples .
 
 ``` java
   mystream.minBy(new Fields("count"))
 ```
-Result of the above code on mentioned partitions is:
+上述代码在上述 partitions （分区）上的结果是:
  
 ```
 Partition 0:
@@ -230,12 +229,12 @@ Partition 2:
 
 ```
 
-You can look at other `min` and `minBy` operations on Stream
+您可以在 Stream 上查看其他 `min` 和 `minBy` 操作
 ``` java
       public <T> Stream minBy(String inputFieldName, Comparator<T> comparator) 
       public Stream min(Comparator<TridentTuple> comparator) 
 ```
-Below example shows how these APIs can be used to find minimum using respective Comparators on a tuple. 
+下面的示例显示了如何使用这些 API 来使用 tuple 上的 respective Comparators （相应比较器）来找到 minimum （最小值）.
 
 ``` java
 
@@ -255,19 +254,19 @@ Below example shows how these APIs can be used to find minimum using respective 
                 .each(vehicleField, new Debug("#### least efficient vehicle"));
 
 ```
-Example applications of these APIs can be located at [TridentMinMaxOfDevicesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfDevicesTopology.java) and [TridentMinMaxOfVehiclesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfVehiclesTopology.java) 
+这些 API 的示例应用程序可以位于 [TridentMinMaxOfDevicesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfDevicesTopology.java) 和  [TridentMinMaxOfVehiclesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfVehiclesTopology.java) .
 
 ### max and maxBy
-`max` and `maxBy` operations return maximum value on each partition of a batch of tuples in a trident stream.
+`max` 和 `maxBy` operations （操作）在 trident stream 中的一 batch of tuples （批元组）的每个 partition （分区）上返回 maximum （最大值）.
 
-Suppose, a trident stream contains fields ["device-id", "count"] as mentioned in the above section.
+假设 trident stream 包含上述部分所述的字段 ["device-id", "count"] .
 
-`max` and `maxBy` operations can be applied on the above stream of tuples like below which results in emitting tuples with maximum values of `count` field for each partition.
+`max` 和 `maxBy` operations （操作）可以应用于上面的 stream of tuples （元组流）, 如下所示, 这导致每个分区的最大值为 `count` 字段的元组.
 
 ``` java
   mystream.maxBy(new Fields("count"))
 ```
-Result of the above code on mentioned partitions is:
+上述代码在上述 partitions （分区）上的结果是:
  
 ```
 Partition 0:
@@ -283,7 +282,7 @@ Partition 2:
 
 ```
 
-You can look at other `max` and `maxBy` functions on Stream
+您可以在 Stream 上查看其他 `max` 和 `maxBy` 函数
 
 ``` java
 
@@ -292,7 +291,7 @@ You can look at other `max` and `maxBy` functions on Stream
       
 ```
 
-Below example shows how these APIs can be used to find maximum using respective Comparators on a tuple.
+下面的示例显示了如何使用这些 API 来使用元组上的 respective Comparators （相应比较器）来找到 maximum （最大值）.
 
 ``` java
 
@@ -314,16 +313,16 @@ Below example shows how these APIs can be used to find maximum using respective 
 
 ```
 
-Example applications of these APIs can be located at [TridentMinMaxOfDevicesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfDevicesTopology.java) and [TridentMinMaxOfVehiclesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfVehiclesTopology.java) 
+这些 API 的示例应用程序可以位于 [TridentMinMaxOfDevicesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfDevicesTopology.java) 和 [TridentMinMaxOfVehiclesTopology](https://github.com/apache/storm/blob/master/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentMinMaxOfVehiclesTopology.java) 
 
 ### Windowing
-Trident streams can process tuples in batches which are of the same window and emit aggregated result to the next operation. 
-There are two kinds of windowing supported which are based on processing time or tuples count:
+Trident streams 可以 batches （批处理）同一个 windowing （窗口）的元组, 并将 aggregated result （聚合结果）发送到下一个 operation （操作）.
+有 2 种支持的 windowing （窗口）是基于 processing time （处理时间）或 tuples count （元组数）: 
     1. Tumbling window
     2. Sliding window
 
 #### Tumbling window
-Tuples are grouped in a single window based on processing time or count. Any tuple belongs to only one of the windows.
+基于 processing time （处理时间）或 count （计数）, 元组在 single window （单个窗口）中分组. 任何 tuple （元组）只属于其中一个 windows （窗口）.
 
 ```java 
 
@@ -342,7 +341,7 @@ Tuples are grouped in a single window based on processing time or count. Any tup
 ```
 
 #### Sliding window
-Tuples are grouped in windows and window slides for every sliding interval. A tuple can belong to more than one window.
+每个 sliding interval （滑动间隔）, Tuples （元组）被分组在 windows （窗口）和 window slides 中.元组可以属于多个 window （窗口）.
 
 ```java
  
@@ -361,10 +360,11 @@ Tuples are grouped in windows and window slides for every sliding interval. A tu
                                     WindowsStoreFactory windowStoreFactory, Fields inputFields, Aggregator aggregator, Fields functionFields);
 ```
 
-Examples of tumbling and sliding windows can be found [here](Windowing.html)
+tumbling 和 sliding windows 的示例可以在 [这里](Windowing.html) 被找到.
 
-#### Common windowing API
-Below is the common windowing API which takes `WindowConfig` for any supported windowing configurations. 
+#### 通用 windowing API
+以下是通用的 windowing API, 它为任何支持的 windowing 配置提供了 `WindowConfig` .
+ 
 
 ```java
 
@@ -373,16 +373,15 @@ Below is the common windowing API which takes `WindowConfig` for any supported w
                          
 ```
 
-`windowConfig` can be any of the below.
+`windowConfig` 可以是下面的任何一个.
  - `SlidingCountWindow.of(int windowCount, int slidingCount)`
  - `SlidingDurationWindow.of(BaseWindowedBolt.Duration windowDuration, BaseWindowedBolt.Duration slidingDuration)`
  - `TumblingCountWindow.of(int windowLength)`
  - `TumblingDurationWindow.of(BaseWindowedBolt.Duration windowLength)`
  
  
-Trident windowing APIs need `WindowsStoreFactory` to store received tuples and aggregated values. Currently, basic implementation 
-for HBase is given with `HBaseWindowsStoreFactory`. It can further be extended to address respective usecases. 
-Example of using `HBaseWindowStoreFactory` for windowing can be seen below.    
+Trident windowing APIs 需要 `WindowsStoreFactory` 来存储接收的 tuples 和 aggregated values （聚合值）. 目前,  HBase 的基本实现由 `HBaseWindowsStoreFactory` 提供. 可以进一步扩展以解决各自的用途.
+使用 `HBaseWindowStoreFactory` 进行 windowing 的例子可以在下面看到.    
 
 ```java
 
@@ -409,22 +408,22 @@ Example of using `HBaseWindowStoreFactory` for windowing can be seen below.
     
 ```
 
-Detailed description of all the above APIs in this section can be found [here](javadocs/org/apache/storm/trident/Stream.html)  
+可以在 [这里](javadocs/org/apache/storm/trident/Stream.html) 中找到本节中所有上述 API 的详细说明.  
 
-#### Example applications
-Example applications of these APIs are located at [TridentHBaseWindowingStoreTopology]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentHBaseWindowingStoreTopology.java) 
-and [TridentWindowingInmemoryStoreTopology]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentWindowingInmemoryStoreTopology.java) 
+#### 示例应用程序
+这些 API 的示例应用程序位于 [TridentHBaseWindowingStoreTopology]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentHBaseWindowingStoreTopology.java) 
+和 [TridentWindowingInmemoryStoreTopology]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/trident/TridentWindowingInmemoryStoreTopology.java) 
 
 
 ### partitionAggregate
 
-partitionAggregate runs a function on each partition of a batch of tuples. Unlike functions, the tuples emitted by partitionAggregate replace the input tuples given to it. Consider this example:
+partitionAggregate 在每个 batch of tuples （批量元组） partition 上执行一个 function 操作（实际上是聚合操作）, 但它又不同于上面的 functions 操作,  partitionAggregate 的输出 tuple 将会取代收到的输入 tuple , 如下面的例子:
 
 ```java
 mystream.partitionAggregate(new Fields("b"), new Sum(), new Fields("sum"))
 ```
 
-Suppose the input stream contained fields ["a", "b"] and the following partitions of tuples:
+假设 input stream 包括字段 ["a", "b"] , 并有下面的 partitions of tuples （元组 partitions ）:
 
 ```
 Partition 0:
@@ -441,7 +440,7 @@ Partition 2:
 ["d", 10]
 ```
 
-Then the output stream of that code would contain these tuples with one field called "sum":
+则这段代码的 output stream 包含如下 tuple , 且只有一个 "sum" 的字段:
 
 ```
 Partition 0:
@@ -454,9 +453,9 @@ Partition 2:
 [20]
 ```
 
-There are three different interfaces for defining aggregators: CombinerAggregator, ReducerAggregator, and Aggregator.
+上面代码中的 new Sum() 实际上是一个 aggregator （聚合器）, 定义一个聚合器有三种不同的接口:CombinerAggregator, ReducerAggregator 和 Aggregator .
 
-Here's the interface for CombinerAggregator:
+下面是 CombinerAggregator 接口:
 
 ```java
 public interface CombinerAggregator<T> extends Serializable {
@@ -466,7 +465,7 @@ public interface CombinerAggregator<T> extends Serializable {
 }
 ```
 
-A CombinerAggregator returns a single tuple with a single field as output. CombinerAggregators run the init function on each input tuple and use the combine function to combine values until there's only one value left. If there's no tuples in the partition, the CombinerAggregator emits the output of the zero function. For example, here's the implementation of Count:
+一个 CombinerAggregator 仅输出一个 tuple （该 tuple 也只有一个字段）.每收到一个输入 tuple, CombinerAggregator 就会执行 init() 方法（该方法返回一个初始值）, 并且用 combine() 方法汇总这些值, 直到剩下一个值为止（聚合值）.如果 partition 中没有 tuple, CombinerAggregator 会发送 zero() 的返回值.下面是聚合器 Count 的实现:
 
 ```java
 public class Count implements CombinerAggregator<Long> {
@@ -484,9 +483,9 @@ public class Count implements CombinerAggregator<Long> {
 }
 ```
 
-The benefits of CombinerAggregators are seen when you use them with the aggregate method instead of partitionAggregate. In that case, Trident automatically optimizes the computation by doing partial aggregations before transferring tuples over the network.
+当使用 aggregate() 方法代替 partitionAggregate() 方法时, 就能看到 CombinerAggregation 带来的好处.这种情况下, Trident 会自动优化计算:先做局部聚合操作, 然后再通过网络传输 tuple 进行全局聚合.
 
-A ReducerAggregator has the following interface:
+ReducerAggregator 接口如下:
 
 ```java
 public interface ReducerAggregator<T> extends Serializable {
@@ -495,7 +494,7 @@ public interface ReducerAggregator<T> extends Serializable {
 }
 ```
 
-A ReducerAggregator produces an initial value with init, and then it iterates on that value for each input tuple to produce a single tuple with a single value as output. For example, here's how you would define Count as a ReducerAggregator:
+ReducerAggregator 使用 init() 方法产生一个初始值, 对于每个输入 tuple , 依次迭代这个初始值, 最终产生一个单值输出 tuple .下面示例了如何将 Count 定义为 ReducerAggregator:
 
 ```java
 public class Count implements ReducerAggregator<Long> {
@@ -509,9 +508,9 @@ public class Count implements ReducerAggregator<Long> {
 }
 ```
 
-ReducerAggregator can also be used with persistentAggregate, as you'll see later.
+ReducerAggregator 也可以与 persistentAggregate 一起使用, 稍后你会看到的.
 
-The most general interface for performing aggregations is Aggregator, which looks like this:
+用于 performing aggregations （执行聚合）的最通用的接口是 Aggregator , 如下所示:
 
 ```java
 public interface Aggregator<T> extends Operation {
@@ -521,13 +520,15 @@ public interface Aggregator<T> extends Operation {
 }
 ```
 
-Aggregators can emit any number of tuples with any number of fields. They can emit tuples at any point during execution. Aggregators execute in the following way:
+Aggregator 可以输出任意数量的 tuple , 且这些 tuple 的字段也可以有多个.执行过程中的任何时候都可以输出 tuple （三个方法的参数中都有 collector ）. Aggregator 的执行方式如下:
 
-1. The init method is called before processing the batch. The return value of init is an Object that will represent the state of the aggregation and will be passed into the aggregate and complete methods.
-2. The aggregate method is called for each input tuple in the batch partition. This method can update the state and optionally emit tuples.
-3. The complete method is called when all tuples for the batch partition have been processed by aggregate. 
+1. 处理每个 batch 之前调用一次 init() 方法, 该方法的返回值是一个对象, 代表 aggregation 的状态, 并且会传递给下面的 aggregate() 和 complete() 方法.
+2. 每个收到一个该 batch 中的输入 tuple 就会调用一次 aggregate , 该方法中可以 update the state （更新状态）（第一点中 init() 方法的返回值）并 optionally emit tuples （可选地发出元组）.
+3. 当该 batch partition 中的所有 tuple 都被 aggregate() 方法处理完之后调用 complete 方法.
 
-Here's how you would implement Count as an Aggregator:
+注:理解 batch, partition 之间的区别将会更好的理解上面的几个方法.
+
+下面的代码将 Count 作为 Aggregator 实现:
 
 ```java
 public class CountAgg extends BaseAggregator<CountState> {
@@ -549,7 +550,7 @@ public class CountAgg extends BaseAggregator<CountState> {
 }
 ```
 
-Sometimes you want to execute multiple aggregators at the same time. This is called chaining and can be accomplished like this:
+有时需要同时执行 multiple aggregators （多个聚合）操作, 这个可以使用 chaining （链式）操作完成:
 
 ```java
 mystream.chainedAgg()
@@ -558,85 +559,85 @@ mystream.chainedAgg()
         .chainEnd()
 ```
 
-This code will run the Count and Sum aggregators on each partition. The output will contain a single tuple with the fields ["count", "sum"].
+这段代码将会对每个 partition 执行 Count 和 Sum aggregators （聚合器）, 并输出一个tuple 字段 ["count", "sum"].
 
 ### stateQuery and partitionPersist
 
-stateQuery and partitionPersist query and update sources of state, respectively. You can read about how to use them on [Trident state doc](Trident-state.html).
+stateQuery 和 partitionPersist 分别 query （查询）和 update （更新） sources of state （状态源）. 您可以在 [Trident state doc](Trident-state.html) 上阅读有关如何使用它们.
 
 ### projection
 
-The projection method on Stream keeps only the fields specified in the operation. If you had a Stream with fields ["a", "b", "c", "d"] and you ran this code:
+经 Stream 中的 project 方法处理后的 tuple 仅保持指定字段（相当于过滤字段）.如果你有一个包含字段  ["a", "b", "c", "d"] 的 stream , 执行下面代码:
 
 ```java
 mystream.project(new Fields("b", "d"))
 ```
 
-The output stream would contain only the fields ["b", "d"].
+则 output stream 将仅包含 ["b", "d"] 字段.
 
 
 ## Repartitioning operations
 
-Repartitioning operations run a function to change how the tuples are partitioned across tasks. The number of partitions can also change as a result of repartitioning (for example, if the parallelism hint is greater after repartioning). Repartitioning requires network transfer. Here are the repartitioning functions:
+Repartitioning operations （重新分区操作）运行一个函数来 change how the tuples are partitioned across tasks （更改元组在任务之间的分区）. number of partitions （分区的数量）也可以由于 repartitioning （重新分区）而改变（例如, 如果并行提示在 repartioning （重新分配）后更大）. Repartitioning （重新分区）需要 network transfer （网络传输）. 以下是 repartitioning functions （重新分区功能）:
 
-1. shuffle: Use random round robin algorithm to evenly redistribute tuples across all target partitions
-2. broadcast: Every tuple is replicated to all target partitions. This can useful during DRPC – for example, if you need to do a stateQuery on every partition of data.
-3. partitionBy: partitionBy takes in a set of fields and does semantic partitioning based on that set of fields. The fields are hashed and modded by the number of target partitions to select the target partition. partitionBy guarantees that the same set of fields always goes to the same target partition.
-4. global: All tuples are sent to the same partition. The same partition is chosen for all batches in the stream.
-5. batchGlobal: All tuples in the batch are sent to the same partition. Different batches in the stream may go to different partitions. 
-6. partition: This method takes in a custom partitioning function that implements org.apache.storm.grouping.CustomStreamGrouping
+1. shuffle: 随机将 tuple 均匀地分发到目标 partition 里.
+2. broadcast: 每个 tuple 被复制到所有的目标 partition 里, 在 DRPC 中有用 — 你可以在每个 partition 上使用 stateQuery .
+3. partitionBy: 对每个 tuple 选择 partition 的方法是:(该 tuple 指定字段的 hash 值)  mod  (目标 partition 的个数), 该方法确保指定字段相同的 tuple 能够被发送到同一个 partition .（但同一个 partition 里可能有字段不同的 tuple ）.
+4. global: 所有的 tuple 都被发送到同一个 partition .
+5. batchGlobal: 确保同一个 batch 中的 tuple 被发送到相同的 partition 中. 
+6. partition: 此方法采用实现 org.apache.storm.grouping.CustomStreamGrouping 的自定义分区函数.
 
 ## Aggregation operations
 
-Trident has aggregate and persistentAggregate methods for doing aggregations on Streams. aggregate is run on each batch of the stream in isolation, while persistentAggregate will aggregation on all tuples across all batches in the stream and store the result in a source of state.
+Trident 中有 aggregate() 和 persistentAggregate() 方法对流进行聚合操作. aggregate() 在每个 batch 上独立的执行,  persistemAggregate() 对所有 batch 中的所有 tuple 进行聚合, 并将结果存入 state 源中.
 
-Running aggregate on a Stream does a global aggregation. When you use a ReducerAggregator or an Aggregator, the stream is first repartitioned into a single partition, and then the aggregation function is run on that partition. When you use a CombinerAggregator, on the other hand, first Trident will compute partial aggregations of each partition, then repartition to a single partition, and then finish the aggregation after the network transfer. CombinerAggregator's are far more efficient and should be used when possible.
+aggregate() 对 Stream 做全局聚合, 当使用 ReduceAggregator 或者 Aggregator 聚合器时, 流先被重新划分成一个大分区(仅有一个 partition ), 然后对这个 partition 做聚合操作;另外, 当使用 CombinerAggregator 时, Trident 首先对每个 partition 局部聚合, 然后将所有这些 partition 重新划分到一个 partition 中, 完成全局聚合.相比而言,  CombinerAggregator 更高效, 推荐使用.
 
-Here's an example of using aggregate to get a global count for a batch:
+下面的例子使用 aggregate() 对一个 batch 操作得到一个全局的 count:
 
 ```java
 mystream.aggregate(new Count(), new Fields("count"))
 ```
 
-Like partitionAggregate, aggregators for aggregate can be chained. However, if you chain a CombinerAggregator with a non-CombinerAggregator, Trident is unable to do the partial aggregation optimization.
+同在 partitionAggregate 中一样, aggregate 中的聚合器也可以使用链式用法.但是, 如果你将一个 CombinerAggregator 链到一个非 CombinerAggregator 后面, Trident 就不能做局部聚合优化.
 
-You can read more about how to use persistentAggregate in the [Trident state doc](Trident-state.html).
+关于 persistentAggregate 的用法请参见 [Trident state doc](Trident-state.html) 一文.
 
 ## Operations on grouped streams
 
-The groupBy operation repartitions the stream by doing a partitionBy on the specified fields, and then within each partition groups tuples together whose group fields are equal. For example, here's an illustration of a groupBy operation:
+groupBy 操作先对流中的指定字段做 partitionBy 操作, 让指定字段相同的 tuple 能被发送到同一个 partition 里.然后在每个 partition 里根据指定字段值对该分区里的 tuple 进行分组.下面演示了 groupBy 操作的过程:
 
 ![Grouping](images/grouping.png)
 
-If you run aggregators on a grouped stream, the aggregation will be run within each group instead of against the whole batch. persistentAggregate can also be run on a GroupedStream, in which case the results will be stored in a [MapState]({{page.git-blob-base}}/storm-core/src/jvm/org/apache/storm/trident/state/map/MapState.java) with the key being the grouping fields. You can read more about persistentAggregate in the [Trident state doc](Trident-state.html).
+如果你在一个 grouped stream 上做聚合操作, 聚合操作将会在每个 group （分组）内进行, 而不是整个 batch 上. GroupStream 类中也有 persistentAggregate 方法, 该方法聚合的结果将会存储在一个 key 值为分组字段(即 groupBy 中指定的字段)的 [MapState]({{page.git-blob-base}}/storm-core/src/jvm/org/apache/storm/trident/state/map/MapState.java) 中, 这些还是在 [Trident state doc](Trident-state.html) 一文中讲解.
 
-Like regular streams, aggregators on grouped streams can be chained.
+和普通的 stream 一样, groupstream 上的聚合操作也可以使用 chained （链式语法）.
 
 ## Merges and joins
 
-The last part of the API is combining different streams together. The simplest way to combine streams is to merge them into one stream. You can do that with the TridentTopology#merge method, like so:
+最后一部分 API 内容是关于将几个 stream 汇总到一起, 最简单的汇总方法是将他们合并成一个 stream , 这个可以通过 TridentTopology 中的 merge 方法完成, 就像这样:
 
 ```java
 topology.merge(stream1, stream2, stream3);
 ```
 
-Trident will name the output fields of the new, merged stream as the output fields of the first stream.
+Trident 将把新的 merged stream 的 output fields 命名为第一个 stream 的 output fields （输出字段）.
 
-Another way to combine streams is with a join. Now, a standard join, like the kind from SQL, require finite input. So they don't make sense with infinite streams. Joins in Trident only apply within each small batch that comes off of the spout. 
+另一种 combine streams （汇总方法）是使用 join （连接, 类似于 sql 中的连接操作, 需要有限的输入）.所以, 它们对于 infinite streams （无限流）是没有意义的. Joins in Trident 仅适用于从 spout 发出的每个 small batch 中.
 
-Here's an example join between a stream containing fields ["key", "val1", "val2"] and another stream containing ["x", "val1"]:
+以下是包含字段 ["key", "val1", "val2"] 的 stream 和包含 ["x", "val1"] 的另一个 stream 之间的 join 示例:
 
 ```java
 topology.join(stream1, new Fields("key"), stream2, new Fields("x"), new Fields("key", "a", "b", "c"));
 ```
 
-This joins stream1 and stream2 together using "key" and "x" as the join fields for each respective stream. Then, Trident requires that all the output fields of the new stream be named, since the input streams could have overlapping field names. The tuples emitted from the join will contain:
+使用 "key" 和 "x" 作为每个相应流的连接字段将 stream1 和 stream2 join 在一起.然后, Trident 要求命名 new stream 的所有 output fields , 因为 input streams 可能具有 overlapping field names （重叠的字段名称）.从 join 发出的 tuples 将包含:
 
-1. First, the list of join fields. In this case, "key" corresponds to "key" from stream1 and "x" from stream2.
-2. Next, a list of all non-join fields from all streams, in order of how the streams were passed to the join method. In this case, "a" and "b" correspond to "val1" and "val2" from stream1, and "c" corresponds to "val1" from stream2.
+1. list of join fields （连接字段列表）.在这种情况下,  "key" 对应于 stream1 的 "key" , stream2 对应于 "x" .
+2. 接下来, 按照 streams 如何传递到 join 方法的顺序, 所有流中的所有 non-join fields （非连接字段）的列表.在这种情况下,  "a" 和 "b" 对应于来自 stream1 的 "val1" 和  "val2" ,  "c" 对应于来自 stream2 的 "val1" .
 
-When a join happens between streams originating from different spouts, those spouts will be synchronized with how they emit batches. That is, a batch of processing will include tuples from each spout.
+当来自不同 spouts 的 stream 之间发生 join 时, 这些 spouts 将与它们如何 emit batches （发出批次）同步.也就是说, 一批处理将包括 tuples from each spout （每个 spout 的元组）.
 
-You might be wondering – how do you do something like a "windowed join", where tuples from one side of the join are joined against the last hour of tuples from the other side of the join.
+你可能会想知道 - 你如何做一些像 "windowed join" 这样的事情, 其中从 join 的一边的 tuples 连接 join 另一边的最后一个小时的 tuples .
 
-To do this, you would make use of partitionPersist and stateQuery. The last hour of tuples from one side of the join would be stored and rotated in a source of state, keyed by the join field. Then the stateQuery would do lookups by the join field to perform the "join".
+为此, 您将使用 partitionPersist 和 stateQuery .join 一端的元组的最后一小时将被存储并在 source of state （状态源）中旋转, 并由 join 字段键入.然后 stateQuery 将通过连接字段进行查找以执行 "join".
