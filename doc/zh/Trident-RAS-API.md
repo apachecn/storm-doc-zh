@@ -6,13 +6,13 @@ documentation: true
 
 ## Trident RAS API
 
-The Trident RAS (Resource Aware Scheduler) API provides a mechanism to allow users to specify the resource consumption of a Trident topology. The API looks exactly like the base RAS API, only it is called on Trident Streams instead of Bolts and Spouts.
+Trident RAS（ Resource Aware Scheduler （资源感知调度程序））API 提供了一种机制, 允许用户指定 Trident topology 的 resource consumption （资源消耗）.  API 看起来与基本的 RAS API 完全相同, 只是在 Trident Streams 上调用, 而不是 Bolts 和 Spouts . 
 
-In order to avoid duplication and inconsistency in documentation, the purpose and effects of resource setting are not described here, but are instead found in the [Resource Aware Scheduler Overview](Resource_Aware_Scheduler_overview.html)
+为了避免文档中的 duplication （重复）和 inconsistency （不一致）,  resource setting （资源设置）的目的和效果在这里不再描述, 而是在 [Resource Aware Scheduler Overview](Resource_Aware_Scheduler_overview.html) 中可以找到,
 
 ### Use
 
-First, an example:
+首先, 例如:
 
 ```java
     TridentTopology topo = new TridentTopology();
@@ -39,18 +39,16 @@ First, an example:
             .setMemoryLoad(2048);
 ```
 
-Resources can be set for each operation (except for grouping, shuffling, partitioning).
-Operations that are combined by Trident into single Bolts will have their resources summed.
+可以为每个操作设置 Resources （资源）（除了 grouping （分组）, shuffling （混洗）, partitioning （分区））. 将 Trident combined 成 single Bolts 的操作将将其资源相加. 
 
-Every Bolt is given **at least** the default resources, regardless of user settings.
+每个 Bolt 都被给予 **至少** 默认资源, 无论用户设置如何. 
 
-In the above case, we end up with
+在上述情况下, 我们最终得到
 
+- 一个 spout 和 spout coordinator （spout 协调器）, 每个 CPU 负载为 20% , 内存负载为 512MiB , off-heap （堆栈）为 256MiB . 
+- 组合的 `Split` 和 `BangAdder` 以及 `QMarkAdder` 的 on-heap （堆栈）中, 具有80% cpu 负载（10%+ 50%+ 20%）和 1664MiB（1024 + 512 + 128）的内存负载的 bolt , 使用 DefaultResourceDeclarer 中包含的默认资源
+- 具有 100% cpu 加载和 2048MiB 堆内存负载的 bolt , 默认值为 off-heap （非堆）
 
-- a spout and spout coordinator with a CPU load of 20% each, and a memory load of 512MiB on-heap and 256MiB off-heap.
-- a bolt with 80% cpu load (10% + 50% + 20%) and a memory load of 1664MiB (1024 + 512 + 128) on-heap from the combined `Split` and `BangAdder` and the `QMarkAdder` which used the default resources contained in the DefaultResourceDeclarer
-- a bolt with 100% cpu load and a memory load of 2048MiB on-heap, with default value for off-heap.
-
-Resource declarations may be called after any operation. The operations without explicit resources will get the defaults. If you choose to set resources for only some operations, defaults must be declared, or topology submission will fail.
-Resource declarations have the same *boundaries* as parallelism hints. They don't cross any groupings, shufflings, or any other kind of repartitioning.
-Resources are declared per operation, but get combined within boundaries.
+任何 operation （操作）后都可以调用 Resource declarations （资源声明）. 没有明确资源的操作将获得默认值. 如果您选择仅为某些操作设置资源, 则必须声明默认值, 否则拓扑提交将失败. 
+资源声明具有与并行提示相同的 *boundaries* . 他们不会进行任何分组, 洗牌或任何其他类型的重新分配. 
+每个操作都会声明资源, 但在边界内组合. 
