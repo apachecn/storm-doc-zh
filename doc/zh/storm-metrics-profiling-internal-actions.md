@@ -1,10 +1,12 @@
 ---
-title: Storm Metrics for Profiling Various Storm Internal Actions
+title: Storm 指标用于分析各种 Storm 内部行为
 layout: documentation
 documentation: true
 ---
 
-With the addition of these metrics, Storm users can collect, view, and analyze the performance of various internal actions.  The actions that are profiled include thrift rpc calls and http quests within the storm daemons. For instance, in the Storm Nimbus daemon, the following thrift calls defined in the Nimbus$Iface are profiled:
+随着这些指标的增加, Storm 用户可以收集, 查看和分析各种内部操作的性能.
+分析的动作包括 Storm 守护程序中的 rpc 调用和 http 任务.
+例如, 在 Storm Nimbus 守护进程中, 下面是在 Nimbus$Iface 中定义的 thrift 调用简介：
 
 - submitTopology
 - submitTopologyWithOpts
@@ -16,45 +18,46 @@ With the addition of these metrics, Storm users can collect, view, and analyze t
 - setLogConfig
 - getLogConfig
 
-Various HTTP GET and POST requests are marked for profiling as well such as the GET and POST requests for the Storm UI daemon (ui/core.cj)
-To implement these metrics the following packages are used: 
+各种 HTTP GET 和 POST 请求也被标记用于分析, 例如 Storm UI 守护程序的 GET 和 POST 请求 (ui/core.cj) 要实现这些度量, 使用以下软件包：
+
 - io.dropwizard.metrics
 - metrics-clojure
 
-## How it works
+## 怎么运行它
 
-By using packages io.dropwizard.metrics and metrics-clojure (clojure wrapper for the metrics Java API), we can mark functions to profile by declaring (defmeter num-some-func-calls) and then adding the (mark! num-some-func-calls) to where the function is invoked. For example:
+通过使用包 io.dropwizard.metrics 和 metrics-clojure（度量 Java API 的 clojure 包装器）, 我们可以通过声明 (defmeter num-some-func-calls) 来将功能标记为配置文件, 然后添加 (mark! num-some-func-calls) 调用函数的位置.例如：
 
     (defmeter num-some-func-calls)
     (defn some-func [args]
         (mark! num-some-func-calls)
         (body))
-        
-What essentially the mark! API call does is increment a counter that represents how many times a certain action occured.  For instantanous measurements user can use gauges.  For example: 
+
+什么是 mark 的本质! API 调用是增加一个计数器, 表示某个操作发生了多少次.对于即时测量, 用户可以使用量规.例如：
 
     (defgauge nimbus:num-supervisors
          (fn [] (.size (.supervisors (:storm-cluster-state nimbus) nil))))
          
-The above example will get the number of supervisors in the cluster.  This metric is not accumlative like one previously discussed.
+上面的例子将得到集群中的主管数量.这个度量不像以前讨论过的那样累积.
 
-A metrics reporting server needs to also be activated to collect the metrics. You can do this by calling the following function:
+还需要激活度量报告服务器来收集指标.您可以通过调用以下函数来执行此操作：
 
     (defn start-metrics-reporters []
         (jmx/start (jmx/reporter {})))
 
-## How to collect the metrics
+## 如何收集指标
 
-Metrics can be reported via JMX or HTTP.  A user can use JConsole or VisualVM to connect to the jvm process and view the stats.
+指标可以通过 JMX 或 HTTP 报告.用户可以使用 JConsole 或 VisualVM 连接到 jvm 进程并查看统计信息.
 
-To view the metrics in a GUI use VisualVM or JConsole.  Screenshot of using VisualVm for metrics: 
+要在 GUI 中查看指标, 请使用 VisualVM 或 JConsole.使用 VisualVm 进行指标的屏幕截图：
 
 ![Viewing metrics with VisualVM](images/viewing_metrics_with_VisualVM.png)
 
-For detailed information regarding how to collect the metrics please reference: 
+有关如何收集指标的详细信息, 请参考：
 
 https://dropwizard.github.io/metrics/3.1.0/getting-started/
 
-If you want use JMX and view metrics through JConsole or VisualVM, remember launch JVM processes your want to profile with the correct JMX configurations.  For example in Storm you would add the following to conf/storm.yaml
+如果要使用 JMX 并通过 JConsole 或 VisualVM 查看指标, 请记住使用正确的 JMX 配置启动要配置文件的 JVM 进程.
+例如在 Storm 中, 您将添加以下 conf/storm.yaml
 
     nimbus.childopts: "-Xmx1024m -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=3333  -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
     
@@ -66,9 +69,11 @@ If you want use JMX and view metrics through JConsole or VisualVM, remember laun
    
     supervisor.childopts: "-Xmx256m -Dcom.sun.management.jmxremote.port=3337 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
 
-### Please Note:
-Since we shade all of the packages we use, additional plugins for collecting metrics might not work at this time.  Currently collecting the metrics via JMX is supported.
-   
-For more information about io.dropwizard.metrics and metrics-clojure packages please reference their original documentation:
+### 请注意:
+
+由于我们遮蔽了我们使用的所有软件包, 所以用于收集指标的附加插件目前可能无法正常工作.目前通过 JMX 收集指标是受支持的.
+
+有关 io.dropwizard.metrics 和 metrics-clojure 软件包的更多信息, 请参考原始文档：
+
 - https://dropwizard.github.io/metrics/3.1.0/
 - http://metrics-clojure.readthedocs.org/en/latest/
