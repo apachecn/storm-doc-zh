@@ -61,7 +61,7 @@ Storm 集群现在应该通过 Pacemaker 来推动所有 worker 的心跳.
 
 ### 安全
 
-目前支持摘要（基于密码）和Kerberos安全性.
+目前支持摘要（基于密码）和 Kerberos 安全性.
 安全性目前只在于读取而不是写入.
 写入可以由任何人执行, 而读取只能由授权和认证的用户执行.
 这是未来发展的一个领域, 因为它让群集开放给 DoS 攻击, 但它阻止任何敏感信息到达未经授权的眼睛, 这是主要目标.
@@ -78,13 +78,13 @@ PacemakerDigest {
 };
 ```
 
-配置了这些设置的任何节点将能够从Pacemaker中读取.
-Worker 节点不需要设置这些配置, 并且可以保留 `pacemaker.auth.method: NONE` 设置, 因为它们不需要从Pacemaker守护进程读取.
+配置了这些设置的任何节点将能够从 Pacemaker 中读取.
+Worker 节点不需要设置这些配置, 并且可以保留 `pacemaker.auth.method: NONE` 设置, 因为它们不需要从 Pacemaker 守护进程读取.
 
 #### Kerberos
 
 要配置Kerberos身份验证, 请 `pacemaker.auth.method: KERBEROS` 在主机 Nimbus 和 Pacemaker 的节点上的集群配置中进行设置.
-节点也必须 `java.security.auth.login.config` 设置为指向JAAS配置.
+节点也必须 `java.security.auth.login.config` 设置为指向 JAAS 配置.
 
 Nimbus 上的 JAAS 配置必须看起来像这样：
 
