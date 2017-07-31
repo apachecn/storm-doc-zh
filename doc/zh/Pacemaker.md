@@ -114,7 +114,7 @@ PacemakerServer {
 };
 ```
 
-- Nimbus 主机上 `PacemakerClient` 部分中的客户端用户主体必须与 Storm集群上的 `nimbus.daemon.user` 配置值相匹配.
+- Nimbus 主机上 `PacemakerClient` 部分中的客户端用户主体必须与 Storm 集群上的 `nimbus.daemon.user` 配置值相匹配.
 - 在, 客户端的 `serviceName` 值必须与 Pacemaker主机上 `PacemakerServer` 部分的服务器的用户主体相匹配.
 
 ### 容错
@@ -130,7 +130,7 @@ Nimbus 的功能将受到干扰, 但 topology 本身将继续运行.
 
 与 ZooKeeper 相比, Pacemaker 使用更少的 CPU, 更少的内存, 当然也没有磁盘用于相同的负载, 这是由于缺乏维护节点之间的一致性的开销.
 在千兆网络上, 有6000个节点的理论限制.然而, 实际限制可能在2000-3000节点之间.这些限制还没有被测试.
-在拥有 topology 结构的270个管理员集群中, Pacemaker 的资源利用率是一个核心的70％, 在具有4 `Intel(R) Xeon(R) CPU E5530 @ 2.40GHz` 和24GiB RAM 的机器上的近1GiB 的RAM.
+在拥有 topology 结构的270个管理员集群中, Pacemaker 的资源利用率是一个核心的70％, 在具有4个 `Intel(R) Xeon(R) CPU E5530 @ 2.40GHz` 和24GiB RAM 的机器上的近1GiB 的RAM.
 
 Pacemaker 在支持 HA.多个 Pacemaker 实例可以在 Storm 群集中一次使用, 以实现大规模的可扩展性.
 只需将 Pacemaker 主机的名称包含在 pacemaker.servers 配置中, worker 和 Nimbus 将开始与他们进行通信.
