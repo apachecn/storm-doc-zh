@@ -1,83 +1,84 @@
 ---
-title: Troubleshooting
+title: 疑难解答
 layout: documentation
 documentation: true
+
 ---
 
-This page lists issues people have run into when using Storm along with their solutions.
+本页列出了用户使用Storm时遇到的问题及其解决方案.
 
-### Worker processes are crashing on startup with no stack trace
+### worker进程在启动时崩溃,没有堆栈跟踪(stack trace)
 
-Possible symptoms:
+可能的现象:
  
- * Topologies work with one node, but workers crash with multiple nodes
+ * Topologies 在单个节点工作正常, 但是多个节点时崩溃
 
-Solutions:
+解决方案:
 
- * You may have a misconfigured subnet, where nodes can't locate other nodes based on their hostname. ZeroMQ sometimes crashes the process when it can't resolve a host. There are two solutions:
-  * Make a mapping from hostname to IP address in /etc/hosts
-  * Set up an internal DNS so that nodes can locate each other based on hostname.
+ * 可能部分节点网络配置错误,其中节点无法根据其主机名定位其他节点. 当无法解析主机时,ZeroMQ该进程有时会崩溃. 有两个解决方案:
+  * 在 /etc/hosts 文件中配置主机名与IP地址的映射表
+  * 设置内部DNS,以便节点可以根据主机名相互定位.
   
-### Nodes are unable to communicate with each other
+### 节点无法相互通信
 
-Possible symptoms:
+可能的现象:
 
- * Every spout tuple is failing
- * Processing is not working
+ * 每个 spout tuple 都失败了
+ * 处理不起作用
 
-Solutions:
+解决方案:
 
- * Storm doesn't work with ipv6. You can force ipv4 by adding `-Djava.net.preferIPv4Stack=true` to the supervisor child options and restarting the supervisor. 
- * You may have a misconfigured subnet. See the solutions for `Worker processes are crashing on startup with no stack trace`
+ * Storm不适用于ipv6. 你可以通过添加强制ipv4 `-Djava.net.preferIPv4Stack=true` 到 supervisor子选项 然后重启supervisor. 
+ * 可能部分节点网络配置错误. 查看 `worker进程在启动时崩溃,没有堆栈跟踪`的解决方案
 
-### Topology stops processing tuples after awhile
+### Topology在一段时间后停止处理tuple
 
-Symptoms:
+现象:
 
- * Processing works fine for awhile, and then suddenly stops and spout tuples start failing en masse. 
+ * 处理工作正常工作一段时间,然后突然停止,并且spout tuple开始大量失败. 
  
-Solutions:
+解决方案:
 
- * This is a known issue with ZeroMQ 2.1.10. Downgrade to ZeroMQ 2.1.7.
+ * 这是ZeroMQ 2.1.10的已知问题. 降级至ZeroMQ 2.1.7
  
-### Not all supervisors appear in Storm UI
+### Storm UI中supervisor节点显示缺失
 
-Symptoms:
+现象:
  
- * Some supervisor processes are missing from the Storm UI
- * List of supervisors in Storm UI changes on refreshes
+ * Storm UI 查看部分 supervisor进程缺失
+ * Storm UI 在刷新时supervisors 列表会变化
 
-Solutions:
+解决方案:
 
- * Make sure the supervisor local dirs are independent (e.g., not sharing a local dir over NFS)
- * Try deleting the local dirs for the supervisors and restarting the daemons. Supervisors create a unique id for themselves and store it locally. When that id is copied to other nodes, Storm gets confused. 
+ * 确保supervisor本地目录是独立的（例如,不通过NFS共享本地目录）
+ * 尝试删除supervisor的本地目录并重新启动守护进程. supervisor启动时为自己创建一个唯一的ID,并将其存储在本地. 当该id被复制到其他节点时,Storm会感到困惑.
 
-### "Multiple defaults.yaml found" error
+### "Multiple defaults.yaml found" 错误
 
-Symptoms:
+现象:
 
- * When deploying a topology with "storm jar", you get this error
+ * 当使用 "storm jar" 部署topology时发生上述错误
 
-Solution:
+解决方案:
 
- * You're most likely including the Storm jars inside your topology jar. When packaging your topology jar, don't include the Storm jars as Storm will put those on the classpath for you.
+ * 很有可能在您的topology jar中包含有Storm相关jar. 当打包 topology jar时, 不要包含 Storm jars ,Storm 会自动将相关的jar包加入classpath中.
 
-### "NoSuchMethodError" when running storm jar
+### 运行storm jar 发生 "NoSuchMethodError" 
 
-Symptoms:
+现象:
 
- * When running storm jar, you get a cryptic "NoSuchMethodError"
+ * 当运行 storm jar发生奇怪的 "NoSuchMethodError"错误
 
-Solution:
+解决方案:
 
- * You're deploying your topology with a different version of Storm than you built your topology against. Make sure the storm client you use comes from the same version as the version you compiled your topology against.
+ * 您正在使用与构建topology不同的Storm版本来部署topology. 确保您使用的Storm客户端与您编译topology的版本相同
 
 
-### Kryo ConcurrentModificationException
+### Kryo 并发修改异常(ConcurrentModificationException)
 
-Symptoms:
+现象:
 
- * At runtime, you get a stack trace like the following:
+ * 运行时异常堆栈跟踪如下:
 
 ```
 java.lang.RuntimeException: java.util.ConcurrentModificationException
@@ -109,6 +110,6 @@ Caused by: java.util.ConcurrentModificationException
 	at org.apache.storm.serialization.KryoValuesSerializer.serializeInto(KryoValuesSerializer.java:27)
 ```
 
-Solution: 
+解决方案:
 
- * This means that you're emitting a mutable object as an output tuple. Everything you emit into the output collector must be immutable. What's happening is that your bolt is modifying the object while it is being serialized to be sent over the network.
+ * 这意味着您将一个可变对象作为 output tuple发出. 发送到output collector的一切对象都必须是不可变的.当对象被序列化以通过网络发送时您的bolt同时正在修改对象.
