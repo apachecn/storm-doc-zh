@@ -25,7 +25,7 @@ documentation: true
 
 ## 怎么运行它
 
-通过使用包 io.dropwizard.metrics 和 metrics-clojure（度量 Java API 的 clojure 包装器）, 我们可以通过声明 (defmeter num-some-func-calls) 来将功能标记为配置文件, 然后添加 (mark! num-some-func-calls) 调用函数的位置.例如：
+通过使用包 io.dropwizard.metrics 和 metrics-clojure (Metrics Java API 的 clojure 包装器), 我们可以通过声明 (defmeter num-some-func-calls) 来将功能标记为配置文件, 然后添加 (mark! num-some-func-calls) 调用函数的位置.例如：
 
     (defmeter num-some-func-calls)
     (defn some-func [args]
