@@ -1,10 +1,10 @@
 ---
-title: Storm 指标用于分析各种 Storm 内部行为
+title: 用于分析 Storm 的各种内部行为的 Metrics
 layout: documentation
 documentation: true
 ---
 
-随着这些指标的增加, Storm 用户可以收集, 查看和分析各种内部操作的性能.
+随着这些 Metrics 的增加, Storm 用户可以收集, 查看和分析各种内部操作的性能.
 分析的动作包括 Storm 守护程序中的 rpc 调用和 http 任务.
 例如, 在 Storm Nimbus 守护进程中, 下面是在 Nimbus$Iface 中定义的 thrift 调用简介：
 
@@ -18,7 +18,7 @@ documentation: true
 - setLogConfig
 - getLogConfig
 
-各种 HTTP GET 和 POST 请求也被标记用于分析, 例如 Storm UI 守护程序的 GET 和 POST 请求 (ui/core.cj) 要实现这些度量, 使用以下软件包：
+各种 HTTP GET 和 POST 请求也被 make 用于分析, 例如 Storm UI 守护程序的 GET 和 POST 请求 (ui/core.cj) 要实现这些 Metrics, 使用以下软件包：
 
 - io.dropwizard.metrics
 - metrics-clojure
@@ -44,19 +44,19 @@ documentation: true
     (defn start-metrics-reporters []
         (jmx/start (jmx/reporter {})))
 
-## 如何收集指标
+## 如何收集 Metrics
 
-指标可以通过 JMX 或 HTTP 报告.用户可以使用 JConsole 或 VisualVM 连接到 jvm 进程并查看统计信息.
+Metrics 可以通过 JMX 或 HTTP 报告.用户可以使用 JConsole 或 VisualVM 连接到 jvm 进程并查看统计信息.
 
-要在 GUI 中查看指标, 请使用 VisualVM 或 JConsole.使用 VisualVm 进行指标的屏幕截图：
+要在 GUI 中查看 Metrics, 请使用 VisualVM 或 JConsole.使用 VisualVm 进行 Metrics 的屏幕截图：
 
 ![Viewing metrics with VisualVM](images/viewing_metrics_with_VisualVM.png)
 
-有关如何收集指标的详细信息, 请参考：
+有关如何收集 Metrics 的详细信息, 请参考：
 
 https://dropwizard.github.io/metrics/3.1.0/getting-started/
 
-如果要使用 JMX 并通过 JConsole 或 VisualVM 查看指标, 请记住使用正确的 JMX 配置启动要配置文件的 JVM 进程.
+如果要使用 JMX 并通过 JConsole 或 VisualVM 查看 Metrics, 请记住使用正确的 JMX 配置启动要配置文件的 JVM 进程.
 例如在 Storm 中, 您将添加以下 conf/storm.yaml
 
     nimbus.childopts: "-Xmx1024m -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=3333  -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
@@ -71,7 +71,7 @@ https://dropwizard.github.io/metrics/3.1.0/getting-started/
 
 ### 请注意:
 
-由于我们遮蔽了我们使用的所有软件包, 所以用于收集指标的附加插件目前可能无法正常工作.目前通过 JMX 收集指标是受支持的.
+由于我们遮蔽了我们使用的所有软件包, 所以用于收集 Metrics 的附加插件目前可能无法正常工作.目前通过 JMX 收集 Metrics 是受支持的.
 
 有关 io.dropwizard.metrics 和 metrics-clojure 软件包的更多信息, 请参考原始文档：
 
