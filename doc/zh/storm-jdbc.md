@@ -4,9 +4,11 @@ layout: documentation
 documentation: true
 ---
 
-Storm/Trident integration for JDBC. This package includes the core bolts and trident states that allows a storm topology
+Storm/Trident集成JDBC. This package includes the core bolts and trident states that allows a storm topology
 to either insert storm tuples in a database table or to execute select queries against a database and enrich tuples 
 in a storm topology.
+
+Storm/Trident集成JDBC.该包中包含的核心bolts 和 trident states ，允许storm topology把storm tuples插入数据库表中或者执行数据库查询，并且丰富了storm topology 中的tuples.
 
 **Note**: Throughout the examples below, we make use of com.google.common.collect.Lists and com.google.common.collect.Maps.
 
