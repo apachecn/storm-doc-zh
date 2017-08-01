@@ -4,18 +4,17 @@ layout: documentation
 documentation: true
 ---
 
-Storm core has support for processing a group of tuples that falls within a window. Windows are specified with the 
-following two parameters,
+Storm core 支持处理落在窗口内的一组元组。窗口操作指定了一下两个参数
 
-1. Window length - the length or duration of the window
-2. Sliding interval - the interval at which the windowing slides
+    1.窗口的长度 - 窗口的长度或持续时间
 
-## Sliding Window
+    2.滑动间隔 - 窗口滑动的时间间隔
 
-Tuples are grouped in windows and window slides every sliding interval. A tuple can belong to more than one window.
+## 滑动窗口
 
-For example a time duration based sliding window with length 10 secs and sliding interval of 5 seconds.
+元组被分组在窗口和每个滑动间隔窗口中。 一个元组可以属于多个窗口。
 
+例如一个持续时间长度为 10 秒和滑动间隔 5 秒的滑动窗口。
 ```
 ........| e1 e2 | e3 e4 e5 e6 | e7 e8 e9 |...
 -5      0       5            10          15   -> time
@@ -23,16 +22,14 @@ For example a time duration based sliding window with length 10 secs and sliding
         |<---------- w2 ----->|
                 |<-------------- w3 ---->|
 ```
+窗口每5秒进行一次评估，第一个窗口中的某些元组与第二个窗口重叠。
 
-The window is evaluated every 5 seconds and some of the tuples in the first window overlaps with the second one.
-
-Note: The window first slides at t = 5 secs and would contain events received up to the first five secs.
-
+注意：窗口第一次滑动在 t = 5s，并且将包含在前 5 秒钟内收到的事件。
 ## Tumbling Window
 
-Tuples are grouped in a single window based on time or count. Any tuple belongs to only one of the windows.
+元组根据时间或数量被分组在一个窗口中。任何元组只属于其中一个窗口。
 
-For example a time duration based tumbling window with length 5 secs.
+例如一个持续时间长度为 5s 的 tumbling window。
 
 ```
 | e1 e2 | e3 e4 e5 e6 | e7 e8 e9 |...
@@ -40,11 +37,10 @@ For example a time duration based tumbling window with length 5 secs.
    w1         w2            w3
 ```
 
-The window is evaluated every five seconds and none of the windows overlap.
+窗口每五秒进行一次评估，并且没有窗口重叠。
 
-Storm supports specifying the window length and sliding intervals as a count of the number of tuples or as a time duration.
-
-The bolt interface `IWindowedBolt` is implemented by bolts that needs windowing support.
+Storm 支持指定窗口长度和滑动间隔作为元组数的计数或持续时间。
+bolt 接口 `IWindowedBolt` 需要由窗口支持的bolts来实现。
 
 ```java
 public interface IWindowedBolt extends IComponent {
@@ -58,14 +54,11 @@ public interface IWindowedBolt extends IComponent {
 }
 ```
 
-Every time the window activates, the `execute` method is invoked. The TupleWindow parameter gives access to the current tuples
-in the window, the tuples that expired and the new tuples that are added since last window was computed which will be useful 
-for efficient windowing computations.
+每次窗口激活时，都会调用 `execute` 方法。TupleWindow 的参数允许访问窗口中的当前元组，过期的元组以及自上次窗口计算后添加的新元组，这对于高效的窗口计算将是有用的。
 
-Bolts that needs windowing support typically would extend `BaseWindowedBolt` which has the apis for specifying the
-window length and sliding intervals.
+需要窗口支持的 Bolts 一般会扩展为 `BaseWindowedBolt`，它有用来指定窗口长度和滑动间隔的apis.
 
-E.g. 
+例如
 
 ```java
 public class SlidingWindowBolt extends BaseWindowedBolt {
@@ -102,38 +95,37 @@ public static void main(String[] args) {
 }
 ```
 
-The following window configurations are supported.
+支持以下窗口配置
 
 ```java
 withWindow(Count windowLength, Count slidingInterval)
-Tuple count based sliding window that slides after `slidingInterval` number of tuples.
+基于元组计数的滑动窗口，在多个tuples进行 `slidingInterval`滑动之后。
 
 withWindow(Count windowLength)
-Tuple count based window that slides with every incoming tuple.
+基于元组计数的窗口，它与每个传入的元组一起滑动。
 
 withWindow(Count windowLength, Duration slidingInterval)
-Tuple count based sliding window that slides after `slidingInterval` time duration.
+基于元组计数的滑动窗口，在`slidingInterval`持续时间滑动之后。
 
 withWindow(Duration windowLength, Duration slidingInterval)
-Time duration based sliding window that slides after `slidingInterval` time duration.
+基于持续时间的滑动窗口，在`slidingInterval`持续时间滑动之后。
 
 withWindow(Duration windowLength)
-Time duration based window that slides with every incoming tuple.
+基于持续时间的窗口，它与每个传入的元组一起滑动。
 
 withWindow(Duration windowLength, Count slidingInterval)
-Time duration based sliding window configuration that slides after `slidingInterval` number of tuples.
+基于时间的滑动窗口配置在`slidingInterval`多个元组之后滑动。
 
 withTumblingWindow(BaseWindowedBolt.Count count)
-Count based tumbling window that tumbles after the specified count of tuples.
+计数的tumbling窗口在指定的元组数之后tumbles.
 
 withTumblingWindow(BaseWindowedBolt.Duration duration)
-Time duration based tumbling window that tumbles after the specified time duration.
+基于持续时间的tumbling窗口在指定的持续时间后tumbles。
 
 ```
 
-## Tuple timestamp and out of order tuples
-By default the timestamp tracked in the window is the time when the tuple is processed by the bolt. The window calculations
-are performed based on the processing timestamp. Storm has support for tracking windows based on the source generated timestamp.
+## 元组时间戳和乱序元组
+默认情况下，在窗口中追踪的时间戳是 bolt 处理元组的时间。窗口计算是根据正在处理的时间戳进行的。 Storm 支持基于源生成的时间戳的追踪窗口。
 
 ```java
 /**
@@ -144,10 +136,7 @@ are performed based on the processing timestamp. Storm has support for tracking 
 */
 public BaseWindowedBolt withTimestampField(String fieldName)
 ```
-
-The value for the above `fieldName` will be looked up from the incoming tuple and considered for windowing calculations. 
-If the field is not present in the tuple an exception will be thrown. Alternatively a [TimestampExtractor](../storm-core/src/jvm/org/apache/storm/windowing/TimestampExtractor.java) can be used to
-derive a timestamp value from a tuple (e.g. extract timestamp from a nested field within the tuple).
+上述`fieldName`的值将从传入的元组中查找并考虑进行窗口计算。如果该元组中不存在该字段，将抛出异常。或者，[TimestampExtractor](../storm-core/src/jvm/org/apache/storm/windowing/TimestampExtractor.java)可以用于从元组导出时间戳值（例如，从元组中的嵌套字段提取时间戳）。
 
 ```java
 /**
@@ -157,9 +146,7 @@ derive a timestamp value from a tuple (e.g. extract timestamp from a nested fiel
 */
 public BaseWindowedBolt withTimestampExtractor(TimestampExtractor timestampExtractor)
 ```
-
-
-Along with the timestamp field name/extractor, a time lag parameter can also be specified which indicates the max time limit for tuples with out of order timestamps.
+与时间戳字段 name/extractor 一起，可以指定一个时间滞后参数，它指示具有无序时间戳的元组的最大时间限制。
 
 ```java
 /**
@@ -170,11 +157,7 @@ Along with the timestamp field name/extractor, a time lag parameter can also be 
 */
 public BaseWindowedBolt withLag(Duration duration)
 ```
-
-E.g. If the lag is 5 secs and a tuple `t1` arrived with timestamp `06:00:05` no tuples may arrive with tuple timestamp earlier than `06:00:00`. If a tuple
-arrives with timestamp 05:59:59 after `t1` and the window has moved past `t1`, it will be treated as a late tuple. Late tuples are not processed by default,
-just logged in the worker log files at INFO level.
-
+例如：如果滞后是5秒，并且元组`t1`到达时间戳为`06：00：05`没有元组可能会在早于`06：00：00`的元组时间戳到达。 如果一个元组在`t1`之后到达时间戳`05:59:59`，并且窗口已经移动过`t1`了，它将被视为迟到的元组。 默认情况下不处理迟到的元组，只需在INFO级别打印到工作日志文件。
 ```java
 /**
  * Specify a stream id on which late tuples are going to be emitted. They are going to be accessible via the
@@ -187,17 +170,15 @@ just logged in the worker log files at INFO level.
 public BaseWindowedBolt withLateTupleStream(String streamId)
 
 ```
-This behaviour can be changed by specifying the above `streamId`. In this case late tuples are going to be emitted on the specified stream and accessible
-via the field `WindowedBoltExecutor.LATE_TUPLE_FIELD`.
+
+通过指定上述 `streamId` 来更改此行为。 在这种情况下，迟到的元组将在指定的流中发出并可通过`WindowedBoltExecutor.LATE_TUPLE_FIELD` 访问
+字段。
 
 
 ### Watermarks
-For processing tuples with timestamp field, storm internally computes watermarks based on the incoming tuple timestamp. Watermark is 
-the minimum of the latest tuple timestamps (minus the lag) across all the input streams. At a higher level this is similar to the watermark concept
-used by Flink and Google's MillWheel for tracking event based timestamps.
+为了处理具有时间戳字段的元组，storm 根据传入的元组时间戳内部计算 watermarks。Watermark 是所有输入流中最新的元组时间戳（减去滞后）的最小值。在较高级别，watermark类似于 Flink 和 Google 的 MillWheel 用于跟踪基于事件的时间戳的概念。
 
-Periodically (default every sec), the watermark timestamps are emitted and this is considered as the clock tick for the window calculation if 
-tuple based timestamps are in use. The interval at which watermarks are emitted can be changed with the below api.
+定期的（默认每秒），watermark时间戳被发出，如果基于元组的时间戳被使用，这被认为是窗口计算的  clock tick（时钟勾）。可以用下面的api来改变发出 watermarks 的时间间隔。
  
 ```java
 /**
@@ -208,11 +189,9 @@ tuple based timestamps are in use. The interval at which watermarks are emitted 
 */
 public BaseWindowedBolt withWatermarkInterval(Duration interval)
 ```
+当接收到watermark时，将对所有时间戳记进行评估。
 
-
-When a watermark is received, all windows up to that timestamp will be evaluated.
-
-For example, consider tuple timestamp based processing with following window parameters,
+例如，考虑具有以下窗口参数基于元组的时间戳处理，
 
 `Window length = 20s, sliding interval = 10s, watermark emit frequency = 1s, max lag = 5s`
 
@@ -221,48 +200,39 @@ For example, consider tuple timestamp based processing with following window par
 0     10    20    30    40    50    60    70
 ````
 
-Current ts = `09:00:00`
+当前 ts = `09:00:00`
 
-Tuples `e1(6:00:03), e2(6:00:05), e3(6:00:07), e4(6:00:18), e5(6:00:26), e6(6:00:36)` are received between `9:00:00` and `9:00:01`
+在`9:00:00`到`9:00:01`收到的元组`e1(6:00:03), e2(6:00:05), e3(6:00:07), e4(6:00:18), e5(6:00:26), e6(6:00:36)`
 
-At time t = `09:00:01`, watermark w1 = `6:00:31` is emitted since no tuples earlier than `6:00:31` can arrive.
+在time t = `09:00:01`, watermark w1 = `6:00:31`被发出,没有早于`6:00:31`的元组可以到达。
 
-Three windows will be evaluated. The first window end ts (06:00:10) is computed by taking the earliest event timestamp (06:00:03) 
-and computing the ceiling based on the sliding interval (10s).
+三个窗口将被评估。通过采取最早的事件时间戳（06:00:03）并基于滑动间隔（10s）计算上限来计算第一个窗口结束在 ts（06:00:10）。
 
-1. `5:59:50 - 06:00:10` with tuples e1, e2, e3
-2. `6:00:00 - 06:00:20` with tuples e1, e2, e3, e4
-3. `6:00:10 - 06:00:30` with tuples e4, e5
+1. `5:59:50 - 06:00:10` 有元组 e1, e2, e3
+2. `6:00:00 - 06:00:20` 有元组 e1, e2, e3, e4
+3. `6:00:10 - 06:00:30` 有元组 e4, e5
 
-e6 is not evaluated since watermark timestamp `6:00:31` is older than the tuple ts `6:00:36`.
+ e6未被评估，因为 watermark 时间戳`6:00:31`比元组 ts`6:00:36`更旧。
 
-Tuples `e7(8:00:25), e8(8:00:26), e9(8:00:27), e10(8:00:39)` are received between `9:00:01` and `9:00:02`
+在`9:00:01`和 `9:00:02`之间，接收到的元组`e7(8:00:25), e8(8:00:26), e9(8:00:27), e10(8:00:39)`
 
-At time t = `09:00:02` another watermark w2 = `08:00:34` is emitted since no tuples earlier than `8:00:34` can arrive now.
+在 time t = `09:00:02`另一个 watermark w2 = `08:00:34`被发出，没有元组比`8:00:34`更早到达。
 
-Three windows will be evaluated,
+三个窗口将被评估
 
-1. `6:00:20 - 06:00:40` with tuples e5, e6 (from earlier batch)
-2. `6:00:30 - 06:00:50` with tuple e6 (from earlier batch)
-3. `8:00:10 - 08:00:30` with tuples e7, e8, e9
+1. `6:00:20 - 06:00:40` 有元组 e5, e6 (从早期批次)
+2. `6:00:30 - 06:00:50` 有元组 e6 (从早期批次)
+3. `8:00:10 - 08:00:30` 有元组 e7, e8, e9
 
-e10 is not evaluated since the tuple ts `8:00:39` is beyond the watermark time `8:00:34`.
+e10 不被评估，因为元组 ts `8:00:39`超出了watermark time `8:00:34`.
 
-The window calculation considers the time gaps and computes the windows based on the tuple timestamp.
+窗口计算考虑时间间隔，并基于元组时间戳计算窗口。
 
 ## Guarantees
-The windowing functionality in storm core currently provides at-least once guarentee. The values emitted from the bolts
-`execute(TupleWindow inputWindow)` method are automatically anchored to all the tuples in the inputWindow. The downstream
-bolts are expected to ack the received tuple (i.e the tuple emitted from the windowed bolt) to complete the tuple tree. 
-If not the tuples will be replayed and the windowing computation will be re-evaluated. 
+storm core的窗口功能目前提供一致性保证。`执行（TupleWindow inputWindow）`方法发出的值将自动锁定到 inputWindow 中的所有元组。预计下游 bolts 将确认接收的元组（即从窗口 bolt 发出的元组）以完成元组树。如果不是，元组将重播，并且重新评估窗口计算。
 
-The tuples in the window are automatically acked when the expire, i.e. when they fall out of the window after 
-`windowLength + slidingInterval`. Note that the configuration `topology.message.timeout.secs` should be sufficiently more 
-than `windowLength + slidingInterval` for time based windows; otherwise the tuples will timeout and get replayed and can result
-in duplicate evaluations. For count based windows, the configuration should be adjusted such that `windowLength + slidingInterval`
-tuples can be received within the timeout period.
+窗口中的元组会在过期后被自动确认，即当它们在`windowLength + slidingInterval`之后从窗口中滑落出来。请注意，配置`topology.message.timeout.secs`应该远远超过基于时间窗口的`windowLength + slidingInterval`; 否则元组将超时并重播，并可能导致重复的评估。对于基于计数的窗口，应该调整配置，使得在超时时间段内可以接收到`windowLength + slidingInterval`元组。
 
-## Example topology
-An example toplogy `SlidingWindowTopology` shows how to use the apis to compute a sliding window sum and a tumbling window 
-average.
+## 拓扑示例
 
+示例拓扑`滑动窗口拓扑`显示了如何使用apis来计算滑动窗口总和和滚动窗口平均值。
