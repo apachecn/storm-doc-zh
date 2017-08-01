@@ -1,26 +1,21 @@
 ---
-title: Storm State Management
+title: Storm 状态管理
 layout: documentation
 documentation: true
 ---
-# State support in core storm
-Storm core has abstractions for bolts to save and retrieve the state of its operations. There is a default in-memory
-based state implementation and also a Redis backed implementation that provides state persistence.
+# 核心 Storm 中的状态支持
+Storm 核心为 Bolt 提供用于保存和重新获取其操作状态的抽象. 提供一个基于内存的默认状态实现，同时还提供了一个使用 Redis 做状态保持的实现.
 
-## State management
-Bolts that requires its state to be managed and persisted by the framework should implement the `IStatefulBolt` interface or
-extend the `BaseStatefulBolt` and implement `void initState(T state)` method. The `initState` method is invoked by the framework
-during the bolt initialization with the previously saved state of the bolt. This is invoked after prepare but before the bolt starts
-processing any tuples.
+## 状态管理
+若 Bolt 需要通过框架来管理和保持其状态, 应该实现接口 `IStatefulBolt`,或者继承类 `BaseStatefulBolt`,然后实现方法 `void initState(T state)`. 方法 `initState` 在 Bolt 使用保存的历史状态进行初始化期间通过框架执行. 执行时机在 `prepare` 方法之后，在 Bolt 开始处理 Tuple 数据之前.
 
-Currently the only kind of `State` implementation that is supported is `KeyValueState` which provides key-value mapping.
+当前支持的唯一一种 `State` 实现是提供 key-value 映射的 `KeyValueState`.
 
-For example a word count bolt could use the key value state abstraction for the word counts as follows.
+例如, 一个单词计数 bolt 可以使用 key-value 状态抽象实现单词计数, 步骤如下.
 
-1. Extend the BaseStatefulBolt and type parameterize it with KeyValueState which would store the mapping of word to count.
-2. The bolt gets initialized with its previously saved state in the init method. This will contain the word counts
-last committed by the framework during the previous run.
-3. In the execute method, update the word count.
+1. 继承 `BaseStatefulBolt` 类, 添加一个 `KeyValueState` 实例变量, 用于存储单词到单词数量的映射.
+2. 在 init 方法中用之前保存的状态来初始化 Bolt. 这里面含有上次程序运行的时候框架最后一次提交的单词计数.
+3. 在 `execute` 方法中, 更新单词计数.
 
  ```java
  public class WordCountBolt extends BaseStatefulBolt<KeyValueState<String, Long>> {
@@ -47,14 +42,9 @@ last committed by the framework during the previous run.
  ...
  }
  ```
-4. The framework periodically checkpoints the state of the bolt (default every second). The frequency
-can be changed by setting the storm config `topology.state.checkpoint.interval.ms`
-5. For state persistence, use a state provider that supports persistence by setting the `topology.state.provider` in the
-storm config. E.g. for using Redis based key-value state implementation set `topology.state.provider: org.apache.storm.redis.state.RedisKeyValueStateProvider`
-in storm.yaml. The provider implementation jar should be in the class path, which in this case means putting the `storm-redis-*.jar`
-in the extlib directory.
-6. The state provider properties can be overridden by setting `topology.state.provider.config`. For Redis state this is a
-json config with the following properties.
+4. 框架周期性的检查并保存 Bolt 的状态 (默认每秒一次). 频率可以通过设置 storm config 的 `topology.state.checkpoint.interval.ms`来自己定义。
+5. 对于状态持久化, 可以设置 storm config 中的 `topology.state.provider` 来使用支持持久化的 state provider. 例如, 若使用基于 Redis 的 key-value 状态实现, 需要在 storm.yaml 文件中设置 `topology.state.provider: org.apache.storm.redis.state.RedisKeyValueStateProvider`. provider 实现代码的 jar 包需要放在 class path 下, 在这个例子中, 需要把 `storm-redis-*.jar` 置于 extlib 目录下.
+6. state provider 的属性可以通过设置 `topology.state.provider.config` 来进行覆盖. 对于 Redis state, 是一个具有下列属性的 JSON 字符串.
 
  ```
  {
@@ -72,13 +62,8 @@ json config with the following properties.
  }
  ```
 
-## Checkpoint mechanism
-Checkpoint is triggered by an internal checkpoint spout at the specified `topology.state.checkpoint.interval.ms`. If there is
-at-least one `IStatefulBolt` in the topology, the checkpoint spout is automatically added by the topology builder . For stateful topologies,
-the topology builder wraps the `IStatefulBolt` in a `StatefulBoltExecutor` which handles the state commits on receiving the checkpoint tuples.
-The non stateful bolts are wrapped in a `CheckpointTupleForwarder` which just forwards the checkpoint tuples so that the checkpoint tuples
-can flow through the topology DAG. The checkpoint tuples flow through a separate internal stream namely `$checkpoint`. The topology builder
-wires the checkpoint stream across the whole topology with the checkpoint spout at the root.
+## 检查点机制
+检查点通过一个内部的 checkpoint spout 来触发，触发周期在 `topology.state.checkpoint.interval.ms` 指定. 如果在拓扑中至少有一个 `IStatefulBolt`, topology builder 会自动添加 checkpoint spout. 对于有状态的拓扑, topology builder 使用 `StatefulBoltExecutor` 包装 `IStatefulBolt`, 负责在收到 checkpoint tuple 的时候来执行状态提交. 无状态的 Bolt 被包装在 `CheckpointTupleForwarder`, 仅会转发 checkpoint tuple 以确保其可以贯穿整个拓扑DAG(有向无环图). checkpoint tuple 在一个名为 `$checkpoint` 的内部 stream 中流动. topology builder 组织 checkpoint spout 源流出的 checkpoint stream 穿过整个拓扑.
 
 ```
               default                         default               default
@@ -89,40 +74,28 @@ wires the checkpoint stream across the whole topology with the checkpoint spout 
 [$checkpointspout] _______| ($chpt)
 ```
 
-At checkpoint intervals the checkpoint tuples are emitted by the checkpoint spout. On receiving a checkpoint tuple, the state of the bolt
-is saved and then the checkpoint tuple is forwarded to the next component. Each bolt waits for the checkpoint to arrive on all its input
-streams before it saves its state so that the state represents a consistent state across the topology. Once the checkpoint spout receives
-ACK from all the bolts, the state commit is complete and the transaction is recorded as committed by the checkpoint spout.
+当到了检查周期, checkpoint tuples 被 checkpoint spout 发射出来. 一旦接收到 state tuple, Bolt 的状态就会被保存, 然后 checkpoint tuple 会转发到下一个组件. 每一个 Bolt 在保存状态之前, 会在所有的输入流上等待 checkpoint 到达, 使得状态表现为一个跨整个拓扑的持续的状态. 一旦 checkpoint spout 从所有的 Bolt 中接收到ACK消息, 状态提交就完成了, 事务会被 checkpoint spout 记录为已提交.
 
-The state checkpointing does not currently checkpoint the state of the spout. Yet, once the state of all bolts are checkpointed, and once the checkpoint tuples are acked, the tuples emitted by the spout are also acked. 
-It also implies that `topology.state.checkpoint.interval.ms` is lower than `topology.message.timeout.secs`. 
+checkpoint 当前不会检查 Spout 的状态. 目前, 一旦所有的 Bolt 被检查完毕, 并且一旦 checkpoint tuple 被 ack, Spout 发射的 tuples 也会被 ack.
+这也意味着, `topology.state.checkpoint.interval.ms` 要小于 `topology.message.timeout.secs`. 
 
-The state commit works like a three phase commit protocol with a prepare and commit phase so that the state across the topology is saved
-in a consistent and atomic manner.
+状态提交的工作方式就像一个具有 `准备` 和 `提交` 阶段的三段式提交协议, 以达到跨整个拓扑的状态的保存操作具有一致性和原子性.
 
-### Recovery
-The recovery phase is triggered when the topology is started for the first time. If the previous transaction was not successfully
-prepared, a `rollback` message is sent across the topology so that if a bolt has some prepared transactions it can be discarded.
-If the previous transaction was prepared successfully but not committed, a `commit` message is sent across the topology so that
-the prepared transactions can be committed. After these steps are complete, the bolts are initialized with the state.
+### 恢复
+恢复阶段会在拓扑首次启动的时候触发. 如果前置事务没有成功装备好, 会向拓扑中发送一个 `rollback` 消息, Bolt 会丢弃已经就绪的事务. 如果前置事务成功准备好但是未提交, 会向拓扑中发送一个 `commit` 消息让所有已经就绪的事务可以被提交. 当这些步骤完成后, Bolt 状态初始化完成.
 
-The recovery is also triggered if one of the bolts fails to acknowledge the checkpoint message or say a worker crashed in
-the middle. Thus when the worker is restarted by the supervisor, the checkpoint mechanism makes sure that the bolt gets
-initialized with its previous state and the checkpointing continues from the point where it left off.
+恢复也会在其中一个 Bolt 未成功确认 checkpoint 消息或者 worker 在这中间挂了的时候触发. 因此, 当 supervisor 重启一个 worker, checkpoint 机制会确保 Bolt 使用之前的状态初始化, 同时检查操作会从上次离开的点继续执行.
 
-### Guarantee
-Storm relies on the acking mechanism to replay tuples in case of failures. It is possible that the state is committed
-but the worker crashes before acking the tuples. In this case the tuples are replayed causing duplicate state updates.
-Also currently the StatefulBoltExecutor continues to process the tuples from a stream after it has received a checkpoint
-tuple on one stream while waiting for checkpoint to arrive on other input streams for saving the state. This can also cause
-duplicate state updates during recovery.
+### 可靠性
+Storm 使用 acking 机制在 tuples 处理失败的时候进行重新发送. 有可能状态已经提交但是 worker 在确认(ack) tuple 之前挂掉. 在这种情况下重新发送的 tuple 会导致状态重复更新. 当前, `StatefulBoltExecutor ` 在接收到一个流中的 checkpoint tuple 以后继续从一个流中获取并处理 tuple, 同时等待 checkpoint 到达其他输入流以保存状态. 这也可能导致恢复期间造成重复的状态更新.
 
-The state abstraction does not eliminate duplicate evaluations and currently provides only at-least once guarantee.
+状态抽象并不能消除重复, 当前仅提供'至少一次'的保障.
 
-In order to provide the at-least once guarantee, all bolts in a stateful topology are expected to anchor the tuples while emitting and ack the input tuples once its processed. For non-stateful bolts, the anchoring/acking can be automatically managed by extending the `BaseBasicBolt`. Stateful bolts are expected to anchor tuples while emitting and ack the tuple after processing like in the `WordCountBolt` example in the State management section above.
+为了提供'至少一次'的保障, 有状态拓扑中的所有 Bolt 都会对 Tuple 进行标记, 同时在处理完成后发射并确认输入 Tuple. 对于无状态的 Bolt, 继承 `BaseBasicBolt` 可以自动管理"标记/确认"操作. 有状态的 Bolt 标记 Tuple同时在处理完成后发射和确认tuple, 就像上面"状态管理"一节中的 `WordCountBolt`.
 
-### IStateful bolt hooks
-IStateful bolt interface provides hook methods where in the stateful bolts could implement some custom actions.
+### IStateful bolt 钩子
+IStateful 接口提供钩子方法用以在有状态 Bolt 中可以实现一些自定义的动作
+
 ```java
     /**
      * This is a hook for the component to perform some actions just before the
@@ -142,22 +115,15 @@ IStateful bolt interface provides hook methods where in the stateful bolts could
      */
     void preRollback();
 ```
-This is optional and stateful bolts are not expected to provide any implementation. This is provided so that other
-system level components can be built on top of the stateful abstractions where we might want to take some actions before the
-stateful bolt's state is prepared, committed or rolled back.
 
-## Providing custom state implementations
-Currently the only kind of `State` implementation supported is `KeyValueState` which provides key-value mapping.
+这个功能是可选的, 并且有状态 Bolt 未提供任何实现. 提供这个功能是为了可以在状态抽象的顶层(我们可能想在有状态 Bolt 的状态准备好之前做一些其他动作如提交或者回滚的地方)建立其他系统级组件.
 
-Custom state implementations should provide implementations for the methods defined in the `org.apache.storm.State` interface.
-These are the `void prepareCommit(long txid)`, `void commit(long txid)`, `rollback()` methods. `commit()` method is optional
-and is useful if the bolt manages the state on its own. This is currently used only by the internal system bolts,
-for e.g. the CheckpointSpout to save its state.
+## 提供自定义状态实现
+当前唯一支持的 `State` 实现是提供 key-value 的映射的 `KeyValueState`.
 
-`KeyValueState` implementation should also implement the methods defined in the `org.apache.storm.state.KeyValueState` interface.
+自定义状态实现应当为接口 `org.apache.storm.State` 的方法提供实现. 这些方法是`void prepareCommit(long txid)`, `void commit(long txid)`, `rollback()`.  `commit()` 方法是可选的且在 Bolt 管理自己的状态的时候非常有用. 这些当前仅用于内部系统 Bolt, 例如 CheckpointSpout 在保存自己状态的时候.
+
+`KeyValueState` 的实现也应当实现定义在接口 `org.apache.storm.state.KeyValueState` 中的方法.
 
 ### State provider
-The framework instantiates the state via the corresponding `StateProvider` implementation. A custom state should also provide
-a `StateProvider` implementation which can load and return the state based on the namespace. Each state belongs to a unique namespace.
-The namespace is typically unique per task so that each task can have its own state. The StateProvider and the corresponding
-State implementation should be available in the class path of Storm (by placing them in the extlib directory).
+框架通过对应的 `StateProvider` 来实例化状态. 一个自定义的状态应当也提供一个可以加载和返回基于命名空间的状态的 `StateProvider` 实现. 每一个状态属于一个独有的命名空间. 命名空间通常是每个 Task 唯一的, 因此每个任务可以有自己的状态. StateProvider 和相应的 State 实现应该位于 Storm 的 class path 下（一般放在 extlib 目录中).
