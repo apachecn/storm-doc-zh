@@ -95,6 +95,7 @@ Storm 使用 acking 机制在 tuples 处理失败的时候进行重新发送. �
 
 ### IStateful bolt 钩子
 IStateful 接口提供钩子方法用以在有状态 Bolt 中可以实现一些自定义的动作
+
 ```java
     /**
      * This is a hook for the component to perform some actions just before the
@@ -114,6 +115,7 @@ IStateful 接口提供钩子方法用以在有状态 Bolt 中可以实现一些�
      */
     void preRollback();
 ```
+
 这个功能是可选的, 并且有状态 Bolt 未提供任何实现. 提供这个功能是为了可以在状态抽象的顶层(我们可能想在有状态 Bolt 的状态准备好之前做一些其他动作如提交或者回滚的地方)建立其他系统级组件.
 
 ## 提供自定义状态实现
