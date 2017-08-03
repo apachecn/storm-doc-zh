@@ -89,7 +89,7 @@ RedisLookupMapper lookupMapper = new WordCountRedisLookupMapper();
 RedisLookupBolt lookupBolt = new RedisLookupBolt(poolConfig, lookupMapper);
 ```
 
-#### RedisStoreBolt example RedisStoreBolt示例
+####  RedisStoreBolt示例
 
 ```java
 
