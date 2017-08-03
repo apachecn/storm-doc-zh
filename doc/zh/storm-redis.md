@@ -161,7 +161,7 @@ RedisStoreBolt storeBolt = new RedisStoreBolt(poolConfig, storeMapper);
                         LOG.info("Lookup result - word : " + wordName + " / count : " + count);
                     }
                 } else {
-                    // skip
+                    // skip  
                     LOG.warn("Word not found in Redis - word : " + wordName);
                 }
             } finally {
@@ -181,7 +181,7 @@ RedisStoreBolt storeBolt = new RedisStoreBolt(poolConfig, storeMapper);
 
 ```
 
-### Trident State 用法
+### Trident State 用法 
 
 1. RedisState和RedisMapState，它提供Jedis接口，仅用于单次重新启动。
 
