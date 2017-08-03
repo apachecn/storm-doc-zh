@@ -1,90 +1,105 @@
 ---
-title: Resource Aware Scheduler
+title: 资源感知调度器 (Resource Aware Scheduler)
 layout: documentation
 documentation: true
 ---
 
-# Introduction
+# 介绍
 
-The purpose of this document is to provide a description of the Resource Aware Scheduler for the Storm distributed real-time computation system.  This document will provide you with both a high level description of the resource aware scheduler in Storm.  Some of the benefits are using a resource aware scheduler on top of Storm is outlined in the following presentation at Hadoop Summit 2016:
+本文档的目的是为 Storm 分布式实时计算系统提供资源感知调度程序的描述。
+本文档将为您提供 Storm 中资源感知调度程序的高级描述。
+以下是 Hadoop Summit 2016 演示文稿中概述的一些好处是在 Storm 上使用资源感知调度器：
 
 http://www.slideshare.net/HadoopSummit/resource-aware-scheduling-in-apache-storm
 
 # Table of Contents
-1. [Using Resource Aware Scheduler](#Using-Resource-Aware-Scheduler)
-2. [API Overview](#API-Overview)
-    1. [Setting Memory Requirement](#Setting-Memory-Requirement)
-    2. [Setting CPU Requirement](#Setting-CPU-Requirement)
-    3. [Limiting the Heap Size per Worker (JVM) Process](#Limiting-the-Heap-Size-per-Worker-(JVM)Process)
-    4. [Setting Available Resources on Node](#Setting-Available-Resources-on-Node)
-    5. [Other Configurations](#Other-Configurations)
-3. [Topology Priorities and Per User Resource](#Topology-Priorities-and-Per-User-Resource)
-    1. [Setup](#Setup)
-    2. [Specifying Topology Priority](#Specifying-Topology-Priority)
-    3. [Specifying Scheduling Strategy](#Specifying-Scheduling-Strategy)
-    4. [Specifying Topology Prioritization Strategy](#Specifying-Topology-Prioritization-Strategy)
-    5. [Specifying Eviction Strategy](#Specifying-Eviction-Strategy)
-4. [Profiling Resource Usage](#Profiling-Resource-Usage)
-5. [Enhancements on original DefaultResourceAwareStrategy](#Enhancements-on-original-DefaultResourceAwareStrategy)
+1. [使用资源感知调度器](#Using-Resource-Aware-Scheduler)
+2. [API 概述](#API-Overview)
+    1. [设置内存要求](#Setting-Memory-Requirement)
+    2. [设置 CPU 要求](#Setting-CPU-Requirement)
+    3. [设置每个 worker (JVM) 进程的堆大小](#Limiting-the-Heap-Size-per-Worker-(JVM)Process)
+    4. [在节点上设置可用资源](#Setting-Available-Resources-on-Node)
+    5. [其他配置](#Other-Configurations)
+3. [Topology 优先级和每个用户资源](#Topology-Priorities-and-Per-User-Resource)
+    1. [设置](#Setup)
+    2. [指定 Topology 优先级](#Specifying-Topology-Priority)
+    3. [指定 Scheduling 策略](#Specifying-Scheduling-Strategy)
+    4. [指定 Topology 优先策勒](#Specifying-Topology-Prioritization-Strategy)
+    5. [指定 Eviction 策略](#Specifying-Eviction-Strategy)
+4. [分析资源使用情况](#Profiling-Resource-Usage)
+5. [对原始 DefaultResourceAwareStrategy 的增强](#Enhancements-on-original-DefaultResourceAwareStrategy)
 
 <div id='Using-Resource-Aware-Scheduler'/>
-## Using Resource Aware Scheduler
 
-The user can switch to using the Resource Aware Scheduler by setting the following in *conf/storm.yaml*
+## 使用资源感知调度器
+
+用户可以通过在 *conf/storm.yaml* 中设置以下内容来切换到使用资源感知调度器
 
     storm.scheduler: “org.apache.storm.scheduler.resource.ResourceAwareScheduler”
     
 <div id='API-Overview'/>
-## API Overview
 
-For use with Trident, please see the [Trident RAS API](Trident-RAS-API.html)
+## API 概述
 
-For a Storm Topology, the user can now specify the amount of resources a topology component (i.e. Spout or Bolt) is required to run a single instance of the component.  The user can specify the resource requirement for a topology component by using the following API calls.
+要使用 Trident，请参阅 [Trident RAS API](Trident-RAS-API.html)
+
+对于 Storm Topology，用户现在可以指定运行组件的单个实例所需的 Topology 组件（即: Spout 或 Bolt）的资源量。
+用户可以通过使用以下 API 调用来指定 Topology 组件的资源需求。
 
 <div id='Setting-Memory-Requirement'/>
-### Setting Memory Requirement
 
-API to set component memory requirement:
+### 设置内存要求
+
+API 设置组件内存要求:
 
     public T setMemoryLoad(Number onHeap, Number offHeap)
 
-Parameters:
-* Number onHeap – The amount of on heap memory an instance of this component will consume in megabytes
-* Number offHeap – The amount of off heap memory an instance of this component will consume in megabytes
+参数:
 
-The user also has to option to just specify the on heap memory requirement if the component does not have an off heap memory need.
+* Number onHeap - 此组件的实例将以兆字节消耗的堆内存量
+* Number offHeap - 此组件的一个实例将以兆字节消耗的堆内存量
+
+用户还必须选择只要指定堆内存要求，如果组件没有关闭堆内存需要。
 
     public T setMemoryLoad(Number onHeap)
 
-Parameters:
-* Number onHeap – The amount of on heap memory an instance of this component will consume
+参数:
 
-If no value is provided for offHeap, 0.0 will be used. If no value is provided for onHeap, or if the API is never called for a component, the default value will be used.
+* Number onHeap - 此组件的一个实例将占用的堆内存量
 
-Example of Usage:
+如果没有为 offHeap 提供值，将使用 0.0。 如果没有为 onHeap 提供任何值，或者从未为调用的组件 API，则将使用默认值。
+
+使用示例:
 
     SpoutDeclarer s1 = builder.setSpout("word", new TestWordSpout(), 10);
     s1.setMemoryLoad(1024.0, 512.0);
     builder.setBolt("exclaim1", new ExclamationBolt(), 3)
                 .shuffleGrouping("word").setMemoryLoad(512.0);
 
-The entire memory requested for this topology is 16.5 GB. That is from 10 spouts with 1GB on heap memory and 0.5 GB off heap memory each and 3 bolts with 0.5 GB on heap memory each.
+该 topology 结构请求的整个内存为 16.5 GB。这是从10个 spout，堆内存为 1GB，每个堆内存为0.5 GB，每个堆内存为3个 bolt 0.5 GB。
 
 <div id='Setting-CPU-Requirement'/>
-### Setting CPU Requirement
 
-API to set component CPU requirement:
+### 设置 CPU 要求
+
+设置组件 CPU 要求的 API:
 
     public T setCPULoad(Double amount)
 
-Parameters:
-* Number amount – The amount of on CPU an instance of this component will consume.
+参数:
 
-Currently, the amount of CPU resources a component requires or is available on a node is represented by a point system. CPU usage is a difficult concept to define. Different CPU architectures perform differently depending on the task at hand. They are so complex that expressing all of that in a single precise portable number is impossible. Instead we take a convention over configuration approach and are primarily concerned with rough level of CPU usage while still providing the possibility to specify amounts more fine grained.
+* Number amount – 该组件实例将使用的CPU数量
 
-By convention a CPU core typically will get 100 points. If you feel that your processors are more or less powerful you can adjust this accordingly. Heavy tasks that are CPU bound will get 100 points, as they can consume an entire core. Medium tasks should get 50, light tasks 25, and tiny tasks 10. In some cases you have a task that spawns other threads to help with processing. These tasks may need to go above 100 points to express the amount of CPU they are using. If these conventions are followed the common case for a single threaded task the reported Capacity * 100 should be the number of CPU points that the task needs.
+目前，一个组件需要或在节点上可用的 CPU 资源量由 一个 point 系统表示。
+CPU 使用是一个难以定义的概念。根据手头的任务，不同的 CPU 架构执行不同。
+它们非常复杂，在单个精确的便携式数字中表达所有这些都是不可能的。
+相反，我们采取了一种配置方法的惯例，主要关注 CPU 使用率的粗略水平，同时仍然提供了指定更细粒度的可能性。
 
-Example of Usage:
+按照惯例，CPU 内核通常会得到100分。如果您觉得您的处理器或多或少功能强大，您可以相应地进行调整。
+CPU 绑定的重任务将获得100分，因为它们可以消耗整个内核。中等任务应该得到50，轻型任务25和小任务10。在某些情况下，您有一个任务可以产生其他线程来帮助处理。
+这些任务可能需要超过100点才能表达他们正在使用的 CPU 数量。如果遵循这些约定，单个线程任务的常见情况，报告的 Capacity * 100应该是任务需要的 CPU 点数。
+
+使用示例：
 
     SpoutDeclarer s1 = builder.setSpout("word", new TestWordSpout(), 10);
     s1.setCPULoad(15.0);
@@ -94,45 +109,49 @@ Example of Usage:
                     .shuffleGrouping("exclaim1").setCPULoad(450.0);
 
 <div id='Limiting-the-Heap-Size-per-Worker-(JVM)Process'/>
-###	Limiting the Heap Size per Worker (JVM) Process
+
+### 设置每个 worker (JVM) 进程的堆大小
 
     public void setTopologyWorkerMaxHeapSize(Number size)
 
-Parameters:
-* Number size – The memory limit a worker process will be allocated in megabytes
+参数:
 
-The user can limit the amount of memory resources the resource aware scheduler allocates to a single worker on a per topology basis by using the above API.  This API is in place so that the users can spread executors to multiple workers.  However, spreading executors to multiple workers may increase the communication latency since executors will not be able to use Disruptor Queue for intra-process communication.
+* Number size – worker 进程将以兆字节来分配内存范围
 
-Example of Usage:
+在每个 topology 基础上分配给单个 worker 程序的内存资源量，用户可以通过使用上述 API 来限制资源感知调度器。
+该 API 已经到位，以便用户可以将 executor 传播给多个 worker。然而，将 executor 传播给多个 worker 可能会增加通信延迟，因为 executor 将无法使用 Disruptor Queue 进行进程内通信。
+
+使用示例:
 
     Config conf = new Config();
     conf.setTopologyWorkerMaxHeapSize(512.0);
     
 <div id='Setting-Available-Resources-on-Node'/>
-### Setting Available Resources on Node
 
-A storm administrator can specify node resource availability by modifying the *conf/storm.yaml* file located in the storm home directory of that node.
+### 在节点上设置可用资源
 
-A storm administrator can specify how much available memory a node has in megabytes adding the following to *storm.yaml*
+storm 管理员可以通过修改位于该节点的 storm home 目录中的 *conf/storm.yaml* 文件来指定节点资源可用性。
+
+storm 管理员可以指定一个节点有多少可用内存（兆字节），将以下内容添加到 *storm.yaml* 中
 
     supervisor.memory.capacity.mb: [amount<Double>]
 
-A storm administrator can also specify how much available CPU resources a node has available adding the following to *storm.yaml*
+storm 管理员还可以指定节点有多少可用 CPU 资源，将以下内容添加到 *storm.yaml* 中
 
     supervisor.cpu.capacity: [amount<Double>]
 
+注意：用户可以为可用 CPU 指定的数量使用如前所述的点系统来表示。
 
-Note: that the amount the user can specify for the available CPU is represented using a point system like discussed earlier.
-
-Example of Usage:
+使用示例:
 
     supervisor.memory.capacity.mb: 20480.0
     supervisor.cpu.capacity: 100.0
 
 <div id='Other-Configurations'/>
-### Other Configurations
 
-The user can set some default configurations for the Resource Aware Scheduler in *conf/storm.yaml*:
+### 其他配置
+
+用户可以在 *conf/storm.yaml* 中为资源意识调度程序设置一些默认配置:
 
     //default value if on heap memory requirement is not specified for a component 
     topology.component.resources.onheap.memory.mb: 128.0
@@ -147,21 +166,27 @@ The user can set some default configurations for the Resource Aware Scheduler in
     topology.worker.max.heap.size.mb: 768.0
 
 <div id='Topology-Priorities-and-Per-User-Resource'/>
-## Topology Priorities and Per User Resource 
 
-The Resource Aware Scheduler or RAS also has multitenant capabilities since many Storm users typically share a Storm cluster.  Resource Aware Scheduler can allocate resources on a per user basis.  Each user can be guaranteed a certain amount of resources to run his or her topologies and the Resource Aware Scheduler will meet those guarantees when possible.  When the Storm cluster has extra free resources, Resource Aware Scheduler will to be able allocate additional resources to user in a fair manner. The importance of topologies can also vary.  Topologies can be used for actual production or just experimentation, thus Resource Aware Scheduler will take into account the importance of a topology when determining the order in which to schedule topologies or when to evict topologies
+## Topology 优先级和每个用户资源
+
+资源感知调度器或 RAS 还具有 multitenant 功能，因为许多 Storm 用户通常共享 Storm 集群。
+资源感知调度器可以在每个用户的基础上分配资源。
+每个用户可以保证一定数量的资源来运行他或她的 topology，并且资源感知调度器将尽可能满足这些保证。
+当 Storm 群集具有额外的免费资源时，资源感知调度器将能够以公平的方式为用户分配额外的资源。topology 的重要性也可能有所不同。
+topology 可用于实际生产或仅用于实验，因此资源感知调度器将在确定调度 topology 的顺序或何时驱逐 topology 时考虑 topology 的重要性。
 
 <div id='Setup'/>
-### Setup
 
-The resource guarantees of a user can be specified *conf/user-resource-pools.yaml*.  Specify the resource guarantees of a user in the following format:
+### 设置
+
+可以指定用户的资源保证 *conf/user-resource-pools.yaml*。以下列格式指定用户的资源保证:
 
     resource.aware.scheduler.user.pools:
 	[UserId]
 		cpu: [Amount of Guarantee CPU Resources]
 		memory: [Amount of Guarantee Memory Resources]
 
-An example of what *user-resource-pools.yaml* can look like:
+*user-resource-pools.yaml* 可以是什么样的示例:
 
     resource.aware.scheduler.user.pools:
         jerry:
@@ -174,102 +199,123 @@ An example of what *user-resource-pools.yaml* can look like:
             cpu: 5000.0
             memory: 16384.0
 
-Please note that the specified amount of Guaranteed CPU and Memory can be either a integer or double
+请注意，指定数量的保证 CPU 和内存可以是整数或双倍
 
 <div id='Specifying-Topology-Priority'/>
-### Specifying Topology Priority
-The range of topology priorities can range form 0-29.  The topologies priorities will be partitioned into several priority levels that may contain a range of priorities. 
-For example we can create a priority level mapping:
+
+### 指定 Topology 优先级
+
+topology 优先级的范围可以从0-29开始。topology 优先级将被划分为可能包含一系列优先级的几个优先级。
+例如，我们可以创建一个优先级映射:
 
     PRODUCTION => 0 – 9
     STAGING => 10 – 19
     DEV => 20 – 29
 
-Thus, each priority level contains 10 sub priorities. Users can set the priority level of a topology by using the following API
+因此，每个优先级包含10个子优先级。用户可以使用以下 API 设置 topology 的优先级
 
     conf.setTopologyPriority(int priority)
-    
-Parameters:
-* priority – an integer representing the priority of the topology
 
-Please note that the 0-29 range is not a hard limit.  Thus, a user can set a priority number that is higher than 29. However, the property of higher the priority number, lower the importance still holds
+参数:
+* priority - 表示 topology 优先级的整数
+
+请注意，0-29范围不是硬限制。因此，用户可以设置高于29的优先级数。然而，优先级数越高的属性越低，重要性仍然保持不变
 
 <div id='Specifying-Scheduling-Strategy'/>
-### Specifying Scheduling Strategy
 
-A user can specify on a per topology basis what scheduling strategy to use.  Users can implement the IStrategy interface and define new strategies to schedule specific topologies.  This pluggable interface was created since we realize different topologies might have different scheduling needs.  A user can set the topology strategy within the topology definition by using the API:
+### 指定 Scheduling 策略
+
+用户可以在每个 topology 基础上指定要使用的调度策略。
+用户可以实现 IStrategy 界面，并定义新的策略来安排特定的 topology。
+这个可插拔接口是因为我们实现不同的 topology 可能具有不同的调度需求而创建的。
+用户可以使用 API ​​在 topology 定义中设置 topology 策略:
 
     public void setTopologyStrategy(Class<? extends IStrategy> clazz)
-    
-Parameters:
-* clazz – The strategy class that implements the IStrategy interface
 
-Example Usage:
+参数:
+
+* clazz - 实现 IStrategy 接口的策略类
+
+使用示例:
 
     conf.setTopologyStrategy(org.apache.storm.scheduler.resource.strategies.scheduling.DefaultResourceAwareStrategy.class);
 
-A default scheduling is provided.  The DefaultResourceAwareStrategy is implemented based off the scheduling algorithm in the original paper describing resource aware scheduling in Storm:
+提供默认调度。DefaultResourceAwareStrategy 是基于 Storm 中的资源感知调度原始文件中的调度算法实现的：
 
-Peng, Boyang, Mohammad Hosseini, Zhihao Hong, Reza Farivar, and Roy Campbell. "R-storm: Resource-aware scheduling in storm." In Proceedings of the 16th Annual Middleware Conference, pp. 149-161. ACM, 2015.
+Peng, Boyang, Mohammad Hosseini, Zhihao Hong, Reza Farivar, 和 Roy Campbell。"R-storm: storm 中的资源感知调度"。
+在第16届年度中间件会议论文集，第149-161页。ACM，2015。
 
 http://dl.acm.org/citation.cfm?id=2814808
 
-**Please Note: Enhancements have to made on top of the original scheduling strategy as described in the paper.  Please see section "Enhancements on original DefaultResourceAwareStrategy"**
+**Please Note: 必须根据本文所述的原始调度策略进行增强。请参阅"原始 DefaultResourceAwareStrategy 的增强功能"一节"**
 
 <div id='Specifying-Topology-Prioritization-Strategy'/>
-### Specifying Topology Prioritization Strategy
 
-The order of scheduling is a pluggable interface in which a user could define a strategy that prioritizes topologies.  For a user to define his or her own prioritization strategy, he or she needs to implement the ISchedulingPriorityStrategy interface.  A user can set the scheduling priority strategy by setting the *Config.RESOURCE_AWARE_SCHEDULER_PRIORITY_STRATEGY* to point to the class that implements the strategy. For instance:
+### 指定 Topology 优先策略
+
+调度顺序是可插拔接口，用户可以在其中定义 topology 优先级的策略。
+为了使用户能够定义自己的优先级策略，他或她需要实现 ISchedulingPriorityStrategy 界面。
+用户可以通过将 *Config.RESOURCE_AWARE_SCHEDULER_PRIORITY_STRATEGY* 设置为指向实现策略的类来设置调度优先级策略。
+例如:
 
     resource.aware.scheduler.priority.strategy: "org.apache.storm.scheduler.resource.strategies.priority.DefaultSchedulingPriorityStrategy"
-    
-A default strategy will be provided.  The following explains how the default scheduling priority strategy works.
+
+将提供默认策略。以下说明默认调度优先级策略的工作原理。
 
 **DefaultSchedulingPriorityStrategy**
 
-The order of scheduling should be based on the distance between a user’s current resource allocation and his or her guaranteed allocation.  We should prioritize the users who are the furthest away from their resource guarantee. The difficulty of this problem is that a user may have multiple resource guarantees, and another user can have another set of resource guarantees, so how can we compare them in a fair manner?  Let's use the average percentage of resource guarantees satisfied as a method of comparison.
+调度顺序应基于用户当前资源分配与其保证分配之间的距离。我们应优先考虑远离资源保障的用户。
+这个问题的难点在于，用户可能有多个资源保证，另一个用户可以拥有另一套资源保证，那么我们怎么能以公平的方式来比较呢？我们用平均百分比的资源担保作为比较方法。
 
-For example:
+例如:
 
-|User|Resource Guarantee|Resource Allocated|
+| 用户 | 资源保证 | 资源分配 |
 |----|------------------|------------------|
 |A|<10 CPU, 50GB>|<2 CPU, 40 GB>|
 |B|< 20 CPU, 25GB>|<15 CPU, 10 GB>|
 
-User A’s average percentage satisfied of resource guarantee: 
+用户 A 的平均百分比满足资源保证: 
 
 (2/10+40/50)/2  = 0.5
 
-User B’s average percentage satisfied of resource guarantee: 
+用户 B 的资源保证的平均百分比满足: 
 
 (15/20+10/25)/2  = 0.575
 
-Thus, in this example User A has a smaller average percentage of his or her resource guarantee satisfied than User B.  Thus, User A should get priority to be allocated more resource, i.e., schedule a topology submitted by User A.
+因此，在该示例中，用户 A 具有比用户 B 满足的资源保证的平均百分比较小。因此，用户 A 应优先分配更多资源，即调度用户 A 提交的 topology。
 
-When scheduling, RAS sorts users by the average percentage satisfied of resource guarantee and schedule topologies from users based on that ordering starting from the users with the lowest average percentage satisfied of resource guarantee.  When a user’s resource guarantee is completely satisfied, the user’s average percentage satisfied of resource guarantee will be greater than or equal to 1.
+在进行调度时，RAS 按用户资源保证和平均百分比满足资源保证的平均百分比，按用户的平均百分比满足资源保证的平均百分比排序，根据用户的顺序排序。
+当用户的资源保证完全满足时，用户满足资源保证的平均百分比大于等于1。
 
 <div id='Specifying-Eviction-Strategy'/>
-### Specifying Eviction Strategy
-The eviction strategy is used when there are not enough free resources in the cluster to schedule new topologies. If the cluster is full, we need a mechanism to evict topologies so that user resource guarantees can be met and additional resource can be shared fairly among users. The strategy for evicting topologies is also a pluggable interface in which the user can implement his or her own topology eviction strategy.  For a user to implement his or her own eviction strategy, he or she needs to implement the IEvictionStrategy Interface and set *Config.RESOURCE_AWARE_SCHEDULER_EVICTION_STRATEGY* to point to the implemented strategy class. For instance:
+
+### 指定 Eviction 策略
+
+当集群中没有足够的可用资源来安排新的 topology 结构时，使用 eviction 策略。
+如果集群已满，我们需要一种 eviction topology 的机制，以便满足用户资源保证，并且可以在用户之间公平分享其他资源。
+驱逐 topology 的策略也是可插拔的界面，用户可以在其中实现自己的 topology eviction 策略。
+为了使用户实现自己的 eviction 策略，他或她需要实现 IEvictionStrategy 接口并将 *Config.RESOURCE_AWARE_SCHEDULER_EVICTION_STRATEGY* 设置为指向已实施的策略类。
+例如:
 
     resource.aware.scheduler.eviction.strategy: "org.apache.storm.scheduler.resource.strategies.eviction.DefaultEvictionStrategy"
 
-A default eviction strategy is provided.  The following explains how the default topology eviction strategy works
+提供了默认的 eviction 策略。以下说明默认 topology eviction 策略的工作原理
 
 **DefaultEvictionStrategy**
 
-To determine if topology eviction should occur we should take into account the priority of the topology that we are trying to schedule and whether the resource guarantees for the owner of the topology have been met.  
+为了确定是否应该发生 topology 迁移，我们应该考虑到我们正在尝试调度 topology 的优先级，以及是否满足 topology 所有者的资源保证。
 
-We should never evict a topology from a user that does not have his or her resource guarantees satisfied.  The following flow chart should describe the logic for the eviction process.
+我们不应该从没有满足他或她的资源保证的用户中排除 topology。以下流程图应描述 eviction 过程的逻辑。
 
 ![Viewing metrics with VisualVM](images/resource_aware_scheduler_default_eviction_strategy.png)
 
 <div id='Profiling-Resource-Usage'/>
-## Profiling Resource Usage
 
-Figuring out resource usage for your topology:
- 
-To get an idea of how much memory/CPU your topology is actually using you can add the following to your topology launch code.
+## 分析资源使用情况
+
+了解 topology 的资源使用情况：
+
+要了解 topology 结构实际使用的 memory/CPU 数量，您可以将以下内容添加到 topology 启动代码中。
  
     //Log all storm metrics
     conf.registerMetricsConsumer(backtype.storm.metric.LoggingMetricsConsumer.class);
@@ -279,55 +325,58 @@ To get an idea of how much memory/CPU your topology is actually using you can ad
     workerMetrics.put("CPU", "org.apache.storm.metrics.sigar.CPUMetric");
     conf.put(Config.TOPOLOGY_WORKER_METRICS, workerMetrics);
  
-The CPU metrics will require you to add
+CPU 指标将需要您添加
  
     <dependency>
         <groupId>org.apache.storm</groupId>
         <artifactId>storm-metrics</artifactId>
         <version>1.0.0</version>
     </dependency>
- 
-as a topology dependency (1.0.0 or higher).
- 
-You can then go to your topology on the UI, turn on the system metrics, and find the log that the LoggingMetricsConsumer is writing to.  It will output results in the log like.
+
+作为 topology 依赖（1.0.0或更高版本）。
+
+然后，您可以在 UI 上转到 topology，打开系统 metrics，并找到 LoggingMetricsConsumer 正在写入的日志。它会在日志中输出结果。
  
     1454526100 node1.nodes.com:6707 -1:__system CPU {user-ms=74480, sys-ms=10780}
     1454526100 node1.nodes.com:6707 -1:__system memory/nonHeap     {unusedBytes=2077536, virtualFreeBytes=-64621729, initBytes=2555904, committedBytes=66699264, maxBytes=-1, usedBytes=64621728}
     1454526100 node1.nodes.com:6707 -1:__system memory/heap  {unusedBytes=573861408, virtualFreeBytes=694644256, initBytes=805306368, committedBytes=657719296, maxBytes=778502144, usedBytes=83857888}
 
-The metrics with -1:__system are generally metrics for the entire worker.  In the example above that worker is running on node1.nodes.com:6707.  These metrics are collected every 60 seconds.  For the CPU you can see that over the 60 seconds this worker used  74480 + 10780 = 85260 ms of CPU time.  This is equivalent to 85260/60000 or about 1.5 cores.
- 
-The Memory usage is similar but look at the usedBytes.  offHeap is 64621728 or about 62MB, and onHeap is 83857888 or about 80MB, but you should know what you set your heap to in each of your workers already.  How do you divide this up per bolt/spout?  That is a bit harder and may require some trial and error from your end.
+-1：__系统的度量通常是整个 worker 的 metrics 标准。 在上面的示例中，worker 正在 node1.nodes.com:6707 上运行。 
+这些 metrics 是每60秒收集一次。对于 CPU，您可以看到，在60秒钟内，此 worker 使用74480 + 10780 = 85260 ms 的 CPU 时间。 这相当于85260/60000或约1.5内核。
+
+内存使用情况类似，但是查看 usedBytes。 offHeap 是 64621728 或大约 62MB，onHeap 是 83857888 或大约 80MB，但你应该知道你已经在每个 worker 中设置了你的堆。 
+你如何划分每个 bolt/spout？ 这有点困难，可能需要一些尝试和错误从你的结束。
 
 <div id='Enhancements-on-original-DefaultResourceAwareStrategy'/>
-## * Enhancements on original DefaultResourceAwareStrategy *
 
-The default resource aware scheduling strategy as described in the paper above has two main scheduling phases:
+## * 对原始 DefaultResourceAwareStrategy 的增强 *
 
-1. Task Selection - Calculate the order task/executors in a topology should be scheduled
-2. Node Selection - Given a task/executor, find a node to schedule the task/executor on.
+如上文所述的默认资源感知调度策略有两个主要的调度阶段：
 
-Enhancements have been made for both scheduling phases
+1. 任务选择 - 计算拓扑中的顺序 task/executor 应该被调度
+2. 节点选择 - 给定一个 task/executor，找到一个节点来安排 task/executor。
 
-### Task Selection Enhancements 
+对两个调度阶段进行了改进
 
-Instead of using a breadth first traversal of the topology graph to create a ordering of components and its executors, a new heuristic is used that orders components by the number of in and out edges (potential connections) of the component.  This is discovered to be a more effective way to colocate executors that communicate with each other and reduce the network latency.
+### 任务选择增强
 
+不是使用 topology 图的宽度优先遍历来创建组件及其 executor 的排序，而是使用一种新的启发式方法，可以通过组件的进出边缘数量（潜在连接）对组件进行排序。这被发现是一种更有效的方式来协调彼此通信的 executor，并减少网络延迟。
 
-### Node Selection Enhancements
+### 节点选择增强
 
-Node selection comes down first selecting which rack (server rack) and then which node on that rack to choose. The gist of strategy in choosing a rack and node is finding the rack that has the "most" resource available and in that rack find the node with the "most" free resources.  The assumption we are making for this strategy is that the node or rack with the most free resources will have the highest probability that allows us to schedule colocate the most number of executors on the node or rack to reduce network communication latency
+节点选择首先选择哪个机架（服务器机架），然后选择该机架上的哪个节点。选择机架和节点的战略要点是找到具有 "最多" 资源的机架，并在该机架中使用 "最多" 免费资源查找节点。
+我们为此策略制定的假设是，拥有最多资源的节点或机架将具有最高的概率，允许我们调度在节点或机架上共同定位最多的 executor，以减少网络通信延迟。
 
-Racks and nodes will be sorted from best choice to worst choice.  When finding an executor, the strategy will iterate through all racks and nodes, starting from best to worst, before giving up.  Racks and nodes will be sorted in the following matter:
+机架和节点将从最佳选择排列到最差选择。在找到执行者时，策略将在放弃之前迭代所有机架和节点，从最坏到最坏。机架和节点将按以下事项进行排序：
 
-1. How many executors are already scheduled on the rack or node  
- -- This is done so we move executors to schedule closer to executors that are already scheduled and running.  If a topology partially crashed and a subset of the topology's executors need to be rescheduled, we want to reschedule these executors as close (network wise) as possible to the executors that healthy and running. 
+1. 已经在机架或节点上安排了多少个 executor
+ -- 这样做是为了使 executor 更紧密地安排已经安排并运行的 executor。如果 topology 部分崩溃，topology 的 executor 的一部分需要重新安排，我们希望将这些 executor 尽可能接近（网络）重新安排到健康和运行的 executor。
 
-2. Subordinate resource availability or the amount "effective" resources on the rack or node  
- -- Please refer the section on Subordinate Resource Availability
+2. 辅助资源可用性或机架或节点上的 "有效" 资源量
+ -- 请参阅下属资源可用性部分
 
-3. Average of the all the resource availability  
- -- This is simply taking the average of the percent available (available resources on node or rack divied by theavailable resources on rack or cluster, repectively).  This situation will only be used when "effective resources" for two objects (rack or node) are the same. Then we consider the average of all the percentages of resources as a metric for sorting. For example:
+3. 所有资源可用性的平均值 
+ -- 这仅仅是可用的平均百分比（分别在机架或集群上的可用资源分配的节点或机架上的可用资源）。只有当两个对象（机架或节点）的 "有效资源" 相同时，才会使用这种情况。然后，我们将所有资源百分比的平均值作为排序指标。例如:
 
         Avail Resources:
         node 1: CPU = 50 Memory = 1024 Slots = 20
@@ -339,17 +388,20 @@ Racks and nodes will be sorted from best choice to worst choice.  When finding a
         node 2 = 50 / (50+50+1000) = 0.045 (CPU bound)
         node 3 = 0 (memory and slots are 0)
 
-ode 1 and node 2 have the same effective resources but clearly node 2 has more resources (memory and slots) than node 1 and we would want to pick node 2 first since there is a higher probability we will be able to schedule more executors on it. This is what the phase 2 averaging does
+ode1 和 节点2 具有相同的有效资源，但是明确地说，节点2具有比节点1更多的资源（memory 和 slots），并且我们将首先选择节点2，因为我们将能够安排更多的 executor。这是阶段2平均的
 
-Thus the sorting follows the following progression. Compare based on 1) and if equal then compare based on 2) and if equal compare based on 3) and if equal we break ties by arbitrarly assigning ordering based on comparing the ids of the node or rack.
+因此，排序遵循以下进展。 基于1）进行比较，如果相等，则基于2）进行比较，如果基于3）相等比较，并且如果相等，则通过基于比较节点或机架的 id 来通过任意分配排序来断开连接。
 
-**Subordinate Resource Availability**
+**下属资源可用性**
 
-Originally the getBestClustering algorithm for RAS finds the "Best" rack based on which rack has the "most available" resources by finding the rack with the biggest sum of available memory + available across all nodes in the rack. This method is not very accurate since memory and cpu usage aree values on a different scale and the values are not normailized. This method is also not effective since it does not consider the number of slots available and it fails to identifying racks that are not schedulable due to the exhaustion of one of the resources either memory, cpu, or slots. Also the previous method does not consider failures of workers. When executors of a topology gets unassigned and needs to be scheduled again, the current logic in getBestClustering may be inadequate since it will likely return a cluster that is different from where the majority of executors from the topology is originally scheduling in.
+最初，RAS 的 getBestClustering 算法通过在机架中的所有节点上找到具有可用内存的最大可用总数 + 可用的最大可用机架，找到基于哪个机架具有 "最可用" 资源的 "最佳" 机架。
+这种方法不是非常准确的，因为内存和 cpu 的使用不同，而且值不是正常的。
+这种方法也没有效果，因为它不考虑可用的插槽的数量，并且由于资源之一（内存，CPU 或 slots）的耗尽，无法识别不可调度的机架。
+以前的方法也不考虑 worker 的失败。当 topology 的 executor 未被分配并需要重新安排时，
 
-The new strategy/algorithm to find the "best" rack or node, I dub subordinate resource availability ordering (inspired by Dominant Resource Fairness), sorts racks and nodes by the subordinate (not dominant) resource availability.
+找到 "最佳" 机架或节点的新 策略/算法，我配置从属资源可用性排序（受主导资源公平性的启发），通过下属（不占优势）资源可用性对机架和节点进行排序。
 
-For example given 4 racks with the following resource availabilities
+例如给出4个具有以下资源可用性的机架
 
     //generate some that has alot of memory but little of cpu
     rack-3 Avail [ CPU 100.0 MEM 200000.0 Slots 40 ] Total [ CPU 100.0 MEM 200000.0 Slots 40 ]
@@ -363,15 +415,15 @@ For example given 4 racks with the following resource availabilities
     rack-0 Avail [ CPU 4000.0 MEM 80000.0 Slots 40( ] Total [ CPU 4000.0 MEM 80000.0 Slots 40 ]
     Cluster Overall Avail [ CPU 12200.0 MEM 410000.0 Slots 200 ] Total [ CPU 12200.0 MEM 410000.0 Slots 200 ]
 
-It is clear that rack-0 is the best cluster since its the most balanced and can potentially schedule the most executors, while rack-2 is the worst rack since rack-2 is depleted of cpu resource thus rendering it unschedulable even though there are other resources available.
+很明显，机架0是最平衡的最佳集群，可以安排最多的执行器，而机架2是机架2耗尽 cpu 资源的最差机架，因此即使有其他的可用资源
 
-We first calculate the resource availability percentage of all the racks for each resource by computing:
+我们首先计算每个资源的所有机架的资源可用性百分比:
 
     (resource available on rack) / (resource available in cluster)
 
-We do this calculation to normalize the values otherwise the resource values would not be comparable.
+我们做这个计算来归一化值，否则资源值将不可比较。
 
-So for our example:
+所以我们的例子:
 
     rack-3 Avail [ CPU 0.819672131147541% MEM 48.78048780487805% Slots 20.0% ] effective resources: 0.00819672131147541
     rack-2 Avail [ 0.0% MEM 19.51219512195122% Slots 20.0% ] effective resources: 0.0
@@ -379,57 +431,64 @@ So for our example:
     rack-1 Avail [ CPU 16.39344262295082% MEM 9.75609756097561% Slots 20.0% ] effective resources: 0.0975609756097561
     rack-0 Avail [ CPU 32.78688524590164% MEM 19.51219512195122% Slots 20.0% ] effective resources: 0.1951219512195122
 
-The effective resource of a rack, which is also the subordinate resource, is computed by: 
+机架的有效资源也是下属资源，计算方法如下: 
 
     MIN(resource availability percentage of {CPU, Memory, # of free Slots}).
     
-Then we order the racks by the effective resource.
+然后我们用有效的资源订购机架。
 
-Thus for our example:
+因此我们的例子:
 
     Sorted rack: [rack-0, rack-1, rack-4, rack-3, rack-2]
-    
-This metric is used in sorting for both nodes and racks.  When sorting racks, we consider resources available on the rack and in the whole cluster (containing all racks).  When sorting nodes, we consider resources available on the node and the resources available in the rack (sum of all resources available for all nodes in rack)
 
-Original Jira for this enhancement: [STORM-1766](https://issues.apache.org/jira/browse/STORM-1766)
+该 metric 用于对节点和机架进行排序。在分类机架时，我们考虑机架上和整个集群中可用的资源（包含所有机架）。在分类节点时，我们考虑节点上可用的资源和机架中可用的资源（机架中所有节点可用的所有资源的总和）
 
-### Improvements in Scheduling
-This section provides some experimental results on the performance benefits with the enhancements on top of the original scheduling strategy.  The experiments are based off of running simulations using:
+原始 Jira 为此增强: [STORM-1766](https://issues.apache.org/jira/browse/STORM-1766)
+
+### 计划改进
+
+本节提供了一些关于性能优势的实验结果，其中包括在原始调度策略之上的增强功能。实验基于运行模拟:
 
 https://github.com/jerrypeng/storm-scheduler-test-framework
 
-Random topologies and clusters are used in the simulation as well as a comprehensive dataset consisting of all real topologies running in all the storm clusters at Yahoo.
+模拟中使用随机 topology 和集群，以及由雅虎所有 storm 集群中运行的所有真实 topology 结构组成的综合数据集。
 
-The below graphs provides a comparison of how well the various strategies schedule topologies to minimize network latency.  A network metric is calculated for each scheduling of a topology by each scheduling strategy.  The network metric is calculated based on how many connections each executor in a topology has to make to another executor residing in the same worker (JVM process), in different worker but same host, different host, different rack.  The assumption we are making is the following
+下图提供了各种策略调度 topology 结构以最小化网络延迟的比较。
+通过每个调度策略为 topology 的每个调度计算一个网络 metric。
+网络 metric 是根据 topology 中的每个 executor 对驻留在同一个工作程序（JVM进程）中的另一个 executor，在不同的 worker 但是相同的主机，不同的主机，不同的机架上进行的连接进行计算的。
+我们所做的假设如下:
 
-1. Intra-worker communication is the fastest
-2. Inter-worker communication is fast
-3. Inter-node communication is slower
-4. Inter-rack communication is the slowest
+1. Intra-worker 之间的沟通是最快的
+2. Intra-worker 之间的沟通很快
+3. Inter-node 间通信速度较慢
+4. Inter-rack 间通信是最慢的
 
-For this network metric, the larger the number is number is the more potential network latency the topology will have for this scheduling.  Two types of experiments are performed.  One set experiments are performed with randomly generated topologies and randomly generate clusters.  The other set of experiments are performed with a dataset containing all of the running topologies at yahoo and semi-randomly generated clusters based on the size of the topology.  Both set of experiments are run millions of iterations until results converge.  
+对于此网络 metric，数量越大，topology 结构对于此调度将具有更多的潜在网络延迟。进行两种实验。
+使用随机生成的 topology 进行一组实验，并随机生成簇。
+另一组实验使用包含基于 topology 大小的 yahoo 和 semi-randomly 生成的集群中的所有运行 topology 的数据集执行。两组实验都运行数百万次迭代，直到结果收敛。
 
-For the experiments involving randomly generated topologies, an optimal strategy is implemented that exhausively finds the most optimal solution if a solution exists.  The topologies and clusters used in this experiment are relatively small so that the optimal strategy traverse to solution space to find a optimal solution in a reasonable amount of time.  This strategy is not run with the Yahoo topologies since the topologies are large and would take unreasonable amount of time to run, since the solutions space is W^N (ordering doesn't matter within a worker) where W is the number of workers and N is the number of executors. The NextGenStrategy represents the scheduling strategy with these enhancements.  The DefaultResourceAwareStrategy represents the original scheduling strategy.  The RoundRobinStrategy represents a naive strategy that simply schedules executors in a round robin fashion while respecting the resource constraints.  The graph below presents averages of the network metric.  A CDF graph is also presented further down.
+对于涉及随机生成的 topology 结构的实验，实现了一种最优策略，如果存在解决方案，则会极大地找到最优解。本实验中使用的 topology 和簇相对较小，以便最优策略遍历解空间，以在合理的时间内找到最优解。
+由于 topology 很大，并且运行时间不合理，所以这种策略并不适用于雅虎 topology，因为解决方案空间是 W ^ N（在工作中无关紧要），其中 W 是工作人员的数量， N 是执行者的数量。NextGenStrategy 代表具有这些增强功能的调度策略。DefaultResourceAwareStrategy 表示原始调度策略。RoundRobinStrategy 代表了一种 naive 策略，它简单地以循环方式安排执行者，同时遵守资源约束。
+下图显示了网络度量的平均值。CDF 图也进一步呈现。
 
 | Random Topologies | Yahoo topologies |
 |-------------------|------------------|
 |![](images/ras_new_strategy_network_metric_random.png)| ![](images/ras_new_strategy_network_metric_yahoo_topologies.png)|
 
-The next graph displays how close the schedulings from the respectively scheduling strategies are to the schedulings of the optimal strategy.  As explained earlier, this is only done for the random generated topologies and clusters.
+下一个图表显示了从各自的调度策略的调度到最优策略的调度的接近程度。如前所述，这仅适用于随机生成的 topology 和集群。
 
 | Random Topologies |
 |-------------------|
 |![](images/ras_new_strategy_network_metric_improvement_random.png)|
 
-The below graph is a CDF of the network metric:
+下图是网络 metric 的 CDF:
 
 | Random Topologies | Yahoo topologies |
 |-------------------|------------------|
 |![](images/ras_new_strategy_network_cdf_random.png)| ![](images/ras_new_strategy_network_metric_cdf_yahoo_topologies.png)|
 
-Below is a comparison of the how long the strategies take to run:
+以下是策略运行多长时间的比较:
 
 | Random Topologies | Yahoo topologies |
 |-------------------|------------------|
 |![](images/ras_new_strategy_runtime_random.png)| ![](images/ras_new_strategy_runtime_yahoo.png)|
-
