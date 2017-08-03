@@ -4,11 +4,7 @@ layout: documentation
 documentation: true
 ---
 
-Storm/Trident integration for [Redis](http://redis.io/)
-
 Storm/Trident 集成 [Redis](http://redis.io/)
-
-Storm-redis uses Jedis for Redis client.
 
 Storm-redis使用Jedis为Redis客户端。
 
