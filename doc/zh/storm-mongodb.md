@@ -4,13 +4,13 @@ layout: documentation
 documentation: true
 ---
 
-Storm/Trident integration for [MongoDB](https://www.mongodb.org/). This package includes the core bolts and trident states that allows a storm topology to either insert storm tuples in a database collection or to execute update queries against a database collection in a storm topology.
+Storm/Trident集成[MongoDB](https://www.mongodb.org/)。该包中包括核心bolts和trident states，允许storm topology将storm tuples插入到数据库集合中，或者针storm topology中的数据库集合执行更新查询。
 
 ## Insert into Database
-The bolt and trident state included in this package for inserting data into a database collection.
+此包中包含用于将数据插入数据库集合的bolt和trident state。
 
 ### MongoMapper
-The main API for inserting data in a collection using MongoDB is the `org.apache.storm.mongodb.common.mapper.MongoMapper` interface:
+使用MongoDB在集合中插入数据的主要API是 `org.apache.storm.mongodb.common.mapper.MongoMapper` 接口：
 
 ```java
 public interface MongoMapper extends Serializable {
@@ -19,7 +19,8 @@ public interface MongoMapper extends Serializable {
 ```
 
 ### SimpleMongoMapper
-`storm-mongodb` includes a general purpose `MongoMapper` implementation called `SimpleMongoMapper` that can map Storm tuple to a Database document.  `SimpleMongoMapper` assumes that the storm tuple has fields with same name as the document field name in the database collection that you intend to write to.
+`storm-mongodb`包括一个通用的`MongoMapper`实现，称为`SimpleMongoMapper`，可以将Storm元组映射到一个数据库文件。
+`SimpleMongoMapper`假定storm tuple具有与您要写入的数据库集合中的文档字段名称相同的字段。
 
 ```java
 public class SimpleMongoMapper implements MongoMapper {
@@ -42,10 +43,11 @@ public class SimpleMongoMapper implements MongoMapper {
 ```
 
 ### MongoInsertBolt
-To use the `MongoInsertBolt`, you construct an instance of it by specifying url, collectionName and a `MongoMapper` implementation that converts storm tuple to DB document. The following is the standard URI connection scheme:
+要使用`MongoInsertBolt`，您可以通过指定url，collectionName和将 storm tuple转换为DB文档的 `MongoMapper`实现来构造它的一个实例。 以下是标准的URI连接方案：
  `mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]`
 
-More options information(eg: Write Concern Options) about Mongo URI, you can visit https://docs.mongodb.org/manual/reference/connection-string/#connections-connection-options
+有关Mongo URI的更多选项信息（例如：写关注选项），您可以访问
+https://docs.mongodb.org/manual/reference/connection-string/#connections-connection-options
 
  ```java
 String url = "mongodb://127.0.0.1:27017/test";
@@ -58,7 +60,7 @@ MongoInsertBolt insertBolt = new MongoInsertBolt(url, collectionName, mapper);
  ```
 
 ### MongoTridentState
-We also support a trident persistent state that can be used with trident topologies. To create a Mongo persistent trident state you need to initialize it with the url, collectionName, the `MongoMapper` instance. See the example below:
+我们还支持在trident topologies中持久化trident state 。 要创建一个Mongo持久的trident state，您需要使用url，collectionName，“MongoMapper”实例初始化它。 见下面的例子：
 
  ```java
         MongoMapper mapper = new SimpleMongoMapper()
@@ -77,14 +79,14 @@ We also support a trident persistent state that can be used with trident topolog
         stream.partitionPersist(factory, fields,  new MongoStateUpdater(), new Fields());
  ```
  **NOTE**:
- >If there is no unique index provided, trident state inserts in the case of failures may result in duplicate documents.
+ >如果没有提供唯一的索引，在发生故障的情况下，trident state插入可能会导致重复的文档。
 
 ## Update from Database
-The bolt included in this package for updating data from a database collection.
+包中包含用于从数据库集合更新数据的bolt。
 
 ### SimpleMongoUpdateMapper
-`storm-mongodb` includes a general purpose `MongoMapper` implementation called `SimpleMongoUpdateMapper` that can map Storm tuple to a Database document. `SimpleMongoUpdateMapper` assumes that the storm tuple has fields with same name as the document field name in the database collection that you intend to write to.
-`SimpleMongoUpdateMapper` uses `$set` operator for setting the value of a field in a document. More information about update operator, you can visit 
+`storm-mongodb`包括一个通用的`MongoMapper`实现，称为`SimpleMongoUpdateMapper`，可以将Storm元组映射到数据库文档。 `SimpleMongoUpdateMapper`假定风暴元组具有与您要写入的数据库集合中的文档字段名称相同的字段。
+`SimpleMongoUpdateMapper`使用`$ set`运算符来设置文档中字段的值。 有关更新操作的更多信息，可以访问
 https://docs.mongodb.org/manual/reference/operator/update/
 
 ```java
@@ -110,7 +112,7 @@ public class SimpleMongoUpdateMapper implements MongoMapper {
 
  
 ### QueryFilterCreator
-The main API for creating a MongoDB query Filter is the `org.apache.storm.mongodb.common.QueryFilterCreator` interface:
+用于创建MongoDB查询过滤器的主要API是 `org.apache.storm.mongodb.common.QueryFilterCreator` 接口：
 
  ```java
 public interface QueryFilterCreator extends Serializable {
@@ -119,7 +121,7 @@ public interface QueryFilterCreator extends Serializable {
  ```
 
 ### SimpleQueryFilterCreator
-`storm-mongodb` includes a general purpose `QueryFilterCreator` implementation called `SimpleQueryFilterCreator` that can create a MongoDB query Filter by given Tuple.  `QueryFilterCreator` uses `$eq` operator for matching values that are equal to a specified value. More information about query operator, you can visit 
+`storm-mongodb`包括一个通用的`QueryFilterCreator`实现，称为`SimpleQueryFilterCreator`，可以通过给定的Tuple创建一个MongoDB查询过滤器。 `QueryFilterCreator`使用`$ eq`运算符匹配等于指定值的值。 有关查询运算符的更多信息，可以访问
 https://docs.mongodb.org/manual/reference/operator/query/
 
  ```java
@@ -140,7 +142,7 @@ public class SimpleQueryFilterCreator implements QueryFilterCreator {
  ```
 
 ### MongoUpdateBolt
-To use the `MongoUpdateBolt`,  you construct an instance of it by specifying Mongo url, collectionName, a `QueryFilterCreator` implementation and a `MongoMapper` implementation that converts storm tuple to DB document.
+要使用`MongoUpdateBolt`，你可以通过指定Mongo url，collectionName，一个`QueryFilterCreator`实现和一个````MongoMapper``实现来将storm tuple转换成DB文档来构造一个实例。
 
  ```java
         MongoMapper mapper = new SimpleMongoUpdateMapper()
@@ -155,7 +157,7 @@ To use the `MongoUpdateBolt`,  you construct an instance of it by specifying Mon
         //updateBolt.withUpsert(true);
  ```
  
- Or use a anonymous inner class implementation for `QueryFilterCreator`:
+ 或者为 `QueryFilterCreator`使用匿名内部类实现：
  
   ```java
         MongoMapper mapper = new SimpleMongoUpdateMapper()
