@@ -6,15 +6,11 @@ documentation: true
 
 # Storm Elasticsearch Bolt & Trident State
 
-  EsIndexBolt, EsPercolateBolt and EsState allows users to stream data from storm into Elasticsearch directly.
-  For detailed description, please refer to the following.
+ EdIndexBolt，EsPercolateBolt和Estate允许用户将storm中的数据直接传输到Elasticsearch。 详细说明请参考以下内容。
 
 ## EsIndexBolt (org.apache.storm.elasticsearch.bolt.EsIndexBolt)
 
-EsIndexBolt streams tuples directly into Elasticsearch. Tuples are indexed in specified index & type combination. 
-Users should make sure that ```EsTupleMapper``` can extract "source", "index", "type", and "id" from input tuple.
-"index" and "type" are used for identifying target index and type.
-"source" is a document in JSON format string that will be indexed in Elasticsearch.
+EsIndexBolt将tuples直接流入Elasticsearch索。 Tuples以指定的索引和类型组合进行索引。 用户应确保```EsTupleMapper```可以从输入元组中提取“source”，“index”，“type”和“id”，“index”和“type”用于识别目标索引和类型。“source” 一个JSON格式的文档，将在Elasticsearch中编入索引。
 
 ```java
 EsConfig esConfig = new EsConfig(clusterName, new String[]{"localhost:9300"});
@@ -24,23 +20,18 @@ EsIndexBolt indexBolt = new EsIndexBolt(esConfig, tupleMapper);
 
 ## EsPercolateBolt (org.apache.storm.elasticsearch.bolt.EsPercolateBolt)
 
-EsPercolateBolt streams tuples directly into Elasticsearch. Tuples are used to send percolate request to specified index & type combination. 
-User should make sure ```EsTupleMapper``` can extract "source", "index", "type" from input tuple.
-"index" and "type" are used for identifying target index and type.
-"source" is a document in JSON format string that will be sent in percolate request to Elasticsearch.
-
+EsPercolateBolt将tuples直接流入Elasticsearch。 tuples用于发送渗透请求到指定的索引和类型组合。 用户应该确保```EsTupleMapper```可以从输入元组中提取“source”，“index”，“type”，“index”和“type”用于识别目标索引和类型，“source”是一个文档 在JSON格式的字符串将发送到渗透请求到弹性搜索。
 ```java
 EsConfig esConfig = new EsConfig(clusterName, new String[]{"localhost:9300"});
 EsTupleMapper tupleMapper = new DefaultEsTupleMapper();
 EsPercolateBolt percolateBolt = new EsPercolateBolt(esConfig, tupleMapper);
 ```
 
-If there exists non-empty percolate response, EsPercolateBolt will emit tuple with original source and Percolate.Match
-for each Percolate.Match in PercolateResponse.
+如果存在非空的渗漏响应，EsPercolateBolt将会为PercolateResponse中每个Percolate.Match发出具有原始源和Percolate.Match的tuple。
 
 ## EsState (org.apache.storm.elasticsearch.trident.EsState)
 
-Elasticsearch Trident state also follows similar pattern to EsBolts. It takes in EsConfig and EsTupleMapper as an arg.
+Elasticsearch Trident state也与EsBolts类似。 它将EsConfig和EsTupleMapper作为参数。
 
 ```java
 EsConfig esConfig = new EsConfig(clusterName, new String[]{"localhost:9300"});
@@ -52,14 +43,14 @@ TridentState state = stream.partitionPersist(factory, esFields, new EsUpdater(),
 
 ## EsLookupBolt (org.apache.storm.elasticsearch.bolt.EsLookupBolt)
 
-EsLookupBolt performs a get request to Elasticsearch. 
-In order to do that, three dependencies need to be satisfied. Apart from usual EsConfig, two other dependencies must be provided:
-    ElasticsearchGetRequest is used to convert the incoming Tuple to the GetRequest that will be executed against Elasticsearch.
-    EsLookupResultOutput is used to declare the output fields and convert the GetResponse to values that are emited by the bolt.
+EsLookupBolt对Elasticsearch执行获取请求。
+为了做到这一点，需要满足三个依赖。 除了通常的EsConfig，还必须提供其他两个依赖关系：
+    ElasticsearchGetRequest用于将传入的元组转换为将针对Elasticsearch执行的GetRequest。
+    EsLookupResultOutput用于声明输出字段，并将GetResponse转换为由bolt发出的值。
 
-Incoming tuple is passed to provided GetRequest creator and the result of that execution is passed to Elasticsearch client.
-The bolt then uses the provider output adapter (EsLookupResultOutput) to convert the GetResponse to Values to emit.
-The output fields are also specified by the user of the bolt via the output adapter (EsLookupResultOutput).
+传入的tuple被传递给提供的GetRequest创建者，该执行的结果被传递给Elasticsearch客户端。
+然后，bolt使用提供程序输出适配器（EsLookupResultOutput）将GetResponse转换为值以发送。
+输出字段也由bolt的用户通过输出适配器（EsLookupResultOutput）指定。
 
 ```java
 EsConfig esConfig = createEsConfig();
@@ -70,7 +61,7 @@ EsLookupBolt lookupBolt = new EsLookupBolt(esConfig, getRequestAdapter, output);
 
 ## EsConfig (org.apache.storm.elasticsearch.common.EsConfig)
   
-Provided components (Bolt, State) takes in EsConfig as a constructor arg.
+=提供的组件（Bolt，State）以EsConfig作为构造函数arg。
 
 ```java
 EsConfig esConfig = new EsConfig(clusterName, new String[]{"localhost:9300"});
@@ -94,10 +85,11 @@ EsConfig esConfig = new EsConfig(clusterName, new String[]{"localhost:9300"}, ad
 
 ## EsTupleMapper (org.apache.storm.elasticsearch.common.EsTupleMapper)
 
-For storing tuple to Elasticsearch or percolating tuple from Elasticsearch, we need to define which fields are used for.
-Users need to define your own by implementing ```EsTupleMapper```.
-Storm-elasticsearch presents default mapper ```org.apache.storm.elasticsearch.common.DefaultEsTupleMapper```, which extracts its source, index, type, id values from identical fields.
-You can refer implementation of DefaultEsTupleMapper to see how to implement your own.
+对于存储在Elasticsearch中的tuple或者从Elasticsearch搜索到的tuple，我们需要定义使用哪些字段。
+用户需要通过实现```EsTupleMapper```定义你自己的。
+Storm-elasticsearch提供了默认的mapper```org.apache.storm.elasticsearch.common.DefaultEsTupleMapper```，它从相同的字段中提取其源，索引，类型，id值。
+您可以参考DefaultEsTupleMapper的实现来看看如何实现自己的。
+
   
 ## Committer Sponsors
 

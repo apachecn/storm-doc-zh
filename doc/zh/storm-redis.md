@@ -4,15 +4,15 @@ layout: documentation
 documentation: true
 ---
 
-Storm/Trident integration for [Redis](http://redis.io/)
+Storm/Trident 集成 [Redis](http://redis.io/)
 
-Storm-redis uses Jedis for Redis client.
+Storm-redis使用Jedis为Redis客户端。
 
-## Usage
+## 用法
 
-### How do I use it?
+### 如何使用它？
 
-use it as a maven dependency:
+使用它作为一个maven依赖：
 
 ```xml
 <dependency>
@@ -23,17 +23,17 @@ use it as a maven dependency:
 </dependency>
 ```
 
-### For normal Bolt
+### 常用Bolt
 
-Storm-redis provides basic Bolt implementations, ```RedisLookupBolt``` and ```RedisStoreBolt```.
+Storm-redis提供了基本的Bolt实现， ```RedisLookupBolt``` and ```RedisStoreBolt```。
 
-As name represents its usage, ```RedisLookupBolt``` retrieves value from Redis using key, and ```RedisStoreBolt``` stores key / value to Redis. One tuple will be matched to one key / value pair, and you can define match pattern to ```TupleMapper```.
+根据名称可以知道其功能，```RedisLookupBolt```使用键从Redis中检索值，而```RedisStoreBolt```将键/值存储到Redis。 一个元组将匹配一个键/值对，您可以将匹配模式定义为“`TupleMapper```。
 
-You can also choose data type from ```RedisDataTypeDescription``` to use. Please refer ```RedisDataTypeDescription.RedisDataType``` to see what data types are supported. In some data types (hash and sorted set), it requires additional key and converted key from tuple becomes element.
+您还可以从```RedisDataTypeDescription```中选择数据类型来使用。请参考 ```RedisDataTypeDescription.RedisDataType```来查看支持哪些数据类型。在一些数据类型（散列和排序集）中，它需要额外的键和从元组转换的元素成为元素。
 
-These interfaces are combined with ```RedisLookupMapper``` and ```RedisStoreMapper``` which fit ```RedisLookupBolt``` and ```RedisStoreBolt``` respectively.
+这些接口与 ```RedisLookupMapper``` 和 ```RedisStoreMapper```组合，分别适合 ```RedisLookupBolt``` 和```RedisStoreBolt```。
 
-#### RedisLookupBolt example
+#### RedisLookupBolt示例
 
 ```java
 
@@ -85,7 +85,7 @@ RedisLookupMapper lookupMapper = new WordCountRedisLookupMapper();
 RedisLookupBolt lookupBolt = new RedisLookupBolt(poolConfig, lookupMapper);
 ```
 
-#### RedisStoreBolt example
+####  RedisStoreBolt示例
 
 ```java
 
@@ -123,9 +123,9 @@ RedisStoreMapper storeMapper = new WordCountStoreMapper();
 RedisStoreBolt storeBolt = new RedisStoreBolt(poolConfig, storeMapper);
 ```
 
-### For non-simple Bolt
+### 非简单的 Bolt
 
-If your scenario doesn't fit ```RedisStoreBolt``` and ```RedisLookupBolt```, storm-redis also provides ```AbstractRedisBolt``` to let you extend and apply your business logic.
+如果您的场景不适合 ```RedisStoreBolt```和 ```RedisLookupBolt```，Storm-redis还提供了 ```AbstractRedisBolt```，让您扩展和应用业务逻辑。
 
 ```java
 
@@ -157,7 +157,7 @@ If your scenario doesn't fit ```RedisStoreBolt``` and ```RedisLookupBolt```, sto
                         LOG.info("Lookup result - word : " + wordName + " / count : " + count);
                     }
                 } else {
-                    // skip
+                    // skip  
                     LOG.warn("Word not found in Redis - word : " + wordName);
                 }
             } finally {
@@ -177,11 +177,11 @@ If your scenario doesn't fit ```RedisStoreBolt``` and ```RedisLookupBolt```, sto
 
 ```
 
-### Trident State usage
+### Trident State 用法 
 
-1. RedisState and RedisMapState, which provide Jedis interface just for single redis.
+1. RedisState和RedisMapState，它提供Jedis接口，仅用于单次重新启动。
 
-2. RedisClusterState and RedisClusterMapState, which provide JedisCluster interface, just for redis cluster.
+2. RedisClusterState和RedisClusterMapState，它们提供JedisCluster接口，仅用于redis集群。
 
 RedisState
 ```java
