@@ -7,7 +7,7 @@ distributed RPC（分布式RPC） (DRPC) 的设计目的是充分利用Storm的�
 
 严格的来说，DRPC不能够算作Storm的一个特性，因为它是一种基于Storm 原语（Stream，Spout，Bolt，Topology）实现的设计模式。DRPC可以脱离Storm，打包出来作为一个独立的库，但是它和Storm集成在一起更有用。 
 
-### High level（概述）
+### High level 概述
 
 Distributed RPC通过 "DRPC sever"（Storm包含了这个实现）来进行协调。DRPC server 负责接收 RPC 请求，发送请求到 Storm 对应的 topology（拓扑），再从 Storm topology（拓扑）上得到结果，最后发送给等待的客户端。从客户端的角度来看，DRPC调用和普通的RPC调用没有什么区别。例如，以下是一个使用参数 "http://twitter.com"，调用 "reach" 函数计算结果的例子：
 
@@ -19,14 +19,15 @@ Distributed RPC 工作流如下：
 
 ![Tasks in a topology](images/drpc-workflow.png)
 
-客户端发送函数名称和函数所需参数给 DRPC server。实现该函数的 topology（拓扑）使用一个 DRPCSpout 从 DRPC server 接收一个函数调用流。DRPC sever 每一个函数调用都伴随着一个唯一性的 id 。这个 topology（拓扑）计算完结果，使用一个叫做 `ReturnResults` 的 bolt 连接到DRPC server，根据函数调用的 id 将函数调用的结果返回。DRPC sever 使用 id 来判断client等待的是哪个结果，释放等待的client，将结果返回。
+客户端发送要调用的函数名称和函数所需参数到 DRPC server。实现该函数的 topology（拓扑）使用一个 DRPCSpout 从 DRPC server 接收一个 function invocation stream （函数调用流）。DRPC sever 每一个函数调用都会给予一个唯一性的 id ， topology（拓扑）计算完结果，使用一个叫做 `ReturnResults` 的 bolt 连接到DRPC server，根据函数调用的 id 将结果返回。
+DRPC sever 使用 id 来匹配client等待的是哪个结果，unblock 等待的client，将结果返回。
 
 ### LinearDRPCTopologyBuilder
 Storm 有一个 topology（拓扑） 构造器叫 [LinearDRPCTopologyBuilder](javadocs/org/apache/storm/drpc/LinearDRPCTopologyBuilder.html)，可以自动化 DRPC 所涉及的几乎所有步骤，这些包括：
 
 1. 建立 spout
 2. 返回结果到 DRPC server
-3. 给 bolt 提供有限聚合几组 tuples 的功能
+3. 给 bolts 提供聚合 tuples 的功能
 
 我们一起来看一个简单的例子。下面实现了一个DRPC togology（拓扑），返回输入参数添加一个"!"。
 
@@ -50,9 +51,10 @@ public static void main(String[] args) throws Exception {
 }
 ```
 
-正如你所看到的，我们需要做的事情非常少。当创建 `LinearDRPCTopologyBuilder` 的时候，你告诉它拓扑要用到的DRPC 函数名称。一个单一的 DRPC sever 可以协调很多函数，函数与函数之间使用函数名称进行区分。你声明的第一个bolt 会接受一个二维的 tuple，tuple的第一个参数是请求id，第二个字段是请求的参数。`LinearDRPCTopologyBuilder` 希望最后一个 bolt 输出一个二维的[id，result]格式的输出流。最后，中间结果产生的 tuples 必须包含 request id，作为第一个字段。
+正如你所看到的，我们需要做的事情非常少。当创建 `LinearDRPCTopologyBuilder` 的时候，你告诉它相应topology（拓扑）的 DRPC 函数名称。一个单一的 DRPC sever 可以协调很多函数，函数与函数之间使用函数名称进行区分。你声明的第一个bolt 会得到一个二维的 tuple，tuple的第一个参数是 request id ，第二个字段是请求的参数。
+`LinearDRPCTopologyBuilder` 希望最后一个 bolt 会输出一个二维的[id，result]格式的输出流。最后，所有中间结果产生的 tuples 必须包含 request id 作为第一个字段。
 
-在这个例子中，`ExclaimBolt` 简单的在 tuple 的第二个field添加了一个"!"。`LinearDRPCTopologyBuilder` 帮我们解决了其余的事情：连接DRPC server，并将结果返回。
+在这个例子中，`ExclaimBolt` 简单的在 tuple 的第二个 field 后添加了一个 "!" 符合。`LinearDRPCTopologyBuilder` 帮我们协调处理了这些事情：连接 DRPC server，并将结果返回。
 
 
 ### DRPC 本地模式
@@ -70,16 +72,16 @@ cluster.shutdown();
 drpc.shutdown();
 ```
 
-首先你创建一个 `LocalDRPC` 对象。这个对象在进程内模拟了一个DRPC服务器，就像 `LocalCluster` 在进程内模拟一个storm集群。然后创建 `LocalCluster` 对象在本地模式运行topology（拓扑）。`LinearDRPCTopologyBuilder` 有单独的方法创建本地topology和远程的topolgy。在本地模式里面，`LocalDRPC` 对象不会和任何端口绑定，所以topology（拓扑）需要知道对象和谁交互。这就是为什么`createLocalTopology` 需要一个 `LocalDRPC` 作为输入。
+首先你创建一个 `LocalDRPC` 对象。这个对象在进程内模拟了一个 DRPC server，就像 `LocalCluster` 在进程内模拟一个storm集群。然后创建 `LocalCluster` 对象在本地模式运行topology（拓扑）。`LinearDRPCTopologyBuilder` 有单独的方法创建本地 topology（拓扑）和远程的topolgy（拓扑）。在本地模式里面，`LocalDRPC` 对象不会和任何端口绑定，所以 topology（拓扑）需要知道对象和哪个 DRPC 交互。这就是为什么`createLocalTopology` 需要一个 `LocalDRPC` 作为输入。
 
-执行完 `topology`（拓扑）后，你可以使用 `LocalDRPC` 的 `execute` 方法来调用DRPC。
+启动 `topology`（拓扑）后，你可以使用 `LocalDRPC` 的 `execute` 方法做 DRPC 调用。
 
 ### DRPC远程模式
 在一个真实集群上面使用DRPC也是非常简单的，有三个步骤:
 
-1. 启动 DRPC 服务器
-2. 配置 DRPC sever 的地址
-3. 提交 DRPC topologies（拓扑）到Storm集群。
+1. 启动 DRPC servers
+2. 配置 DRPC severs 的地址
+3. 提交 DRPC topologies（DRPC 拓扑）到Storm集群。
 
 可以使用 `storm` 脚本启动一个DRPC server，就像启动 Nimbus 和 UI 节点一样。
 
@@ -87,7 +89,7 @@ drpc.shutdown();
 bin/storm drpc
 ```
 
-下面，你可以配置 Storm 集群知道 DRPC sever(s) 的地址。`DRPCSpout` 需要知道这个DRPC地址，从而如何读取函数调用。这个可以配置 `storm.yaml` 文件或者通过代码配置在 topology（拓扑）参数中。通过 storm.yaml 配置像下面这样：
+下一步，你可以配置 Storm 集群知道 DRPC sever(s) 的地址。`DRPCSpout` 需要知道这个DRPC地址，从而得到函数调用的请求。这个可以配置 `storm.yaml` 文件或者通过代码配置在 topology（拓扑）参数中。通过 storm.yaml 配置像下面这样：
 
 
 ```yaml
@@ -96,23 +98,23 @@ drpc.servers:
   - "drpc2.foo.com"
 ```
 
-最后，你使用 `StormSubmitter` 提交 DRPC topologies（拓扑），和你提交其他 topologies 一样。如果要以远程调用的方式运行上面的例子，用下面的代码：
+最后，你使用 `StormSubmitter` 运行 DRPC topologies（拓扑），和你提交其他 topologies 一样。如果要以远程调用的方式运行上面的例子，用下面的代码：
 
 ```java
 StormSubmitter.submitTopology("exclamation-drpc", conf, builder.createRemoteTopology());
 ```
 
-`createRemoteTopology` is used to create topologies suitable for Storm clusters.
+`createRemoteTopology` 是用来创建符合 Storm cluster 的 topologies（拓扑）.
 
 
 ### 一个更复杂的例子
-上面的例子只是用来说明 DRPC 的概念。我们来看一个更复杂的例子，需要使用 Storm 并行计算的DRPC功能。我们将看到这个例子是用来计算 Twitter 上每个URL的访问量（reach）。
+上面的例子只是用来说明 DRPC 的概念。我们来看一个更复杂的例子，需要使用 Storm 并行计算的 DRPC 功能。我们将看到这个例子是用来计算 Twitter 上每个URL的访问量（reach）。
 
 一个URL的访问量（reach）是每个在Twitter上的URL暴露给不同的人的数量。为了计算访问量，你需要：
 
 1. 得到所有 tweet 这个 URL 的人。
 2. 得到步骤1中所有人的粉丝
-3. 	对所有粉丝进行去重
+3. 对所有粉丝进行去重
 4. 对步骤3的粉丝求和。
 
 单个 URL 的访问量计算会涉及成千上万次数据库调用以及数以百万的粉丝记录。这是一个很大很大的计算量。正如你即将看到的，在 Storm 上实现这个功能是很简单的。在单机上，访问量可能需要几分钟才能完成；在 Storm 集群上，即使是很难计算的 URLs 也会在几秒内计算出访问量。
