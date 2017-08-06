@@ -44,7 +44,7 @@ Trident 在处理输入 stream 的时候会转换成 batch （包含若干个 tu
 
 一般来说, 这些小的 batch 中的 tuple 可能会在数千或者数百万这样的数量级, 这完全取决于你的 incoming throughput （输入的吞吐量）. 
 
-Trident 提供了一系列非常成熟的批处理 API 来处理这些小 batches . 这些 API 和你在 Pig 或者 Cascading 中看到的非常类似,  你可以做 groupby, join, aggregation, 执行  function 和 filter 等等. 当然, 独立的处理每个小的 batch 并不是非常有趣的事情, 所以 Trident 提供了功能来实现 batch 之间的聚合，并可以将这些聚合的结果存储到内存,Memcached, Cassandra 或者是一些其他的存储中. 同时, Trident 还提供了非常好的功能来查询这些数据源的实时状态, 这些实时状态可以被 Trident 更新, 同时它也可以是一个 independent source of state （独立的状态源）. 
+Trident 提供了一系列非常成熟的批处理 API 来处理这些小 batches . 这些 API 和你在 Pig 或者 Cascading 中看到的非常类似,  你可以做 groupby, join, aggregation, 执行  function 和 filter 等等. 当然, 独立的处理每个小的 batch 并不是非常有趣的事情, 所以 Trident 提供了功能来实现 batch 之间的聚合，并可以将这些聚合的结果存储到内存,Memcached, Cassandra 或者是一些其他的存储中. 同时, Trident 还提供了非常好的功能来查询这些数据源的实时状态, 这些实时状态可以被 Trident 更新, 同时这些状态也可以是一个 independent source of state （独立的状态源）. 
 
 回到我们的这个例子中来, spout 输出了一包含单一字段 "sentence"  stream . 在下一行, topology 使用了 Split 函数将 stream 拆分成一个个 tuple , Split 函数读取 stream （输入流）中的 "sentence" 字段并将其拆分成若干个 word tuple . 每一个 sentence tuple 可能会被转换成多个 word tuple, 比如说 "the cow jumped over the moon" 会被转换成 6 个 "word" tuples. 下面是 Split 的定义:
 
