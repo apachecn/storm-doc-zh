@@ -1,45 +1,45 @@
 ---
-title: Dynamic Log Level Settings
+title: 动态日志级别设置
 layout: documentation
 documentation: true
 ---
 
+我们已经添加了使用Storm UI 和Storm CLI为正在运行的拓扑设置日志级别的功能。
 
-We have added the ability to set log level settings for a running topology using the Storm UI and the Storm CLI. 
+日志级别设置的应用方式与log4j所期望的相同，因为我们正在做的是告诉log4j设置您提供的记录器的级别。如果您设置父记录器的日志级别，则子级记录器将开始用该级别(除非该子级别的限制级别更高)。可以选择提供超时（除了DEBUG模式，在UI中需要它了），如果工作人员应自动重置日志级别。
 
-The log level settings apply the same way as you'd expect from log4j, as all we are doing is telling log4j to set the level of the logger you provide. If you set the log level of a parent logger, the children loggers start using that level (unless the children have a more restrictive level already). A timeout can optionally be provided (except for DEBUG mode, where it’s required in the UI), if workers should reset log levels automatically.
-
-This revert action is triggered using a polling mechanism (every 30 seconds, but this is configurable), so you should expect your timeouts to be the value you provided plus anywhere between 0 and the setting's value.
+这种恢复操作是使用轮询机制触发的（每隔30秒，但这是可配置的），所以你应该期望你的超时值是你提供的值加上0和设置值之间的任何值。
 
 Using the Storm UI
+使用 Storm UI
 -------------
 
-In order to set a level, click on a running topology, and then click on “Change Log Level” in the Topology Actions section.
+为了设置一个级别，请单击运行的拓扑，然后单击"拓扑操作"部分中的"更改日志级别"。
 
 ![Change Log Level dialog](images/dynamic_log_level_settings_1.png "Change Log Level dialog")
 
-Next, provide the logger name, select the level you expect (e.g. WARN), and a timeout in seconds (or 0 if not needed). Then click on “Add”.
+然后，提供记录器的名称，选择您期望的级别（例如WARN）和超时（以秒为单位）（如果不需要则为0），然后点击"添加"。
 
 ![After adding a log level setting](images/dynamic_log_level_settings_2.png "After adding a log level setting")
 
-To clear the log level click on the “Clear” button. This reverts the log level back to what it was before you added the setting. The log level line will disappear from the UI.
+要清理日志级别，请单击"清除"按钮。这会将日志级别恢复添加设置之前的级别。日志级别线也将从UI消失。
 
-While there is a delay resetting log levels back, setting the log level in the first place is immediate (or as quickly as the message can travel from the UI/CLI to the workers by way of nimbus and zookeeper).
+虽然有延时重置日志级别，但首先设置日志级别是即时消息（或者消息可以通过nimbus和zookeeper从UI/CLI传送到工作人员）。
 
-Using the CLI
+使用 CLI
 -------------
 
-Using the CLI, issue the command:
+使用CLI发出命令：
 
 `./bin/storm set_log_level [topology name] -l [logger name]=[LEVEL]:[TIMEOUT]`
 
-For example:
+例如：
 
 `./bin/storm set_log_level my_topology -l ROOT=DEBUG:30`
 
-Sets the ROOT logger to DEBUG for 30 seconds.
+将ROOT记录器设置为DEBUG 30秒。
 
 `./bin/storm set_log_level my_topology -r ROOT`
 
-Clears the ROOT logger dynamic log level, resetting it to its original value.
+清除ROOT记录器动态日志级别，将其重置为原始值。
 
