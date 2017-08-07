@@ -3,28 +3,24 @@ title: Storm Logs
 layout: documentation
 documentation: true
 ---
-Logs in Storm are essential for tracking the status, operations, error messages and debug information for all the 
-daemons (e.g., nimbus, supervisor, logviewer, drpc, ui, pacemaker) and topologies' workers.
+日志在storm中对于跟踪状态、操作、错误信息和调试信息至关重要 对于所有的守护进程(e.g.,nimbus,supervisor,logviewer,drpc,ui,pacemaker)和拓扑作业人员也是一样重要。
 
-### Location of the Logs
-All the daemon logs are placed under ${storm.log.dir} directory, which an administrator can set in the System properties or
-in the cluster configuration. By default, ${storm.log.dir} points to ${storm.home}/logs.
+### 日志的位置
+所有的守护进程都会在${storm.log.dir}这个目录下面，管理员可以在系统属性或者在集群中配置，默认，${storm.log.dir} 指向的是${storm.home}/logs目录. 
 
-All the worker logs are placed under the workers-artifacts directory in a hierarchical manner, e.g.,
-${workers-artifacts}/${topologyId}/${port}/worker.log. Users can set the workers-artifacts directory
-by configuring the variable "storm.workers.artifacts.dir". By default, workers-artifacts directory
-locates at ${storm.log.dir}/logs/workers-artifacts.
+所有的工作日志的位置在worker-artifacts目录下面以分级的方式存在，例如，${workers-artifacts}/${topolopgyId}/${port}/workder.log.用户可以通过配置参数"storm.workers.artifacts.dir"来设置worder-artifacts目录的位置，其中，worker-artifacts目录的默认位置是${storm.log.dir}/logs/workers-artifacts.
 
-### Using the Storm UI for Log View/Download and Log Search
-Daemon and worker logs are allowed to view and download through Storm UI by authorized users.
+### 使用storm UI 进行日志查看/下载和日志搜索
+授权用户允许守护进程和工作日志通过Storm UI 进行查看和下载
 
-To improve the debugging of Storm, we provide the Log Search feature.
-Log Search supports searching in a certain log file or in all of a topology's log files:
-
-String search in a log file: In the log page for a worker, a user can search a certain string, e.g., "Exception", in a certain worker log. This search can happen for both normal text log or rolled zip log files. In the results, the offset and matched lines will be displayed.
+为了改善Storm的调试，我们提供了log Search的功能.
+Log Search 支持在某些日志文件或是在所有的拓扑日志文件中搜索：
+字符串搜索日志文件：在工作日志页面中，用户可以在某个工作日志中搜索某些字符串，比如：“Exception”。
+这种搜索方式通常会发生在正常文本日志或滚动的zip日志文件中。在结果中将会显示出偏移和匹配的行数。
 
 ![Search in a log](images/search-for-a-single-worker-log.png "Search in a log")
 
-Search in a topology: a user can also search a string for a certain topology by clicking the icon of magnifying lens at the top right corner of the UI page. This means the UI will try to search on all the supervisor nodes in a distributed way to find the matched string in all logs for this topology. The search can happen for either normal text log files or rolled zip log files by checking/unchecking the "Search archived logs:" box. Then the matched results can be shown on the UI with url links, directing the user to the certain logs on each supervisor node. This powerful feature is very helpful for users to find certain problematic supervisor nodes running this topology.
+在拓扑中搜索：用户同时也可以通过单击UI 页面的又上角的放大镜图标来某个拓扑的字符串。这意为着UI将尝试着以分布式的方式在所有主节点上搜索，以便在此拓扑的所有日志中查找匹配的字符串。通过检查/取消选中"搜索归档日志"：box，可以对普通文本日志文件或滚动的zip日志文件进行搜索。然后将匹配的结果显示在具有url链接的UI页面上，
+将用户指向每个主节点上的某些日志。这个强大的功能非常有助于用户找到运行此拓扑上的某些有问题的主节点。
 
 ![Search in a topology](images/search-a-topology.png "Search in a topology")
