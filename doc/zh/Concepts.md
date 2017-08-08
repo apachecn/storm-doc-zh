@@ -114,10 +114,10 @@ Storm 中一共有8个内置的 Stream Grouping.
 
 1. **Shuffle grouping**: Tuple 随机的分发到 Bolt Task, 每个 Bolt 获取到等量的 Tuple.
 2. **Fields grouping**: streams 通过 grouping 指定的字段来分区. 例如流通过 "user-id" 字段分区, 具有相同 "user-id" 的 Tuple 会发送到同一个task, 不同 "user-id" 的 Tuple 可能会流入到不同的 tasks.
-3. **Partial Key grouping**: 流通过grouping中指定的 field 来分组, 与 Fields 
-Grouping 相似. 但是对于 2 个下行流 Bolt 来说是负载均衡的, 可以在输入数据不平均的情况下提供更好的优化. 以下地址 [This paper](https://melmeric.files.wordpress.com/2014/11/the-power-of-both-choices-practical-load-balancing-for-distributed-stream-processing-engines.pdf) 更好的解释了它是如何工作的及它的优势.
+3. **Partial Key grouping**: stream 通过 grouping 中指定的 field 来分组, 与 Fields 
+Grouping 相似. 但是对于 2 个下游的 Bolt 来说是负载均衡的, 可以在输入数据不平均的情况下提供更好的优化. 以下地址 [This paper](https://melmeric.files.wordpress.com/2014/11/the-power-of-both-choices-practical-load-balancing-for-distributed-stream-processing-engines.pdf) 更好的解释了它是如何工作的及它的优势.
 4. **All grouping**: stream 在所有的 Bolt Tasks之间复制. 这个 Grouping 小心使用.
-5. **Global grouping**: 整个流会进入一个其中的一个 Bolt task.特别指出, 它会进入 id 最小的 task.
+5. **Global grouping**: 整个 stream 会进入 Bolt 其中一个任务.特别指出, 它会进入 id 最小的 task.
 6. **None grouping**: 这个 grouping , 你不需要关心 stream 如何分组. 当前, None grouping 和 Shuffle grouping 等价. 同时, Storm 将使用 None grouping 的 bolts 和上游订阅的 bolt和spout 运行在同一个线程 (when possible).
 7. **Direct grouping**: 这是一种特殊的 grouping 方式. stream 用这个方式 group 意味着由这个 Tuple 的 __生产者__ 来决定哪个 __消费者__ 来接收它. Direct grouping 只能被用于 direct streams . 被发射到 direct stream 的 tuple 必须使用 [emitDirect](javadocs/org/apache/storm/task/OutputCollector.html#emitDirect)(int, int, java.util.List) 方法来发送.
 Bolt 可以使用 [TopologyContext](javadocs/org/apache/storm/task/TopologyContext.html) 或者通过保持对[OutputCollector](javadocs/org/apache/storm/task/OutputCollector.html)(返回 Tuple 被发送到的目标 task id) 中的 `emit` 方法输出的跟踪，获取到它的所有消费者的 ID .
