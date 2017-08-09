@@ -10,7 +10,7 @@
             {% endif %}
           </div>
           <div class="col-md-2">
-            <a href="/releases.html" class="btn-std btn-block btn-download">Download</a>
+            <a href="http://storm.apache.org/downloads.html" class="btn-std btn-block btn-download">Download</a>
           </div>
         </div>
     </div>
@@ -28,30 +28,30 @@
         </div>
         <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
           <ul class="nav navbar-nav">
-              <li><a href="index.html" id="home">Home</a></li>
-                <li><a href="/getting-help.html" id="getting-help">Getting Help</a></li>
-                <li><a href="/about/integrates.html" id="project-info">Project Information</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="documentation">Documentation <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                      {% for r in site.data.releases %}
-                        {% if r.documented %}
-                          <li><a href="{{r.name}}/index.html">{{r.name}}</a></li>
-                        {% endif %}
-                      {% endfor %}
-                    </ul>
-                </li>
-                <li><a href="/talksAndVideos.html">Talks and Slideshows</a></li>
-                <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="contribute">Community <b class="caret"></b></a>
-                    <ul class="dropdown-menu">
-                        <li><a href="/contribute/Contributing-to-Storm.html">Contributing</a></li>
-                        <li><a href="/contribute/People.html">People</a></li>
-                        <li><a href="/contribute/BYLAWS.html">ByLaws</a></li>
-                    </ul>
-                </li>
-                <li><a href="{{ site.posts[0].url }}" id="news">News</a></li>
-            </ul>
+              <li><a href="index.html" id="home">主页</a></li>
+              <li><a href="http://storm.apache.org/getting-help.html" id="getting-help">获取帮助</a></li>
+              <li><a href="http://storm.apache.org/about/integrates.html" id="project-info">项目信息</a></li>
+              <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="documentation">文档<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                      <li><a href="http://storm.apachecn.org/releases/cn/1.1.0/">1.1.0 中文文档</a></li>
+                      <li><a href="http://storm.apachecn.org/releases/en/1.1.0/">1.1.0 英文文档</a></li>
+                  </ul>
+              </li>
+              <li><a href="http://storm.apache.org/talksAndVideos.html">谈话和幻灯片</a></li>
+              <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="contribute">社区<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                      <li><a href="http://storm.apache.org/contribute/Contributing-to-Storm.html">Contributing</a></li>
+                      <li><a href="http://storm.apache.org/contribute/People.html">People</a></li>
+                      <li><a href="http://storm.apache.org/contribute/BYLAWS.html">ByLaws</a></li>
+                  </ul>
+              </li>
+              <li><a href="http://storm.apache.org/2017/03/29/storm110-released.html" id="news">新闻</a></li>
+              <li><a href="translate-progress.html" id="translate-progress">翻译进度</a></li>
+              <li><a href="timeline.html" id="timeline">时光轴</a></li>
+              <li><a href="https://github.com/apachecn/storm-doc-zh/blob/master/README.md#%E8%B4%A1%E7%8C%AE%E8%80%85" id="translate-progress" target="_blank">贡献者</a></li>
+          </ul>
         </nav>
     </div>
 </div>
