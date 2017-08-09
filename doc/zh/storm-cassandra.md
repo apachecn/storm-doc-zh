@@ -6,12 +6,12 @@ documentation: true
 
 ### Apache Cassandra 的 Bolt API 实现
 
-这个库提供了 Apache Cassandra 之上的核心 storm bolt 。
-提供简单的 DSL 来 map storm *Tuple* 到  Cassandra Query Language *Statement* （Cassandra 查询语言 *Statement*）。
+这个库提供了 Apache Cassandra 之上的核心 storm bolt .
+提供简单的 DSL 来 map storm *Tuple* 到  Cassandra Query Language *Statement* （Cassandra 查询语言 *Statement*）.
 
 
 ### Configuration （配置）
-以下属性可能会传递给 storm 配置。
+以下属性可能会传递给 storm 配置.
 
 | **Property name（属性名称）**                            | **Description（描述）** | **Default（默认）**         |
 | ---------------------------------------------| ----------------| --------------------|
@@ -145,7 +145,7 @@ import static org.apache.storm.cassandra.DynamicStatementBuilder.*
 
 ### 如何处理 query execution results （查询执行结果）
 
-*ExecutionResultHandler* 接口可用于自定义 execution result （执行结果）应如何处理。
+*ExecutionResultHandler* 接口可用于自定义 execution result （执行结果）应如何处理.
 
 ```java
 public interface ExecutionResultHandler extends Serializable {
@@ -161,7 +161,7 @@ public interface ExecutionResultHandler extends Serializable {
 }
 ```
 
-默认情况下， CassandraBolt 将在所有的 Cassandra Exception 中 fails（失败）一个 tuple （请参阅 [BaseExecutionResultHandler](https://github.com/apache/storm/tree/master/external/storm-cassandra/blob/master/src/main/java/org/apache/storm/cassandra/BaseExecutionResultHandler.java)）.
+默认情况下,  CassandraBolt 将在所有的 Cassandra Exception 中 fails（失败）一个 tuple （请参阅 [BaseExecutionResultHandler](https://github.com/apache/storm/tree/master/external/storm-cassandra/blob/master/src/main/java/org/apache/storm/cassandra/BaseExecutionResultHandler.java)）.
 
 ```java
     new CassandraWriterBolt(insertInto("album").values(with(all()).build())
@@ -170,8 +170,8 @@ public interface ExecutionResultHandler extends Serializable {
 
 ### Declare Output fields （声明输出字段）
 
-CassandraBolt 可以声明 declare output fields  / stream output fields（输出字段/流输出字段）。
-例如，这可以用于在 error （错误）或者 chain queries （链式查询）上 remit （传递）一个 new tuple （新的元组）。
+CassandraBolt 可以声明 declare output fields  / stream output fields（输出字段/流输出字段）.
+例如, 这可以用于在 error （错误）或者 chain queries （链式查询）上 remit （传递）一个 new tuple （新的元组）.
 
 ```java
     new CassandraWriterBolt(insertInto("album").values(withFields(all()).build())
@@ -190,8 +190,8 @@ CassandraBolt 可以声明 declare output fields  / stream output fields（输�
 
 ### Murmur3FieldGrouping
 
-[Murmur3StreamGrouping](https://github.com/apache/storm/tree/master/external/storm-cassandra/blob/master/src/main/java/org/apache/storm/cassandra/Murmur3StreamGrouping.java) 可以用来优化 cassandra writes （cassandra 的写入）。
-根据 specified row partition keys （指定的行分区键），该 stream 在 bolt 的 task 之间进行 partitioned （分区）。
+[Murmur3StreamGrouping](https://github.com/apache/storm/tree/master/external/storm-cassandra/blob/master/src/main/java/org/apache/storm/cassandra/Murmur3StreamGrouping.java) 可以用来优化 cassandra writes （cassandra 的写入）.
+根据 specified row partition keys （指定的行分区键）, 该 stream 在 bolt 的 task 之间进行 partitioned （分区）.
 
 ```java
 CassandraWriterBolt bolt = new CassandraWriterBolt(
@@ -204,7 +204,7 @@ builder.setBolt("BOLT_WRITER", bolt, 4)
 ```
 
 ### Trident API 支持
-storm-cassandra 支持 用于将 data `inserting（插入）` Cassandra 的 Trident `state` API 。
+storm-cassandra 支持 用于将 data `inserting（插入）` Cassandra 的 Trident `state` API .
 ```java
         CassandraState.Options options = new CassandraState.Options(new CassandraContext());
         CQLStatementTupleMapper insertTemperatureValues = boundQuery(
@@ -218,7 +218,7 @@ storm-cassandra 支持 用于将 data `inserting（插入）` Cassandra 的 Trid
         stream.partitionPersist(insertValuesStateFactory, new Fields("weather_station_id", "name", "event_time", "temperature"), new CassandraStateUpdater(), new Fields());
 ```
 
-以下 `state` API 用于从 Cassandra `querying（查询）` 数据。
+以下 `state` API 用于从 Cassandra `querying（查询）` 数据.
 ```java
         CassandraState.Options options = new CassandraState.Options(new CassandraContext());
         CQLStatementTupleMapper insertTemperatureValues = boundQuery("SELECT name FROM weather.station WHERE id = ?")
