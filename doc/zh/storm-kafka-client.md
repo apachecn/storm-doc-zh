@@ -1,9 +1,15 @@
-# Kafka 集成
-使用 kafka-client jar,包含新的 Kafka consumer API.(storm-kafka 模块另见文档)
+---
+title: Storm Kafka 集成（0.10.x+）
+layout: documentation
+documentation: true
+---
+
+# 使用 kafka-client jar 进行 Storm Apache Kafka 集成
+这部分包含新的 Apache Kafka consumer API.
 
 ## 兼容性
 
-Kafka 版本 0.10+
+Apache Kafka 版本 0.10+
 
 ## 写入Kafka
 您可以通过创建 org.apache.storm.kafka.bolt.KafkaBolt 实例并将其作为组件附加到您的topology.如果您使用 trident ,您可以通过使用以下对象完成 org.apache.storm.kafka.trident.TridentState, org.apache.storm.kafka.trident.TridentStateFactory and
