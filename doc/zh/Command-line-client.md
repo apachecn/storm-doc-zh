@@ -1,11 +1,13 @@
 ---
-title: Command Line Client
+title: 命令行客户端
 layout: documentation
 documentation: true
 ---
-This page describes all the commands that are possible with the "storm" command line client. To learn how to set up your "storm" client to talk to a remote cluster, follow the instructions in [Setting up development environment](Setting-up-development-environment.html).
 
-These commands are:
+此页面描述了 "Storm" 命令行客户端可能使用的所有命令.
+要了解如何设置 "风暴" 客户端与远程群集的操作, 请按照 [安装开发环境](Setting-up-development-environment.html) 中的说明进行操作.
+
+这些命令是:
 
 1. jar
 1. sql

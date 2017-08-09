@@ -5,45 +5,43 @@ documentation: true
 ---
 
 
-The Storm UI daemon provides a REST API that allows you to interact with a Storm cluster, which includes retrieving
-metrics data and configuration information as well as management operations such as starting or stopping topologies.
+Storm UI 守护程序提供了一个 REST API, 允许您与 Storm 集群进行交互, 其中包括检索 metrics（度量）数据和配置信息, 启动或停止 topologies（拓扑）的管理操作。
 
 
-# Data format
+# 数据格式
 
-The REST API returns JSON responses and supports JSONP.
-Clients can pass a callback query parameter to wrap JSON in the callback function.
+该 REST API 返回 JSON 响应并支持 JSONP.
+客户端可以传回一个回调查询参数, 以在回调函数中包装 JSON。
 **REST API allows CORS by default.**
 
-# Using the UI REST API
+# 使用 UI REST API
 
-_Note: It is recommended to ignore undocumented elements in the JSON response because future versions of Storm may not_
-_support those elements anymore._
-
+_Note（注意）: 建议忽略 JSON 响应中的 undocumented elements（未记录元素），因为未来版本的 Storm 可能不再_
+_支持这些元素._
 
 ## REST API Base URL
 
-The REST API is part of the UI daemon of Storm (started by `storm ui`) and thus runs on the same host and port as the
-Storm UI (the UI daemon is often run on the same host as the Nimbus daemon).  The port is configured by `ui.port`,
-which is set to `8080` by default (see [defaults.yaml](conf/defaults.yaml)).
+REST API 是 Storm 的 UI 守护进程（由 "storm ui" 启动）的一部分，因此与 Storm UI 在同一主机和端口上运行（UI 守护程序通常与 Nimbus 守护程序在同一主机上运行）.
+通过 `ui.port` 来配置 port（端口）, 它默认设置为 8080（请参阅 [defaults.yaml](conf/defaults.yaml)）.
 
-The API base URL would thus be:
+该 API 的 base URL 将是:
 
     http://<ui-host>:<ui-port>/api/v1/...
 
-You can use a tool such as `curl` to talk to the REST API:
+您可以使用 `curl` 这样的工具来操作 REST API:
 
-    # Request the cluster configuration.
-    # Note: We assume ui.port is configured to the default value of 8080.
+    # 请求集群配置
+    # Note（注意）: 我们假设 ui.port 配置的默认值是 8080.
     $ curl http://<ui-host>:8080/api/v1/cluster/configuration
 
-##Impersonating a user in secure environment
-In a secure environment an authenticated user can impersonate another user. To impersonate a user the caller must pass
-`doAsUser` param or header with value set to the user that the request needs to be performed as. Please see SECURITY.MD
-to learn more about how to setup impersonation ACLs and authorization. The rest API uses the same configs and acls that
-are used by nimbus.
+## 在安全的环境中模仿用户
 
-Examples:
+在安全环境中, 经过身份验证的用户可以模拟另一个用户.
+为了模拟用户, 调用者必须通过 `doAsUser` 参数或 header, 其值设置为用户需要执行该 request 请求.
+请看 SECURITY.MD 以了解有关如何设置模拟 ACL 和授权的更多信息.
+其余的 API 使用与 nimbus 使用的相同的配置和 acls.
+
+示例:
 
 ```no-highlight
  1. http://ui-daemon-host-name:8080/api/v1/topology/wordcount-1-1425844354\?doAsUser=testUSer1
