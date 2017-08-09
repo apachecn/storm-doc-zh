@@ -1,27 +1,27 @@
 ---
-title: Using non JVM languages with Storm
+title: 使用没有jvm的语言编辑storm
 layout: documentation
 ---
-- two pieces: creating topologies and implementing spouts and bolts in other languages
-- creating topologies in another language is easy since topologies are just thrift structures (link to storm.thrift)
-- implementing spouts and bolts in another language is called a "multilang components" or "shelling"
-   - Here's a specification of the protocol: [Multilang protocol](Multilang-protocol.html)
-   - the thrift structure lets you define multilang components explicitly as a program and a script (e.g., python and the file implementing your bolt)
-   - In Java, you override ShellBolt or ShellSpout to create multilang components
-       - note that output fields declarations happens in the thrift structure, so in Java you create multilang components like the following:
-            - declare fields in java, processing code in the other language by specifying it in constructor of shellbolt
-   - multilang uses json messages over stdin/stdout to communicate with the subprocess
-   - storm comes with ruby, python, and fancy adapters that implement the protocol. show an example of python
-      - python supports emitting, anchoring, acking, and logging
-- "storm shell" command makes constructing jar and uploading to nimbus easy
-  - makes jar and uploads it
-  - calls your program with host/port of nimbus and the jarfile id
+- 两部分：创建topologies 以及 使用其他语言来实现 spouts 和bolts
+- 用另一种语言创建topologies 是比较容易的，因为topologies 用的是[thrift](link to storm.thrift) 的结构
+- 用另一种语言实现 spouts 和 bolts 被称为“multilang components ”或“shelling ”
+   - 以下是协议的规范： [Multilang协议](Multilang-protocol.html)
+   - thrift 结构允许你将多个组件明确定义为程序和脚本（例如，使用python编写你的bolt 的文件）
+   - 在Java中，您可以通过重写ShellBolt或ShellSpout来创建multilang组件
+       - 请注意，输出字段声明发生在thrift 结构中，所以在java中创建multilang 组件需要按照以下方式 ：
+            -  在java中声明字段，通过在shellbolt的构造函数中指定它来处理另一种语言的代码
+   - multilang使用stdin / stdout上的json消息与子进程进行通信 
+   - storm 带有Ruby、Python和实现协议的奇特适配器。下面展示一个python的示例
+      - python支持emitting, anchoring, acking, 以及 logging
+- “storm shell ”命令使得构建jar和上传到nimbus变得更加容易
+  - 创建jar以及上传它
+  - 使用主机/端口nimbus和jarfile id来调用你的程序
 
-## Notes on implementing a DSL in a non-JVM language
+## 关于在非JVM语言中实现DSL的注意事项
 
-The right place to start is src/storm.thrift. Since Storm topologies are just Thrift structures, and Nimbus is a Thrift daemon, you can create and submit topologies in any language.
+正确的打开方式地方是src / storm.thrift。由于storm topologies 是Thrift结构，Nimbus是Thrift守护进程，您可以使用任何语言创建和提交topologies 。
 
-When you create the Thrift structs for spouts and bolts, the code for the spout or bolt is specified in the ComponentObject struct:
+当您为spouts 和bolts 创建Thrift结构体时，将在ComponentObject结构体中指定spout 或bolt 的代码：
 
 ```
 union ComponentObject {
@@ -31,21 +31,21 @@ union ComponentObject {
 }
 ```
 
-For a non-JVM DSL, you would want to make use of "2" and "3". ShellComponent lets you specify a script to run that component (e.g., your python code). And JavaObject lets you specify native java spouts and bolts for the component (and Storm will use reflection to create that spout or bolt).
+对于非JVM DSL，您需要使用“2”和“3”。 ShellComponent允许您指定运行该组件的脚本（例如，您的python代码）。而JavaObject允许您为组件指定本地java的spout 和bolt （Storm将使用反射来创建该spout 或bolt ）。
 
-There's a "storm shell" command that will help with submitting a topology. Its usage is like this:
+有一个“storm shell ”命令有助于提交topology 。它的用法是这样的:
 
 ```
 storm shell resources/ python topology.py arg1 arg2
 ```
 
-storm shell will then package resources/ into a jar, upload the jar to Nimbus, and call your topology.py script like this:
+storm shell 会 resources/ 打成一个jar ,并上传这个jar到Nimbus ，并像下面这样调用你的topology.py脚本:
 
 ```
 python topology.py arg1 arg2 {nimbus-host} {nimbus-port} {uploaded-jar-location}
 ```
 
-Then you can connect to Nimbus using the Thrift API and submit the topology, passing {uploaded-jar-location} into the submitTopology method. For reference, here's the submitTopology definition:
+之后你可以使用Thrift API连接到Nimbus，并提交topology ，将{uploaded-jar-location}传递到submitTopology方法。为了方便参考我在下面展示了submitTopology类的定义。
 
 ```
 void submitTopology(1: string name, 2: string uploadedJarLocation, 3: string jsonConf, 4: StormTopology topology)

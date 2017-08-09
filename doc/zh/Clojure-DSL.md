@@ -3,21 +3,22 @@ title: Clojure DSL
 layout: documentation
 documentation: true
 ---
-Storm comes with a Clojure DSL for defining spouts, bolts, and topologies. The Clojure DSL has access to everything the Java API exposes, so if you're a Clojure user you can code Storm topologies without touching Java at all. The Clojure DSL is defined in the source in the [org.apache.storm.clojure]({{page.git-blob-base}}/storm-core/src/clj/org/apache/storm/clojure.clj) namespace.
+Storm配有Clojure DSL，用于定义spouts(喷口)，bolts(螺栓)和topologies(拓扑)。 Clojure DSL可以访问Java API暴露的所有内容，因此如果您是Clojure用户，您可以直接编写Storm拓扑，根本不需要使用Java。 Clojure DSL 的源码在 [org.apache.storm.clojure]({{page.git-blob-base}}/storm-core/src/clj/org/apache/storm/clojure.clj)命名空间中定义。
 
-This page outlines all the pieces of the Clojure DSL, including:
+本页概述了Clojure DSL的所有功能，包括：
 
-1. Defining topologies
+1. Defining topologies(定义拓扑)
 2. `defbolt`
 3. `defspout`
-4. Running topologies in local mode or on a cluster
-5. Testing topologies
+4. Running topologies in local mode or on a cluster(在本地模式或集群上运行拓扑)
+5. Testing topologies(测试拓扑)
 
-### Defining topologies
+### Defining topologies(定义拓扑)
 
-To define a topology, use the `topology` function. `topology` takes in two arguments: a map of "spout specs" and a map of "bolt specs". Each spout and bolt spec wires the code for the component into the topology by specifying things like inputs and parallelism.
+请使用`topology`函来定义topology(拓扑)。`topology`有两个参数：“spout specs(规格)”的映射和“bolt specs(规格)” 的映射。每个spouts specs(规格)和bolt specs(规格) 通过指定输入和并行度 来将组件的代码连接到topology中。
 
-Let's take a look at an example topology definition [from the storm-starter project]({{page.git-blob-base}}/examples/storm-starter/src/clj/org/apache/storm/starter/clj/word_count.clj):
+
+我们来看一下[storm-starter ]({{page.git-blob-base}}/examples/storm-starter/src/clj/org/apache/storm/starter/clj/word_count.clj):项目中的topology定义示例：
 
 ```clojure
 (topology
@@ -34,30 +35,31 @@ Let's take a look at an example topology definition [from the storm-starter proj
                  :p 6)})
 ```
 
-The maps of spout and bolt specs are maps from the component id to the corresponding spec. The component ids must be unique across the maps. Just like defining topologies in Java, component ids are used when declaring inputs for bolts in the topology.
+spout和bolt specs(规格)的映射是从组件ID到相应规格的映射。组件ID必须在映射上是唯一的。就像在Java中定义topologies(拓扑)一样，在声明topologies(拓扑)中的bolts 输入时使用的组件ID。
 
-#### spout-spec
+#### spout-spec（spout-规格）
 
-`spout-spec` takes as arguments the spout implementation (an object that implements [IRichSpout](javadocs/org/apache/storm/topology/IRichSpout.html)) and optional keyword arguments. The only option that exists currently is the `:p` option, which specifies the parallelism for the spout. If you omit `:p`, the spout will execute as a single task.
+`spout-spec`作为spout实现（实现 [IRichSpout](javadocs/org/apache/storm/topology/IRichSpout.html))的对象）的可选关键字参数的参数 。当前存在的唯一选项是：`:p`选项，它指定了spout的并行性。如果您省略`:p`，则spout将作为单个任务执行。
 
-#### bolt-spec
+#### bolt-spec（bolt-规格）
 
-`bolt-spec` takes as arguments the input declaration for the bolt, the bolt implementation (an object that implements [IRichBolt](javadocs/org/apache/storm/topology/IRichBolt.html)), and optional keyword arguments.
+`bolt-spec`作为bolt实现（实现IRichBolt的对象）的可选关键字参数的参数
 
-The input declaration is a map from stream ids to stream groupings. A stream id can have one of two forms:
+输入声明是从stream ids到stream groupings的映射。stream id 可以有以下两种形式中的一种：
 
-1. `[==component id== ==stream id==]`: Subscribes to a specific stream on a component
-2. `==component id==`: Subscribes to the default stream on a component
+1. `[==component id== ==stream id==]`: Subscribes to a specific stream on a component(订阅组件上的特定流)
+2. `==component id==`: Subscribes to the default stream on a component(订阅组件上的默认流)
 
-A stream grouping can be one of the following:
+stream grouping可以是以下之一：
 
-1. `:shuffle`: subscribes with a shuffle grouping
-2. Vector of field names, like `["id" "name"]`: subscribes with a fields grouping on the specified fields
-3. `:global`: subscribes with a global grouping
-4. `:all`: subscribes with an all grouping
-5. `:direct`: subscribes with a direct grouping
+1. `:shuffle`: 用shuffle grouping进行订阅
+2.  Vector of field names, like ["id" "name"](多字段名, 像 `["id" "name"]`): 使用fields grouping订阅指定的字段
+3. `:global`:  使用global grouping进行订阅
+4. `:all`: 使用all grouping进行订阅
+5. `:direct`: 使用direct grouping进行订阅
 
 See [Concepts](Concepts.html) for more info on stream groupings. Here's an example input declaration showcasing the various ways to declare inputs:
+有关stream groupings的更多信息，请参阅[概念](Concepts.html)。下面是一个输入声明的示例，展示各种声明输入的方法：
 
 ```clojure
 {["2" "1"] :shuffle
@@ -65,15 +67,16 @@ See [Concepts](Concepts.html) for more info on stream groupings. Here's an examp
  ["4" "2"] :global}
 ```
 
-This input declaration subscribes to three streams total. It subscribes to stream "1" on component "2" with a shuffle grouping, subscribes to the default stream on component "3" with a fields grouping on the fields "field1" and "field2", and subscribes to stream "2" on component "4" with a global grouping.
+此输入声明共计三个流。它通过随机分组来订阅组件“2”上的流“1”，在字段“field1”和“field2”上以fields grouping的方式订阅组件“3”上的默认流，使用全局分组在组件“4”上订阅流“2”。
 
-Like `spout-spec`, the only current supported keyword argument for `bolt-spec` is `:p` which specifies the parallelism for the bolt.
+像`spout-spec`一样，bolt-spec唯一当前支持的关键字参数是：p，它指定了bolt的并行性。
 
-#### shell-bolt-spec
+#### shell-bolt-spec (shell-bolt-规格)
 
 `shell-bolt-spec` is used for defining bolts that are implemented in a non-JVM language. It takes as arguments the input declaration, the command line program to run, the name of the file implementing the bolt, an output specification, and then the same keyword arguments that `bolt-spec` accepts.
+`shell-bolt-spec`用于定义以非JVM语言实现的bolts。它作为输入声明参数，在命令行程序中运行，用文件的名称实现bolt，输出规范 以及接受的相同关键字参数作为参数的 `bolt-spec` 。
 
-Here's an example `shell-bolt-spec`:
+这有一个shell-bolt-spec的例子：
 
 ```clojure
 (shell-bolt-spec {"1" :shuffle "2" ["id"]}
@@ -83,21 +86,21 @@ Here's an example `shell-bolt-spec`:
                  :p 25)
 ```
 
-The syntax of output declarations is described in more detail in the `defbolt` section below. See [Using non JVM languages with Storm](Using-non-JVM-languages-with-Storm.html) for more details on how multilang works within Storm.
+输出声明的语法在下面的defbolt部分中有更详细的描述。有关Storm的工作原理的详细信息，请参阅[使用Storm的非JVM语言](Using-non-JVM-languages-with-Storm.html) 。
 
 ### defbolt
 
-`defbolt` is used for defining bolts in Clojure. Bolts have the constraint that they must be serializable, and this is why you can't just reify `IRichBolt` to implement a bolt (closures aren't serializable). `defbolt` works around this restriction and provides a nicer syntax for defining bolts than just implementing a Java interface.
+`defbolt` 用于在Clojure中定义bolts。这里对bolts有一个限制，那就是他必须是可序列化的，这就是为什么你不能仅仅具体化`IRichBolt`来实现一个bolts（closures不可序列化）。 `defbolt` 在这个限制的基础上为定义bolts提供了一种更好的语法，而不仅仅是实现一个Java接口的。
 
-At its fullest expressiveness, `defbolt` supports parameterized bolts and maintaining state in a closure around the bolt implementation. It also provides shortcuts for defining bolts that don't need this extra functionality. The signature for `defbolt` looks like the following:
+在最充分的表现形势下，`defbolt`支持参数化bolts，并在bolts执行期间保持关闭状态。它还提供了用于定义不需要额外功能的bolts的快捷方式。 `defbolt`的签名如下所示：
 
 (defbolt _name_ _output-declaration_ *_option-map_ & _impl_)
 
-Omitting the option map is equivalent to having an option map of `{:prepare false}`.
+省略option map(选项映射)相当于具有{：prepare false}的option map(选项映射)。
 
-#### Simple bolts
+#### Simple bolts (简单 bolts)
 
-Let's start with the simplest form of `defbolt`. Here's an example bolt that splits a tuple containing a sentence into a tuple for each word:
+我们从最简单的defbolt形式开始吧。这是一个将包含句子的元组分割成每个单词的元组的示例bolt：
 
 ```clojure
 (defbolt split-sentence ["word"] [tuple collector]
@@ -109,9 +112,12 @@ Let's start with the simplest form of `defbolt`. Here's an example bolt that spl
 ```
 
 Since the option map is omitted, this is a non-prepared bolt. The DSL simply expects an implementation for the `execute` method of `IRichBolt`. The implementation takes two parameters, the tuple and the `OutputCollector`, and is followed by the body of the `execute` function. The DSL automatically type-hints the parameters for you so you don't need to worry about reflection if you use Java interop.
+(由于感觉有不准确的地方，先留着方便优化。)
+由于省略了option map(选项映射)，这是一个non-prepared bolt。 DSL只是期望执行一个IRichBolt的`execute`方法。该实现需要两个参数，即tuple(元组)和`OutputCollector`，后面是`execute`函数的正文。 DSL会为你自动提示参数，所以如果您使用Java交互，不需要担心反射问题。
+
 
 This implementation binds `split-sentence` to an actual `IRichBolt` object that you can use in topologies, like so:
-
+此实现将`split-sentence`绑定到一个可用于topologies实现的`IRichBolt`对象，如下所示：
 ```clojure
 (bolt-spec {"1" :shuffle}
            split-sentence
@@ -119,9 +125,9 @@ This implementation binds `split-sentence` to an actual `IRichBolt` object that 
 ```
 
 
-#### Parameterized bolts
+#### Parameterized bolts  (参数化 bolts)
 
-Many times you want to parameterize your bolts with other arguments. For example, let's say you wanted to have a bolt that appends a suffix to every input string it receives, and you want that suffix to be set at runtime. You do this with `defbolt` by including a `:params` option in the option map, like so:
+有时候你想用其他参数来参数化你的bolts。例如，假设你想有一个可以接收到每个输入字符串后缀的bolts，并且希望在运行时设置该后缀。你可以在defbolt中通过在option map(选项映射)中包含：`:params`选项来执行此操作，如下所示：
 
 ```clojure
 (defbolt suffix-appender ["word"] {:params [suffix]}
@@ -130,7 +136,7 @@ Many times you want to parameterize your bolts with other arguments. For example
   )
 ```
 
-Unlike the previous example, `suffix-appender` will be bound to a function that returns an `IRichBolt` rather than be an `IRichBolt` object directly. This is caused by specifying `:params` in its option map. So to use `suffix-appender` in a topology, you would do something like:
+与前面的示例不同，`suffix-appender`将绑定到一个返回`IRichBolt`而不是直接作为`IRichBolt`对象的函数。这是通过在其option map(选项映射)中指定`:params`引起的。因此，在topology中使用`suffix-appender`，您可以执行以下操作：
 
 ```clojure
 (bolt-spec {"1" :shuffle}
@@ -138,9 +144,10 @@ Unlike the previous example, `suffix-appender` will be bound to a function that 
            :p 10)
 ```
 
-#### Prepared bolts
+#### Prepared bolts (准备 bolts)
 
-To do more complex bolts, such as ones that do joins and streaming aggregations, the bolt needs to store state. You can do this by creating a prepared bolt which is specified by including `{:prepare true}` in the option map. Consider, for example, this bolt that implements word counting:
+
+要做更复杂的bolts，如加入和流聚合的bolt，bolt需要存储状态。您可以通过在option map(选项映射)中创建一个通过包含`{:prepare true}`指定的prepared bolt 来实现此目的。例如，思考下这个实现单词计数的bolt：
 
 ```clojure
 (defbolt word-count ["word" "count"] {:prepare true}
@@ -155,17 +162,17 @@ To do more complex bolts, such as ones that do joins and streaming aggregations,
          )))))
 ```
 
-The implementation for a prepared bolt is a function that takes as input the topology config, `TopologyContext`, and `OutputCollector`, and returns an implementation of the `IBolt` interface. This design allows you to have a closure around the implementation of `execute` and `cleanup`. 
+prepared bolt的实现是通过一个函数 ，它将topology的配置“TopologyContext”和“OutputCollector”作为输入，并返回“IBolt”接口的一个实现。此设计允许您围绕`execute`和`cleanup`的实现时进行闭包。
 
-In this example, the word counts are stored in the closure in a map called `counts`. The `bolt` macro is used to create the `IBolt` implementation. The `bolt` macro is a more concise way to implement the interface than reifying, and it automatically type-hints all of the method parameters. This bolt implements the execute method which updates the count in the map and emits the new word count.
+在这个例子中，单词计数存储在一个名为`counts`的映射的闭包中。 `bolt`宏用于创建`IBolt`实现。 `bolt`宏是一种比简化实现界面更简洁的方法，它会自动提示所有的方法参数。该bolt实现了更新映射中的计数并发出新的单词计数的执行方法。
 
-Note that the `execute` method in prepared bolts only takes as input the tuple since the `OutputCollector` is already in the closure of the function (for simple bolts the collector is a second parameter to the `execute` function).
+请注意， prepared bolts 中的`execute`方法只能作为元组的输入，因为`OutputCollector`已经在函数的闭包中（对于简单的bolts，collector是`execute`函数的第二个参数）。
 
-Prepared bolts can be parameterized just like simple bolts.
+Prepared bolts 可以像 simple bolts 一样进行参数化。
 
-#### Output declarations
+#### Output declarations (输出声明)
 
-The Clojure DSL has a concise syntax for declaring the outputs of a bolt. The most general way to declare the outputs is as a map from stream id a stream spec. For example:
+Clojure DSL具有用于bolt输出的简明语法。声明输出的最通用的方法就是从stream id到stream spec的映射。例如：
 
 ```clojure
 {"1" ["field1" "field2"]
@@ -173,37 +180,38 @@ The Clojure DSL has a concise syntax for declaring the outputs of a bolt. The mo
  "3" ["f1"]}
 ```
 
-The stream id is a string, while the stream spec is either a vector of fields or a vector of fields wrapped by `direct-stream`. `direct stream` marks the stream as a direct stream (See [Concepts](Concepts.html) and [Direct groupings]() for more details on direct streams).
+stream id 是一个字符串，而stream spec(流规范)是个字段的向量或由`direct-stream`包装的字段的向量。 `direct stream`将流标记为direct stream（有关直接流的更多详细信息，请参阅[Concepts](Concepts.html) 和[Direct groupings](空的。。)）。
 
-If the bolt only has one output stream, you can define the default stream of the bolt by using a vector instead of a map for the output declaration. For example:
+
+如果bolt只有一个输出流，您可以使用向量而不用输出声明的映射来定义bolt的默认流。例如：
 
 ```clojure
 ["word" "count"]
 ```
-This declares the output of the bolt as the fields ["word" "count"] on the default stream id.
 
-#### Emitting, acking, and failing
+这段bolt输出的声明 为默认 stream id 上的字段[“word” “count”]。
+#### Emitting, acking, and failing  (发射，确认和失败)
 
-Rather than use the Java methods on `OutputCollector` directly, the DSL provides a nicer set of functions for using `OutputCollector`: `emit-bolt!`, `emit-direct-bolt!`, `ack!`, and `fail!`.
 
-1. `emit-bolt!`: takes as parameters the `OutputCollector`, the values to emit (a Clojure sequence), and keyword arguments for `:anchor` and `:stream`. `:anchor` can be a single tuple or a list of tuples, and `:stream` is the id of the stream to emit to. Omitting the keyword arguments emits an unanchored tuple to the default stream.
-2. `emit-direct-bolt!`: takes as parameters the `OutputCollector`, the task id to send the tuple to, the values to emit, and keyword arguments for `:anchor` and `:stream`. This function can only emit to streams declared as direct streams.
-2. `ack!`: takes as parameters the `OutputCollector` and the tuple to ack.
-3. `fail!`: takes as parameters the `OutputCollector` and the tuple to fail.
+DSL可以使用`OutputCollector`：`emit-bolt！`，`emit-direct-bolt！`，`ack！`和`fail ！`，而不用直接在`OutputCollector`上使用Java方法.
 
-See [Guaranteeing message processing](Guaranteeing-message-processing.html) for more info on acking and anchoring.
+1. `emit-bolt！`：将“OutputCollector”，发出的值（一个Clojure sequence）和`：anchor`以及`：stream`的关键字参数作为参数。 `：anchor`可以是个single tuple或一个list of tuples，`：stream`是要发送到的流的id。 若省略关键字参数则默认流会发出一个unanchored tuple。
+2. `emit-direct-bolt！`：将`OutputCollector`作为参数，发送元组的任务id，发送的值，以及把`：anchor`和`：stream`的关键字参数作为参数。 此函数只能发出声明为direct streams的流。
+3. `ack!`: 将“OutputCollector”作为元组确认参数。
+4. `fail!`: 将“OutputCollector”作为元组失败参数
 
+有关确认和锚定的更多信息，请参阅[保证消息处理](Guaranteeing-message-processing.html)。
 ### defspout
 
-`defspout` is used for defining spouts in Clojure. Like bolts, spouts must be serializable so you can't just reify `IRichSpout` to do spout implementations in Clojure. `defspout` works around this restriction and provides a nicer syntax for defining spouts than just implementing a Java interface.
+`defspout`用于定义Clojure中的喷口。像螺栓一样，喷口必须是可序列化的，所以您不能只是在“Clojure”中引用“IRichSpout”来执行喷口实现。 `defspout`围绕这个限制，为定义spouts提供了一个更好的语法，而不仅仅是实现一个Java接口。
 
-The signature for `defspout` looks like the following:
+`defspout`的签名如下：
 
 (defspout _name_ _output-declaration_ *_option-map_ & _impl_)
 
-If you leave out the option map, it defaults to {:prepare true}. The output declaration for `defspout` has the same syntax as `defbolt`.
+如果你省略选项映射，则默认为{：prepare true}。 `defspout`的输出声明与`defbolt`语法相同。
 
-Here's an example `defspout` implementation from [storm-starter]({{page.git-blob-base}}/examples/storm-starter/src/clj/org/apache/storm/starter/clj/word_count.clj):
+这里有个实现`defspout`的一个例子[storm-starter]({{page.git-blob-base}}/examples/storm-starter/src/clj/org/apache/storm/starter/clj/word_count.clj):
 
 ```clojure
 (defspout sentence-spout ["sentence"]
@@ -224,15 +232,15 @@ Here's an example `defspout` implementation from [storm-starter]({{page.git-blob
         ))))
 ```
 
-The implementation takes in as input the topology config, `TopologyContext`, and `SpoutOutputCollector`. The implementation returns an `ISpout` object. Here, the `nextTuple` function emits a random sentence from `sentences`. 
+该实现将topology配置的“TopologyContext”和“SpoutOutputCollector”作为输入。该实现返回一个`ISpout`对象。这里，`nextTuple`函数从`sentence`发出一个随机语句。
 
-This spout isn't reliable, so the `ack` and `fail` methods will never be called. A reliable spout will add a message id when emitting tuples, and then `ack` or `fail` will be called when the tuple is completed or failed respectively. See [Guaranteeing message processing](Guaranteeing-message-processing.html) for more info on how reliability works within Storm.
+这个spout不是可靠的，所以`ack`和`fail`方法永远不会被调用。一个可靠的端口将在发出元组时添加一条消息ID，然后当元组完成或失败时，将会调用`ack`或`fail`。有关Storm中可靠性如何工作的更多信息，请参阅[保证消息处理](Guaranteeing-message-processing.html)。
 
-`emit-spout!` takes in as parameters the `SpoutOutputCollector` and the new tuple to be emitted, and accepts as keyword arguments `:stream` and `:id`. `:stream` specifies the stream to emit to, and `:id` specifies a message id for the tuple (used in the `ack` and `fail` callbacks). Omitting these arguments emits an unanchored tuple to the default output stream.
+`emit-spout！`将“SpoutOutputCollector”和新元组的参数作为参数发送，并接受作为关键字参数`：stream`和`：id`。 `：stream`为指定要发送的流，`：id`为指定元组的消息ID（在`ack'`和`fail`回调中使用）。省略这些参数会为默认输出流发出一个unanchored tuple。
 
-There is also a `emit-direct-spout!` function that emits a tuple to a direct stream and takes an additional argument as the second parameter of the task id to send the tuple to.
+这还有一个`emit-direct-spout !`函数，他会发出一个direct stream的元组，并附加一个任务id作为的第二个参数来发送这个元组。
 
-Spouts can be parameterized just like bolts, in which case the symbol is bound to a function returning `IRichSpout` instead of the `IRichSpout` itself. You can also declare an unprepared spout which only defines the `nextTuple` method. Here is an example of an unprepared spout that emits random sentences parameterized at runtime:
+Spouts可以像bolts一样进行参数化，在这种情况下，symbol绑定到返回“IRichSpout”的函数而不是“IRichSpout”本身。您还可以声明一个unprepared spout，它只定义`nextTuple`方法。以下是在运行时发出随机语句参数化的unprepared spout示例：
 
 ```clojure
 (defspout sentence-spout-parameterized ["word"] {:params [sentences] :prepare false}
@@ -241,8 +249,7 @@ Spouts can be parameterized just like bolts, in which case the symbol is bound t
   (emit-spout! collector [(rand-nth sentences)]))
 ```
 
-The following example illustrates how to use this spout in a `spout-spec`:
-
+以下示例说明了如何在`spout-spec`中使用此spout：
 ```clojure
 (spout-spec (sentence-spout-parameterized
                    ["the cat jumped over the door"
@@ -250,17 +257,17 @@ The following example illustrates how to use this spout in a `spout-spec`:
             :p 2)
 ```
 
-### Running topologies in local mode or on a cluster
+### Running topologies in local mode or on a cluster (在本地模式或集群上运行topologies)
 
-That's all there is to the Clojure DSL. To submit topologies in remote mode or local mode, just use the `StormSubmitter` or `LocalCluster` classes just like you would from Java.
+要想使用远程模式或本地模式提交topologies，只需像Java一样使用“StormSubmitter”或“LocalCluster”类。这就是Clojure DSL。
 
-To create topology configs, it's easiest to use the `org.apache.storm.config` namespace which defines constants for all of the possible configs. The constants are the same as the static constants in the `Config` class, except with dashes instead of underscores. For example, here's a topology config that sets the number of workers to 15 and configures the topology in debug mode:
+要创建topology配置，最简单的方法是使用org.apache.storm.config命名空间来定义所有可能配置的常量。常量与“Config”类中的静态常量相同，但是使用的是破折号而不是下划线。例如，这有一个topology配置，将workers数设置为15，并以调试模式配置topology：
 
 ```clojure
 {TOPOLOGY-DEBUG true
  TOPOLOGY-WORKERS 15}
 ```
 
-### Testing topologies
+### Testing topologies （测试topologies）
 
-[This blog post](http://www.pixelmachine.org/2011/12/17/Testing-Storm-Topologies.html) and its [follow-up](http://www.pixelmachine.org/2011/12/21/Testing-Storm-Topologies-Part-2.html) give a good overview of Storm's powerful built-in facilities for testing topologies in Clojure.
+关于测试Clojure中的topologies ，[博文](http://www.pixelmachine.org/2011/12/17/Testing-Storm-Topologies.html)及其[后续](http://www.pixelmachine.org/2011/ 12/21 / Testing-Storm-Topology-Part-2.html) 很好地概述了Storm的强大内置功能。
