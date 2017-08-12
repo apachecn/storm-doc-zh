@@ -1,22 +1,22 @@
 ---
-title: Storm SQL language
+title: Storm SQL 语言
 layout: documentation
 documentation: true
 ---
 
-Storm SQL uses Apache Calcite to parse and evaluate the SQL statements. 
-Storm SQL also adopts Rex compiler from Calcite, so Storm SQL is expected to handle SQL dialect recognized by Calcite's default SQL parser. 
+Storm SQL 使用 Apache Calcite 来转换和评估 SQL 语句.
+Storm SQL 还采用了来自 Calcite 的 Rex 编译器，因此 Storm SQL 将处理由 Calcite 的默认 SQL 解析器识别的 SQL 方言。
 
-The page is based on Calcite SQL reference on website, and removes the area Storm SQL doesn't support, and also adds the area Storm SQL supports.
+本文基于 Calcite 官网的 SQL 参考手册, 移除了部分 Storm SQL 不支持的内容, 添加了一些 Storm SQL 支持的内容. 
 
-Please read [Storm SQL integration](storm-sql.html) page first to see what features Storm SQL supports. 
+请先阅读 [Storm SQL integration](storm-sql.html) 页面, 了解 Storm SQL 支持哪些特性.
 
-## Grammar
+## 语法
 
-Calcite provides broader SQL Grammar. But Storm SQL is not database system and handles streaming data, so only subset of grammar is supported.
-Storm SQL doesn't redefine SQL Grammar and just utilize the parser Calcite provided, so SQL statements are still parsed based on Calcite's SQL Grammar. 
+Calcite 提供丰富的 SQL 语法. 但是 Storm SQL 并不是一个数据库系统, 它用于处理流式数据, 因此只支持语法的子集.
+Storm SQL 不会重定义 SQL 语法, 只优化 Calcite 提供的转换器, 因此 SQL 语句仍然基于 Calcite 的 SQL 语法进行转换.
 
-SQL grammar in [BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form)-like form.
+SQL 语法表现为 类[BNF](http://en.wikipedia.org/wiki/Backus%E2%80%93Naur_Form) 的形式.
 
 {% highlight sql %}
 statement:
@@ -160,41 +160,24 @@ windowSpec:
       ')'
 {% endhighlight %}
 
-In *merge*, at least one of the WHEN MATCHED and WHEN NOT MATCHED clauses must
-be present.
+在 *merge* 中, 必须有 WHEN MATCH 或者 WHEN NOT MATCH 从句的其中之一.
 
-In *orderItem*, if *expression* is a positive integer *n*, it denotes
-the <em>n</em>th item in the SELECT clause.
+在 *orderItem* 中, 如果 *expression* 是一个正整数 *n*, 他表示 SELECT 从句中的第 <em>n</em> 个项目.
 
-An aggregate query is a query that contains a GROUP BY or a HAVING
-clause, or aggregate functions in the SELECT clause. In the SELECT,
-HAVING and ORDER BY clauses of an aggregate query, all expressions
-must be constant within the current group (that is, grouping constants
-as defined by the GROUP BY clause, or constants), or aggregate
-functions, or a combination of constants and aggregate
-functions. Aggregate and grouping functions may only appear in an
-aggregate query, and only in a SELECT, HAVING or ORDER BY clause.
+聚合查询是包含 GROUP BY 或 HAVING 的查询, 子句或 SELECT 子句中的聚合函数。 在 SELECT 中，汇总查询的 HAVING 和 ORDER BY 子句，所有表达式必须在当前组内是恒定的（即分组常量由GROUP BY子句定义，或常量）或聚合函数或常量和聚合的组合功能。 聚合和分组功能只能出现在聚合查询，并且仅在 SELECT，HAVING 或 ORDER BY 子句中。
 
-A scalar sub-query is a sub-query used as an expression.
-If the sub-query returns no rows, the value is NULL; if it
-returns more than one row, it is an error.
+一个标量子查询是像表达式一样使用的子查询.
+如果子查询没有返回行, 值为 NULL; 如果返回多行, 就是错误的.
 
-IN, EXISTS and scalar sub-queries can occur
-in any place where an expression can occur (such as the SELECT clause,
-WHERE clause, ON clause of a JOIN, or as an argument to an aggregate
-function).
+IN, EXISTS 和 标量子查询可以在任何使用 expression 的地方使用(比如 SELECT 从句, WHERE 从句, JOIN 后面的 ON 从句, 或者作为一个聚合函数的参数).
 
-An IN, EXISTS or scalar sub-query may be correlated; that is, it
-may refer to tables in the FROM clause of an enclosing query.
+一个 IN, EXISTS 或者标量子查询可能是相关的; 意思是, 可以引用封闭查询的 FROM 从句中的表。
 
-*selectWithoutFrom* is equivalent to VALUES,
-but is not standard SQL and is only allowed in certain
-[conformance levels]({{ site.apiRoot }}/org/apache/calcite/sql/validate/SqlConformance.html#isFromRequired--).
+*selectWithoutFrom* 等价于 VALUES, 但是并非标准 SQL, 只在允许在特定的[conformance levels]({{ site.apiRoot }}/org/apache/calcite/sql/validate/SqlConformance.html#isFromRequired--)上.
 
-## Keywords
+## 关键词
 
-The following is a list of SQL keywords. This list is also from Calcite SQL reference.
-Reserved keywords are **bold**.
+下列是一个 SQL 的关键词列表. 这个列表页来自于 Calcite SQL 的参考手册.
 
 {% comment %} start {% endcomment %}
 A,
@@ -747,30 +730,19 @@ XML,
 ZONE.
 {% comment %} end {% endcomment %}
 
-## Identifiers
+## 标识符
 
-Identifiers are the names of tables, columns and other metadata
-elements used in a SQL query.
+标识符是在 SQL 查询中使用的表名, 列, 和其他元数据元素.
 
-Unquoted identifiers, such as emp, must start with a letter and can
-only contain letters, digits, and underscores. They are implicitly
-converted to upper case.
+未被引号括起来的标识符, 比如 emp, 必须以字母打头且只能包含字母, 数字, 下划线. 他们会隐式的转换为大写.
 
-Quoted identifiers, such as `"Employee Name"`, start and end with
-double quotes.  They may contain virtually any character, including
-spaces and other punctuation.  If you wish to include a double quote
-in an identifier, use another double quote to escape it, like this:
-`"An employee called ""Fred""."`.
+被引号引起来的标识符, 例如 `"Employee Name"`, 以双引号开始和结束. 他们可以包含几乎任何字符, 包括空白和其他标点. 如果你想在标识符中包含一个双引号, 使用双引号进行转义, 像这样: `"An employee called ""Fred""."`.
 
-In Calcite, matching identifiers to the name of the referenced object is
-case-sensitive.  But remember that unquoted identifiers are implicitly
-converted to upper case before matching, and if the object it refers
-to was created using an unquoted identifier for its name, then its
-name will have been converted to upper case also.
+在 Calcite 中, 与引用的对象的名称匹配的标识符是大小写敏感的. 但是记住, 被引号括起来的标识符会在匹配前隐式转化为大写, 如果它引用的对象的名称是使用未被引号括起来的标识符创建的, 它的名称也会被转换成大写.
 
-## Data types
+## 数据类型
 
-### Scalar types
+### 标量类型
 
 | Data type   | Description               | Range and examples   |
 |:----------- |:------------------------- |:---------------------|
@@ -801,157 +773,158 @@ timeUnit:
   MILLENNIUM | CENTURY | DECADE | YEAR | QUARTER | MONTH | WEEK | DOY | DOW | DAY | HOUR | MINUTE | SECOND | EPOCH
 {% endhighlight %}
 
-Note:
+注意:
 
-* DATE, TIME and TIMESTAMP have no time zone. There is not even an implicit
-  time zone, such as UTC (as in Java) or the local time zone. It is left to
-  the user or application to supply a time zone.
+* DATE, TIME, TIMESTAMP 是不带时区的. 也没有比如UTC(像Java那样)或者本地时区作为默认时区. 它需要用户或者应用提供时区的处理.
 
-### Non-scalar types
 
-| Type     | Description
+### 非标量类型
+
+| 类型     | 描述
 |:-------- |:-----------------------------------------------------------
-| ANY      | A value of an unknown type
-| ROW      | Row with 1 or more columns
-| MAP      | Collection of keys mapped to values
-| MULTISET | Unordered collection that may contain duplicates
-| ARRAY    | Ordered, contiguous collection that may contain duplicates
-| CURSOR   | Cursor over the result of executing a query
+| ANY      | 一个类型未知的值
+| ROW      | 一列或者多列组成的行
+| MAP      | 键值映射的集合
+| MULTISET | 可能包含重复内容的未排序的集合
+| ARRAY    | 有序的，可能包含重复的连续集合
+| CURSOR   | 查询结果的游标
 
-## Operators and functions
+## 运算符和函数
 
-### Operator precedence
+### 运算符优先级
 
-The operator precedence and associativity, highest to lowest.
+运算符优先级和结合性, 从高到低.
 
-| Operator                                          | Associativity
+| 运算符                                             | 优先级
 |:------------------------------------------------- |:-------------
-| .                                                 | left
-| [ ] (array element)                               | left
-| + - (unary plus, minus)                           | right
-| * /                                               | left
-| + -                                               | left
+| .                                                 | 左
+| [ ] (array element)                               | 左
+| + - (unary plus, minus)                           | 右
+| * /                                               | 左
+| + -                                               | 左
 | BETWEEN, IN, LIKE, SIMILAR                        | -
-| < > = <= >= <> !=                                 | left
+| < > = <= >= <> !=                                 | 左
 | IS NULL, IS FALSE, IS NOT TRUE etc.               | -
-| NOT                                               | right
-| AND                                               | left
-| OR                                                | left
+| NOT                                               | 右
+| AND                                               | 左
+| OR                                                | 左
 
-### Comparison operators
+### 比较运算符
 
-| Operator syntax                                   | Description
+| 语法                                               | 描述
 |:------------------------------------------------- |:-----------
-| value1 = value2                                   | Equals
-| value1 <> value2                                  | Not equal
-| value1 != value2                                  | Not equal (only available at some conformance levels)
-| value1 > value2                                   | Greater than
-| value1 >= value2                                  | Greater than or equal
-| value1 < value2                                   | Less than
-| value1 <= value2                                  | Less than or equal
-| value IS NULL                                     | Whether *value* is null
-| value IS NOT NULL                                 | Whether *value* is not null
-| value1 IS DISTINCT FROM value2                    | Whether two values are not equal, treating null values as the same
-| value1 IS NOT DISTINCT FROM value2                | Whether two values are equal, treating null values as the same
+| value1 = value2                                   | 相等
+| value1 <> value2                                  | 不等
+| value1 != value2                                  | 不等 (only available at some conformance levels)
+| value1 > value2                                   | 大于
+| value1 >= value2                                  | 大于等于
+| value1 < value2                                   | 小于
+| value1 <= value2                                  | 小于等于
+| value IS NULL                                     | *value* 是否为 null
+| value IS NOT NULL                                 | *value* 是否不为 null
+| value1 IS DISTINCT FROM value2                    | 两个值是否不等, null 值认为是相等
+| value1 IS NOT DISTINCT FROM value2                | 两个值是否相等, null 值认为是相等
 | value1 BETWEEN value2 AND value3                  | Whether *value1* is greater than or equal to *value2* and less than or equal to *value3*
-| value1 NOT BETWEEN value2 AND value3              | Whether *value1* is less than *value2* or greater than *value3*
-| string1 LIKE string2 [ ESCAPE string3 ]           | Whether *string1* matches pattern *string2*
-| string1 NOT LIKE string2 [ ESCAPE string3 ]       | Whether *string1* does not match pattern *string2*
-| string1 SIMILAR TO string2 [ ESCAPE string3 ]     | Whether *string1* matches regular expression *string2*
-| string1 NOT SIMILAR TO string2 [ ESCAPE string3 ] | Whether *string1* does not match regular expression *string2*
-| value IN (value [, value]* )                      | Whether *value* is equal to a value in a list
-| value NOT IN (value [, value]* )                  | Whether *value* is not equal to every value in a list
+| value1 NOT BETWEEN value2 AND value3              | *value1* 是否小于 *value2* 或大于 *value3*
+| string1 LIKE string2 [ ESCAPE string3 ]           | *string1* 与模式 *string2* 是否匹配
+| string1 NOT LIKE string2 [ ESCAPE string3 ]       | *string1* 与模式 *string2* 是否不匹配
+| string1 SIMILAR TO string2 [ ESCAPE string3 ]     | *string1* 与正则 *string2* 是否匹配
+| string1 NOT SIMILAR TO string2 [ ESCAPE string3 ] | *string1* 与正则 *string2* 是否不匹配
+| value IN (value [, value]* )                      | *value* 是否与列表中的每一个值都相等
+| value NOT IN (value [, value]* )                  | *value* 是否与列表中的每一个值都不等
 
 Not supported yet on Storm SQL:
+目前 Storm SQL 中不支持的运算符:
 
-| Operator syntax                                   | Description
+| 语法                                               | 描述
 |:------------------------------------------------- |:-----------
-| value IN (sub-query)                              | Whether *value* is equal to a row returned by *sub-query*
-| value NOT IN (sub-query)                          | Whether *value* is not equal to every row returned by *sub-query*
-| EXISTS (sub-query)                                | Whether *sub-query* returns at least one row
+| value IN (sub-query)                              | 是否 *value* 等于 *sub-query* 返回的行
+| value NOT IN (sub-query)                          | 是否 *value* 不等于 *sub-query* 返回的行
+| EXISTS (sub-query)                                | 是否 *sub-query* 返回至少一个行
 
-Storm SQL doesn't support sub-query yet, so above operators don't work properly. This will be addressed in near future. 
+Storm SQL 当前不支持子查询, 因此上面的操作不能正常工作. 这个问题会在不久的将来修复.
 
-### Logical operators
+### 逻辑运算符
 
-| Operator syntax        | Description
+| 语法                    | 描述
 |:---------------------- |:-----------
-| boolean1 OR boolean2   | Whether *boolean1* is TRUE or *boolean2* is TRUE
-| boolean1 AND boolean2  | Whether *boolean1* and *boolean2* are both TRUE
-| NOT boolean            | Whether *boolean* is not TRUE; returns UNKNOWN if *boolean* is UNKNOWN
-| boolean IS FALSE       | Whether *boolean* is FALSE; returns FALSE if *boolean* is UNKNOWN
-| boolean IS NOT FALSE   | Whether *boolean* is not FALSE; returns TRUE if *boolean* is UNKNOWN
-| boolean IS TRUE        | Whether *boolean* is TRUE; returns FALSE if *boolean* is UNKNOWN
-| boolean IS NOT TRUE    | Whether *boolean* is not TRUE; returns TRUE if *boolean* is UNKNOWN
-| boolean IS UNKNOWN     | Whether *boolean* is UNKNOWN
-| boolean IS NOT UNKNOWN | Whether *boolean* is not UNKNOWN
+| boolean1 OR boolean2   | 或
+| boolean1 AND boolean2  | 且
+| NOT boolean            | 是否为True ; *boolean* 为 UNKNOWN 则返回 UNKNOWN
+| boolean IS FALSE       | 是否为False; *boolean* 为 UNKNOWN 则返回 UNKNOWN
+| boolean IS NOT FALSE   | 是否不为False; *boolean* 为 UNKNOWN 则返回 UNKNOWN
+| boolean IS TRUE        | 是否为True; *boolean* 为 UNKNOWN 则返回 UNKNOWN
+| boolean IS NOT TRUE    | 是否不为True; *boolean* 为 UNKNOWN 则返回 UNKNOWN
+| boolean IS UNKNOWN     | 判断是否是 UNKNOWN
+| boolean IS NOT UNKNOWN | 判断是否不是 UNKNOWN
 
-### Arithmetic operators and functions
+### 数学运算符和函数
 
-| Operator syntax           | Description
+| 语法                       | 描述
 |:------------------------- |:-----------
-| + numeric                 | Returns *numeric*
-|:- numeric                 | Returns negative *numeric*
-| numeric1 + numeric2       | Returns *numeric1* plus *numeric2*
-| numeric1 - numeric2       | Returns *numeric1* minus *numeric2*
-| numeric1 * numeric2       | Returns *numeric1* multiplied by *numeric2*
-| numeric1 / numeric2       | Returns *numeric1* divided by *numeric2*
-| POWER(numeric1, numeric2) | Returns *numeric1* raised to the power of *numeric2*
-| ABS(numeric)              | Returns the absolute value of *numeric*
-| MOD(numeric, numeric)     | Returns the remainder (modulus) of *numeric1* divided by *numeric2*. The result is negative only if *numeric1* is negative
-| SQRT(numeric)             | Returns the square root of *numeric*
-| LN(numeric)               | Returns the natural logarithm (base *e*) of *numeric*
-| LOG10(numeric)            | Returns the base 10 logarithm of *numeric*
-| EXP(numeric)              | Returns *e* raised to the power of *numeric*
-| CEIL(numeric)             | Rounds *numeric* up, and returns the smallest number that is greater than or equal to *numeric*
-| FLOOR(numeric)            | Rounds *numeric* down, and returns the largest number that is less than or equal to *numeric*
+| + numeric                 | 返回 *numeric*
+|:- numeric                 | 返回负 *numeric*
+| numeric1 + numeric2       | 返回 *numeric1* 加 *numeric2*
+| numeric1 - numeric2       | 返回 *numeric1* 减 *numeric2*
+| numeric1 * numeric2       | 返回 *numeric1* 乘以 *numeric2*
+| numeric1 / numeric2       | 返回 *numeric1* 除以 *numeric2*
+| POWER(numeric1, numeric2) | 返回 *numeric1* 的 *numeric2* 次方
+| ABS(numeric)              | 返回绝对值 *numeric*
+| MOD(numeric, numeric)     | 取余 *numeric1* 除以 *numeric2*. 如果被除数为负, 则余数为负
+| SQRT(numeric)             | 返回平方根 *numeric*
+| LN(numeric)               | 返回 *numeric* 的自然对数 (底数 *e*)
+| LOG10(numeric)            | 返回 *numeric* 的常用对数 (底数 10)
+| EXP(numeric)              | 返回 *e* 的 *numeric* 次方
+| CEIL(numeric)             | 向上取整 *numeric*, 返回大于或者等于 *numeric* 的最小整数
+| FLOOR(numeric)            | 向下取整 *numeric*, 返回小于或者等于 *numeric* 的最小整数
 
-### Character string operators and functions
+### 字符串运算符和函数
 
-| Operator syntax            | Description
+| 语法                        | 描述
 |:-------------------------- |:-----------
-| string &#124;&#124; string | Concatenates two character strings.
-| CHAR_LENGTH(string)        | Returns the number of characters in a character string
-| CHARACTER_LENGTH(string)   | As CHAR_LENGTH(*string*)
-| UPPER(string)              | Returns a character string converted to upper case
-| LOWER(string)              | Returns a character string converted to lower case
-| POSITION(string1 IN string2) | Returns the position of the first occurrence of *string1* in *string2*
-| TRIM( { BOTH &#124; LEADING &#124; TRAILING } string1 FROM string2) | Removes the longest string containing only the characters in *string1* from the start/end/both ends of *string1*
-| OVERLAY(string1 PLACING string2 FROM integer [ FOR integer2 ]) | Replaces a substring of *string1* with *string2*
-| SUBSTRING(string FROM integer)  | Returns a substring of a character string starting at a given point.
-| SUBSTRING(string FROM integer FOR integer) | Returns a substring of a character string starting at a given point with a given length.
-| INITCAP(string)            | Returns *string* with the first letter of each word converter to upper case and the rest to lower case. Words are sequences of alphanumeric characters separated by non-alphanumeric characters.
+| string &#124;&#124; string | 连接2个字符串
+| CHAR_LENGTH(string)        | 返回字符串长度
+| CHARACTER_LENGTH(string)   | 与 CHAR_LENGTH(*string*) 等价
+| UPPER(string)              | 转换为大写
+| LOWER(string)              | 转换为小写
+| POSITION(string1 IN string2) |返回 *string1* 在 *string2* 中首次出现位置 
+| TRIM( { BOTH &#124; LEADING &#124; TRAILING } string1 FROM string2) | 从 *string2* 的 头/尾/两头 移除 *string1* 的最长匹配
+| OVERLAY(string1 PLACING string2 FROM integer [ FOR integer2 ]) | 用 *string2* 替换 *string1*
+| SUBSTRING(string FROM integer)  | 从给定的位置开始返回一个子串
+| SUBSTRING(string FROM integer FOR integer) | 从给定位置返回一个指定长度的子串
+| INITCAP(string)            | 将 *string* 中每个单词首字母大写其他字母小写. 单词是由空白字符分隔开的字符序列
 
-Not implemented:
+未实现的:
 
 * SUBSTRING(string FROM regexp FOR regexp)
 
-### Binary string operators and functions
+### 二进制字符串操作符和函数
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| binary &#124;&#124; binary | Concatenates two binary strings.
-| POSITION(binary1 IN binary2) | Returns the position of the first occurrence of *binary1* in *binary2*
-| OVERLAY(binary1 PLACING binary2 FROM integer [ FOR integer2 ]) | Replaces a substring of *binary1* with *binary2*
+| binary &#124;&#124; binary | 连接2个二进制字符串.
+| POSITION(binary1 IN binary2) | 返回二进制串 *binary1* 在 *binary2* 中首次出现位置
+| OVERLAY(binary1 PLACING binary2 FROM integer [ FOR integer2 ]) | 替换
 
-Known bugs:
+已知的 bug:
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| SUBSTRING(binary FROM integer) | Returns a substring of *binary* starting at a given point
-| SUBSTRING(binary FROM integer FOR integer) | Returns a substring of *binary* starting at a given point with a given length
+| SUBSTRING(binary FROM integer) | 从指定的位置截取
+| SUBSTRING(binary FROM integer FOR integer) | 从指定位置截取指定长度的串
 
-Calcite 1.9.0 has bugs on binary SUBSTRING functions which throws exception while compiling SQL statements. This can be fixed to higher version of Calcite.
+Calcite 1.9.0 有bug, 当编译 SUBSTRING 函数的时候会抛出异常.
+这个问题会在后续版本中修复.
 
-### Date/time functions
+### Date/time 函数
 
-| Operator syntax           | Description
+| 语法                       | 描述
 |:------------------------- |:-----------
-| EXTRACT(timeUnit FROM datetime) | Extracts and returns the value of a specified datetime field from a datetime value expression
-| FLOOR(datetime TO timeUnit) | Rounds *datetime* down to *timeUnit*
-| CEIL(datetime TO timeUnit) | Rounds *datetime* up to *timeUnit*
+| EXTRACT(timeUnit FROM datetime) | 返回时间中的指定字段
+| FLOOR(datetime TO timeUnit) | 根据 timeUnit 向下取整
+| CEIL(datetime TO timeUnit) | 根据 timeUnit 向上取整
 
-Not implemented:
+未实现的:
 
 * EXTRACT(timeUnit FROM interval)
 * CEIL(interval)
@@ -966,86 +939,85 @@ Not implemented:
 * datetime + interval
 * datetime - interval
 
-Note on Storm SQL:
+Storm SQL 特有的:
 
-| Operator syntax           | Description
+| 语法                       | 描述
 |:------------------------- |:-----------
-| LOCALTIME                 | Returns the current date and time in the session time zone in a value of datatype TIME
-| LOCALTIME(precision)      | Returns the current date and time in the session time zone in a value of datatype TIME, with *precision* digits of precision
-| LOCALTIMESTAMP            | Returns the current date and time in the session time zone in a value of datatype TIMESTAMP
-| LOCALTIMESTAMP(precision) | Returns the current date and time in the session time zone in a value of datatype TIMESTAMP, with *precision* digits of precision
-| CURRENT_TIME              | Returns the current time in the session time zone, in a value of datatype TIMESTAMP WITH TIME ZONE
-| CURRENT_DATE              | Returns the current date in the session time zone, in a value of datatype DATE
-| CURRENT_TIMESTAMP         | Returns the current date and time in the session time zone, in a value of datatype TIMESTAMP WITH TIME ZONE
+| LOCALTIME                 | 以类型 TIME 返回当前会话时区的当前时间
+| LOCALTIME(precision)      | 以类型 TIME 返回当前会话时区的当前时间, 精度precision
+| LOCALTIMESTAMP            | 以类型 TIMESTAMP 返回当前会话时区的当前时间
+| LOCALTIMESTAMP(precision) | 以类型 TIMESTAMP 返回当前会话时区的当前时间, 精度precision
+| CURRENT_TIME              | 以类型 TIMESTAMP WITH TIME ZONE 返回当前会话时区的当前时间
+| CURRENT_DATE              | 以类型 DATE 返回当前会话时区的当前时间
+| CURRENT_TIMESTAMP         | 以类型 TIMESTAMP WITH TIME ZONE 返回当前会话时区的当前时间
 
-SQL standard states that above operators should return the same value while evaluating query.
-Storm SQL converts each query to Trident topology and run, so technically current date / time should be fixed while evaluating SQL statement.
-Because of this limitation, current date / time will be fixed while creating Trident topology, and these operators should return the same value in the lifecycle of topology.
+SQL标准规定，上述运算符在评估查询时应返回相同的值。
+Storm SQL将每个查询转换为Trident拓扑并运行，因此在评估SQL语句时，技术上当前的日期/时间应该是固定的。
+由于这个限制，当创建Trident拓扑时，当前日期/时间将被修复，并且这些运算符应该在拓扑生命周期中返回相同的值。
 
-### System functions
+### 系统函数
 
-Not supported yet on Storm SQL:
+Storm SQL 当前不支持的函数:
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| USER            | Equivalent to CURRENT_USER
-| CURRENT_USER    | User name of current execution context
-| SESSION_USER    | Session user name
-| SYSTEM_USER     | Returns the name of the current data store user as identified by the operating system
-| CURRENT_PATH    | Returns a character string representing the current lookup scope for references to user-defined routines and types
-| CURRENT_ROLE    | Returns the current active role
+| USER            | 等价于CURRENT_USER
+| CURRENT_USER    | 当前执行上下文的用户名
+| SESSION_USER    | 会话的用户名
+| SYSTEM_USER     | 返回系统标识的当前数据存储的用户 user
+| CURRENT_PATH    | 返回表示当前查找范围的字符串，用于引用用户定义的例程和类型
+| CURRENT_ROLE    | 返回当前活动 role
 
-These operators are not making sense of Storm SQL's runtime, so it may be never supported unless we find out proper semantics. 
+这些操作符并不代表 Storm SQL 的运行时，所以除非我们找到正确的语义，否则这些操作可能永远不会被支持。
 
-### Conditional functions and operators
+### 条件函数和操作符
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| CASE value<br/>WHEN value1 [, value11 ]* THEN result1<br/>[ WHEN valueN [, valueN1 ]* THEN resultN ]*<br/>[ ELSE resultZ ]<br/> END | Simple case
-| CASE<br/>WHEN condition1 THEN result1<br/>[ WHEN conditionN THEN resultN ]*<br/>[ ELSE resultZ ]<br/>END | Searched case
-| NULLIF(value, value) | Returns NULL if the values are the same.<br/><br/>For example, <code>NULLIF(5, 5)</code> returns NULL; <code>NULLIF(5, 0)</code> returns 5.
-| COALESCE(value, value [, value ]* ) | Provides a value if the first value is null.<br/><br/>For example, <code>COALESCE(NULL, 5)</code> returns 5.
+| CASE value<br/>WHEN value1 [, value11 ]* THEN result1<br/>[ WHEN valueN [, valueN1 ]* THEN resultN ]*<br/>[ ELSE resultZ ]<br/> END | 简单 case 语句
+| CASE<br/>WHEN condition1 THEN result1<br/>[ WHEN conditionN THEN resultN ]*<br/>[ ELSE resultZ ]<br/>END | 搜索 case 语句
+| NULLIF(value, value) | 值相同返回.<br/><br/>例如, <code>NULLIF(5, 5)</code> 返回 NULL; <code>NULLIF(5, 0)</code> 返回 5.
+| COALESCE(value, value [, value ]* ) | 前一个值为 null 则返回后一个值.<br/><br/>例如, <code>COALESCE(NULL, 5)</code> 返回 5.
 
-### Type conversion
+### 类型转换
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- | :----------
-| CAST(value AS type) | Converts a value to a given type.
+| CAST(value AS type) | 把值转换为给定的类型.
 
-### Value constructors
+### 值构造器
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| ROW (value [, value]* ) | Creates a row from a list of values.
-| (value [, value]* )     | Creates a row from a list of values.
-| map '[' key ']'     | Returns the element of a map with a particular key.
-| array '[' index ']' | Returns the element at a particular location in an array.
-| ARRAY '[' value [, value ]* ']' | Creates an array from a list of values.
-| MAP '[' key, value [, key, value ]* ']' | Creates a map from a list of key-value pairs.
+| ROW (value [, value]* ) | 从值列表中创建一个行.
+| map '[' key ']'     | 根据 key 返回 value.
+| array '[' index ']' | 返回某个位置的 array 的元素值.
+| ARRAY '[' value [, value ]* ']' | 从值列表中创建一个 array.
+| MAP '[' key, value [, key, value ]* ']' | 从 key-value 列表中创建一个 map.
 
-### Collection functions
+### 集合函数
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| ELEMENT(value)  | Returns the sole element of a array or multiset; null if the collection is empty; throws if it has more than one element.
-| CARDINALITY(value) | Returns the number of elements in an array or multiset.
+| ELEMENT(value)  | 返回 array 或 multiset 的唯一元素; 如果集合为空，则为null; 如果它有多个元素，则抛出异常。
+| CARDINALITY(value) | 返回 array 或 multiset 的元素数.
 
-See also: UNNEST relational operator converts a collection to a relation.
+另请参考: UNNEST关系运算符将集合转换为关系.
 
-### JDBC function escape
+### JDBC 函数转义
 
-#### Numeric
+#### 数字
 
-| Operator syntax                | Description
+| 语法                            | 描述
 |:------------------------------ |:-----------
-| {fn ABS(numeric)}              | Returns the absolute value of *numeric*
-| {fn EXP(numeric)}              | Returns *e* raised to the power of *numeric*
-| {fn LOG(numeric)}              | Returns the natural logarithm (base *e*) of *numeric*
-| {fn LOG10(numeric)}            | Returns the base-10 logarithm of *numeric*
-| {fn MOD(numeric1, numeric2)}   | Returns the remainder (modulus) of *numeric1* divided by *numeric2*. The result is negative only if *numeric1* is negative
-| {fn POWER(numeric1, numeric2)} | Returns *numeric1* raised to the power of *numeric2*
+| {fn ABS(numeric)}              | 返回 *numeric* 的绝对值
+| {fn EXP(numeric)}              | 返回 *e* 的 *numeric* 次方
+| {fn LOG(numeric)}              | 返回 *numeric* 的自然对数 (底数为 *e*)
+| {fn LOG10(numeric)}            | 返回 *numeric* 的以10为底的对数
+| {fn MOD(numeric1, numeric2)}   | 返回 *numeric1* 被 *numeric2* 除的余数. 被除数 *numeric1* 为负数的时候余数为负
+| {fn POWER(numeric1, numeric2)} | 返回 *numeric1* 的 *numeric2* 次方
 
-Not implemented:
+未实现的:
 
 * {fn ACOS(numeric)} - Returns the arc cosine of *numeric*
 * {fn ASIN(numeric)} - Returns the arc sine of *numeric*
@@ -1066,32 +1038,32 @@ Not implemented:
 * {fn TAN(numeric)} - Returns the tangent of *numeric*
 * {fn TRUNCATE(numeric, numeric)}
 
-#### String
+#### 字符串
 
-| Operator syntax | Description
+| 字符串           | 描述
 |:--------------- |:-----------
-| {fn CONCAT(character, character)} | Returns the concatenation of character strings
-| {fn LOCATE(string1, string2)} | Returns the position in *string2* of the first occurrence of *string1*. Searches from the beginning of the second CharacterExpression, unless the startIndex parameter is specified.
-| {fn INSERT(string1, start, length, string2)} | Inserts *string2* into a slot in *string1*
-| {fn LCASE(string)}            | Returns a string in which all alphabetic characters in *string* have been converted to lower case
-| {fn LENGTH(string)} | Returns the number of characters in a string
-| {fn SUBSTRING(string, offset, length)} | Returns a character string that consists of *length* characters from *string* starting at the *offset* position
-| {fn UCASE(string)} | Returns a string in which all alphabetic characters in *string* have been converted to upper case
+| {fn CONCAT(character, character)} | 连接字符串
+| {fn LOCATE(string1, string2)} | 返回 *string2* 在 *string1* 中首次出现的位置. 如果指定了 *integer* , 则从 *integer* 为起点开搜索.
+| {fn INSERT(string1, start, length, string2)} | 把 *string2* 插入 *string1*
+| {fn LCASE(string)}            | 返回小写
+| {fn LENGTH(string)} | 返回字符数
+| {fn SUBSTRING(string, offset, length)} | 字符串截取, 从 offset 的位置开始截取，长度为 length
+| {fn UCASE(string)} | 返回大写
 
-Known bugs:
+已知的bug:
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| {fn LOCATE(string1, string2 [, integer])} | Returns the position in *string2* of the first occurrence of *string1*. Searches from the beginning of *string2*, unless *integer* is specified.
-| {fn LTRIM(string)} | Returns *string* with leading space characters removed
-| {fn RTRIM(string)} | Returns *string* with trailing space characters removed
+| {fn LOCATE(string1, string2 [, integer])} | 返回 *string2* 在 *string1* 中首次出现的位置. 如果指定了 *integer* , 则从 *integer* 为起点开搜索.
+| {fn LTRIM(string)} | 移除 *string* 头部的空白字符
+| {fn RTRIM(string)} | 移除 *string* 尾部的空白字符
 
-Calcite 1.9.0 throws exception on {fn LOCATE} with position parameter, {fn LTRIM} and {fn RTRIM} while compiling SQL statement.
-This can be fixed to higher version of Calcite.
+Calcite 1.9.0 在函数使用位置参数的时候会抛出异常, {fn LTRIM} 和 {fn RTRIM} 在编译 SQL 语句的时候.
+这个能在将来的版本中修复.
 
-Not implemented:
+未实现的:
 
-* {fn ASCII(string)} - Convert a single-character string to the corresponding ASCII code, an integer between 0 and 255
+* {fn ASCII(string)} - 转换单个字符的字符串为 ASCII 码, 为 0 - 255 之间的整数
 * {fn CHAR(string)}
 * {fn DIFFERENCE(string, string)}
 * {fn LEFT(string, integer)}
@@ -1103,16 +1075,16 @@ Not implemented:
 
 #### Date/time
 
-| Operator syntax | Description
+| 语法             | 描述
 |:--------------- |:-----------
-| {fn CURDATE()}  | Equivalent to `CURRENT_DATE`
-| {fn CURTIME()}  | Equivalent to `LOCALTIME`
-| {fn NOW()}      | Equivalent to `LOCALTIMESTAMP`
-| {fn QUARTER(date)} | Equivalent to `EXTRACT(QUARTER FROM date)`. Returns an integer between 1 and 4.
-| {fn TIMESTAMPADD(timeUnit, count, timestamp)} | Adds an interval of *count* *timeUnit*s to a timestamp
-| {fn TIMESTAMPDIFF(timeUnit, timestamp1, timestamp2)} | Subtracts *timestamp1* from *timestamp2* and returns the result in *timeUnit*s
+| {fn CURDATE()}  | 等价于 `CURRENT_DATE`
+| {fn CURTIME()}  | 等价于 `LOCALTIME`
+| {fn NOW()}      | 等价于 `LOCALTIMESTAMP`
+| {fn QUARTER(date)} | 等价于 `EXTRACT(QUARTER FROM date)`. 返回 1 和 4 之间的整数.
+| {fn TIMESTAMPADD(timeUnit, count, timestamp)} | 添加 *count* 个 *timeUnit* 间隔到 timestamp
+| {fn TIMESTAMPDIFF(timeUnit, timestamp1, timestamp2)} | *timestamp1* 减去 *timestamp2* 结果存在 *timeUnit* 中
 
-Not implemented:
+未实现的:
 
 * {fn DAYNAME(date)}
 * {fn DAYOFMONTH(date)}
@@ -1126,40 +1098,40 @@ Not implemented:
 * {fn WEEK(date)}
 * {fn YEAR(date)}
 
-#### System
+#### 系统
 
-Not implemented:
+未实现的:
 
 * {fn DATABASE()}
 * {fn IFNULL(value, value)}
 * {fn USER(value, value)}
 * {fn CONVERT(value, type)}
 
-### Aggregate functions
+### 聚合函数(aggregrate functions)
 
-Storm SQL doesn't support aggregation yet.
+Storm SQL 当前不支持聚合函数.
 
-### Window functions
+### 窗口函数(windowing functions)
 
-Storm SQL doesn't support windowing yet.
+Storm SQL 当前不支持窗口函数
 
-### Grouping functions
+### 分组函数(grouping functions)
 
-Storm SQL doesn't support grouping functions.
+Storm SQL 不支持分组函数
 
-### User-defined functions
+### 用户定义函数(User-defined functions)
 
-Users can define user defined function (scalar) using `CREATE FUNCTION` statement.
-For example, the following statement defines `MYPLUS` function which uses `org.apache.storm.sql.TestUtils$MyPlus` class.
+用户可以使用 `CREATE FUNCTION` 语句定义 user defined function(标量).
+例如, 下面的语句使用 `org.apache.storm.sql.TestUtils$MyPlus` 类定义了一个 `MYPLUS` 函数.
 
 ```
 CREATE FUNCTION MYPLUS AS 'org.apache.storm.sql.TestUtils$MyPlus'
 ```
 
-Storm SQL determines whether the function as scalar or aggregate by checking which methods are defined.
-If the class defines `evaluate` method, Storm SQL treats the function as `scalar`.
+Storm SQL 通过检验定义的个方法来确定函数是标量还是聚合.
+如果类中定义了一个 `evaluate` 方法, Storm SQL 把这个函数作为 `标量` 对待.
 
-Example of class for scalar function is here:
+标量函数的类的例子:
 
 ```
   public class MyPlus {
@@ -1170,13 +1142,13 @@ Example of class for scalar function is here:
 
 ```
 
-Please note that users should use `--jars` or `--artifacts` while running Storm SQL runner to make sure UDFs are available in classpath. 
+请注意, 用户在运行 Storm SQL runner 时候应当使用  `--jars` 或者 `--artifacts`, 来确保 UDFs 在 classpath 路径下可见.
 
-## External Data Sources
+## 外部数据源
 
-### Specifying External Data Sources
+### 指定外部数据源
 
-In StormSQL data is represented by external tables. Users can specify data sources using the `CREATE EXTERNAL TABLE` statement. The syntax of `CREATE EXTERNAL TABLE` closely follows the one defined in [Hive Data Definition Language](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL):
+在 StormSQL 中数据表现为一个外部表. 用户可以使用 `CREATE EXTERNAL TABLE` 语句指定数据源.  `CREATE EXTERNAL TABLE` 的语法与 [Hive 数据定义语言](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL) 定义的语法紧密相关.
 
 ```
 CREATE EXTERNAL TABLE table_name field_list
@@ -1189,23 +1161,24 @@ CREATE EXTERNAL TABLE table_name field_list
     [ AS select_stmt ]
 ```
 
-Default input format and output format are JSON. We will introduce `supported formats` from further section.
+默认输入格式和输出格式都是 JSON. 我们会在将来的章节介绍 `supported formats`.
 
-For example, the following statement specifies a Kafka spout and sink:
+例如, 下面的语句指定了一个 Kafka spout 和 sink:
 
 ```
 CREATE EXTERNAL TABLE FOO (ID INT PRIMARY KEY) LOCATION 'kafka://localhost:2181/brokers?topic=test' TBLPROPERTIES '{"producer":{"bootstrap.servers":"localhost:9092","acks":"1","key.serializer":"org.apache.org.apache.storm.kafka.IntSerializer","value.serializer":"org.apache.org.apache.storm.kafka.ByteBufferSerializer"}}'
 ```
 
-Please note that users should use `--jars` or `--artifacts` while running Storm SQL runner to make sure UDFs are available in classpath. 
+请注意, 用户在运行 Storm SQL runner 时候应当使用  `--jars` 或者 `--artifacts`, 来确保 UDFs 在 classpath 可见.
 
-### Plugging in External Data Sources
+### 植入外部数据源
 
-Users plug in external data sources through implementing the `ISqlTridentDataSource` interface and registers them using the mechanisms of Java's service loader. The external data source will be chosen based on the scheme of the URI of the tables. Please refer to the implementation of `storm-sql-kafka` for more details.
+用户通过实现 `ISqlTridentDataSource` 接口并使用 Java 的 service loader 机制进行注册，以植入外部数据源.
+基于表的 URI 的模式来选择外部数据源. 更多细节请参考 `storm-sql-kafka` 的实现.
 
-### Supported Formats
+### 支持的格式
 
-| Format          | Input format class | Output format class | Requires properties
+| 格式             | 输入格式类           | 输出格式类           | 需要属性
 |:--------------- |:------------------ |:------------------- |:--------------------
 | JSON | org.apache.storm.sql.runtime.serde.json.JsonScheme | org.apache.storm.sql.runtime.serde.json.JsonSerializer | No
 | Avro | org.apache.storm.sql.runtime.serde.avro.AvroScheme | org.apache.storm.sql.runtime.serde.avro.AvroSerializer | Yes
@@ -1214,11 +1187,11 @@ Users plug in external data sources through implementing the `ISqlTridentDataSou
 
 #### Avro
 
-Avro requires users to describe the schema of record (both input and output). Schema should be described on `TBLPROPERTIES`.
-Input format needs to be described to `input.avro.schema`, and output format needs to be described to `output.avro.schema`.
-Schema string should be an escaped JSON so that `TBLPROPERTIES` is valid JSON.
+Avro 需要用户描述记录的模式(输入和输出). 模式应该在 `TBLPROPERTIES` 上描述. 
+输入格式需要描述给 `input.avro.schema`, 输出格式需要描述给 `output.avro.schema`.
+模式字符串应当是一个转义后的 JSON, 因此 `TBLPROPERTIES` 是有效的 JSON.
 
-Example Schema description:
+示例 Schema 定义:
 
 `"input.avro.schema": "{\"type\": \"record\", \"name\": \"large_orders\", \"fields\" : [ {\"name\": \"ID\", \"type\": \"int\"}, {\"name\": \"TOTAL\", \"type\": \"int\"} ]}"`
 
@@ -1226,16 +1199,15 @@ Example Schema description:
 
 #### CSV
 
-It uses [Standard RFC4180](https://tools.ietf.org/html/rfc4180) CSV Parser and doesn't need any other properties.
+使用  [Standard RFC4180](https://tools.ietf.org/html/rfc4180) CSV Parser, 不需要任何其他的属性.
 
 #### TSV
 
-By default TSV uses `\t` as delimiter, but users can set another delimiter by setting `input.tsv.delimiter` and/or `output.tsv.delimiter`.
-Please note that it supports only one letter for delimiter.
+默认情况下, TSV 使用 `\t` 作为分隔符, 但是用户可以通过 `input.tsv.delimiter` 或者 `output.tsv.delimiter` 设置其他的分隔符.
 
-### Supported Data Sources
+### 可支持的数据源
 
-| Data Source     | Artifact Name      | Location prefix     | Support Input data source | Support Output data source | Requires properties
+| 数据源          | Artifact Name       | 位置前缀     | 支持输入数据源 | 支持输出数据源 | 需要属性
 |:--------------- |:------------------ |:------------------- |:------------------------- |:-------------------------- |:-------------------
 | Socket | <built-in> | `socket://host:port` | Yes | Yes | No
 | Kafka | org.apache.storm:storm-sql-kafka | `kafka://zkhost:port/broker_path?topic=topic` | Yes | Yes | Yes
@@ -1245,69 +1217,69 @@ Please note that it supports only one letter for delimiter.
 
 #### Socket
 
-Socket data source is a built-in feature so users don't need to add any artifacts to `--artifacts` options.
+Socket 数据源是一个内置的特性, 因此用户无需在 `--artifacts` 选项中添加任何依赖.
 
-Please note that Socket data source is only for testing: it doesn't guarantee exactly-once and at-least-once.
+请注意, Socket 数据源只是用于测试: 不能保证 exactly-once 和 at-least-once.
 
-TIP: `netcat` is a convenient tool for Socket: users can use netcat to connect Socket data source for either or both input and output purposes.
+贴士: `netcat` 是一个 Socket 便捷工具: 用户可以使用 netcat 连接 Socket 数据源, 既可以作为输入也可以用作输出.
 
 #### Kafka
 
-Kafka data source requires below properties only when its used for output data source:
+Kafka 仅当用作输出数据源的时候需要定义下列属性:
 
-* `producer`: Specify Kafka Producer configuration - Please refer [Kafka producer configs](http://kafka.apache.org/documentation.html#producerconfigs) for details.
-   * `bootstrap.servers` must be described in `producer`
+* `producer`: 指定 Kafka Producer 配置 - 更多细节请参考 [Kafka producer configs](http://kafka.apache.org/documentation.html#producerconfigs).
+   * `bootstrap.servers` 必须在 `producer` 中定义这个值
 
-Please note that `storm-sql-kafka` requires users to provide `storm-kafka`, and `storm-kafka` requires users to provide `kafka` and `kafka-clients`.
-You can use below as working reference for `--artifacts` option, and change dependencies version, and see it works:
+请注意, `storm-sql-kafka` 需要用户提供 `storm-kafka` 依赖, `storm-kafka` 又依赖于 `kafka` , `kafka-clients`. 
+你可以在 `--artifacts` 选项中使用下列的工作引用, 并且在需要的时候修改依赖的版本
 
 `org.apache.storm:storm-sql-kafka:2.0.0-SNAPSHOT,org.apache.storm:storm-kafka:2.0.0-SNAPSHOT,org.apache.kafka:kafka_2.10:0.8.2.2^org.slf4j:slf4j-log4j12,org.apache.kafka:kafka-clients:0.8.2.2`
 
 #### Redis
 
-Redis data source requires below properties to be set:
+Redis 数据源需要设置下列属性:
 
-* `data.type`: data type to be used for storing - only `"STRING"` and `"HASH"` are supported
-* `data.additional.key`: key if data type needs both key and field (field will be used as field)
-* `redis.timeout`: timeout in milliseconds (ex. `"3000"`)
-* `use.redis.cluster`: `"true"` if data source is Redis Cluster env., `"false"` otherwise.
+* `data.type`: 用于存储的数据类型 - 仅支持 `"STRING"` 和 `"HASH"`
+* `data.additional.key`: key, 当数据类型同时需要 key 和 field 时设置 (field 作为字段使用)
+* `redis.timeout`: 超时时间, 毫秒 (ex. `"3000"`)
+* `use.redis.cluster`: 如果 Redis 是集群环境为 `"true"`, 否则为 `"false"`.
 
-Please note that `storm-sql-redis` requires users to provide `storm-redis`.
-You can use below as working reference for `--artifacts` option, and change dependencies version if really needed:
+请注意, `storm-sql-redis` 需要用户提供 `storm-redis` 依赖. 
+你可以在 `--artifacts` 选项中使用下列的工作引用, 并且在需要的时候修改依赖的版本
 
 `org.apache.storm:storm-sql-redis:2.0.0-SNAPSHOT,org.apache.storm:storm-redis:2.0.0-SNAPSHOT`
 
 #### MongoDB
 
-MongoDB data source requires below properties to be set:
+MongoDB 数据源需要设置以下属性
 
 `{"collection.name": "storm_sql_mongo", "trident.ser.field": "serfield"}`
 
-* `trident.ser.field`: field to store - record will be serialized and stored as BSON in this field
-* `collection.name`: Collection name
+* `trident.ser.field`: 存储字段 - 记录会序列化并以 BSON 存储在字段中
+* `collection.name`: 集合名称
 
-Please note that `storm-sql-mongodb` requires users to provide `storm-mongodb`.
-You can use below as working reference for `--artifacts` option, and change dependencies version if really needed:
+请注意, `storm-sql-mongodb` 需要用户提供 `storm-mongodb` 依赖.
+你可以在 `--artifacts` 选项中使用下列的工作引用, 并且在需要的时候修改依赖的版本
 
 `org.apache.storm:storm-sql-mongodb:2.0.0-SNAPSHOT,org.apache.storm:storm-mongodb:2.0.0-SNAPSHOT`
 
-Storing record with preserving fields are not supported for now.
+当前不支持使用保留字段存储.
 
 #### HDFS
 
-HDFS data source requires below properties to be set:
+HDFS 数据源需要设置下列属性
 
-* `hdfs.file.path`: HDFS file path
-* `hdfs.file.name`: HDFS file name - please refer to [SimpleFileNameFormat]({{page.git-blob-base}}/external/storm-hdfs/src/main/java/org/apache/storm/hdfs/trident/format/SimpleFileNameFormat.java)
-* `hdfs.rotation.size.kb`: HDFS FileSizeRotationPolicy in KB
-* `hdfs.rotation.time.seconds`: HDFS TimedRotationPolicy in seconds
+* `hdfs.file.path`: HDFS 文件路径
+* `hdfs.file.name`: HDFS 文件名 - 参考 [SimpleFileNameFormat]({{page.git-blob-base}}/external/storm-hdfs/src/main/java/org/apache/storm/hdfs/trident/format/SimpleFileNameFormat.java)
+* `hdfs.rotation.size.kb`: HDFS FileSizeRotationPolicy 单位 KB
+* `hdfs.rotation.time.seconds`: HDFS TimedRotationPolicy 单位 seconds 
 
-Please note that `hdfs.rotation.size.kb` and `hdfs.rotation.time.seconds` only one can be used for hdfs rotation.
+请注意 `hdfs.rotation.size.kb` 和 `hdfs.rotation.time.seconds` 只能采用其中一种来实现文件滚动.
 
-And note that `storm-sql-hdfs` requires users to provide `storm-hdfs`.
-You can use below as working reference for `--artifacts` option, and change dependencies version if really needed:
+还要注意 `storm-sql-hdfs` 需要用户提供 `storm-hdfs` 依赖.
+你可以在 `--artifacts` 选项中使用下列的工作引用, 并且在需要的时候修改依赖的版本
 
 `org.apache.storm:storm-sql-hdfs:2.0.0-SNAPSHOT,org.apache.storm:storm-hdfs:2.0.0-SNAPSHOT`
 
-Also, hdfs configuration files should be provided.
-You can put the `core-site.xml` and `hdfs-site.xml` into the `conf` directory which is in Storm installation directory.
+还有, 需要提供 hdfs 配置文件.
+可以将 `core-site.xml` 和 `hdfs-site.xml` 文件放到 Storm 安装目录的 `conf` 目录下面.
