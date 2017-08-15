@@ -27,8 +27,8 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
   </tr>
   <tr>
    <td>否</td>
-   <td>63%</td>
-   <td>◢ ApacheCN - Apache Storm 1.1.0 官方文档中文文档翻译计划</td>
+   <td>86%</td>
+   <td>◢ Apache Storm 1.1.0 官方文档中文文档翻译计划</td>
    <td></td>
    <td>12 个工作日</td>
    <td>2017年7月27日</td>
@@ -51,7 +51,7 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
   </tr>
   <tr>
    <td>否</td>
-   <td>63%</td>
+   <td>83%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;◢ Basics of Storm</td>
    <td></td>
    <td>12 个工作日</td>
@@ -62,16 +62,16 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Javadoc</td>
    <td></td>
+   <td>1 个工作日</td>
+   <td>2017年7月27日</td>
+   <td>2017年7月27日</td>
    <td></td>
    <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>指向官方文档</td>
   </tr>
   <tr>
    <td>是</td>
@@ -110,14 +110,14 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Guaranteeing message processing</td>
    <td>Guaranteeing-message-processing.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td><a href="https://github.com/needav">@needav</a>（needav）</td>
+   <td>1 个工作日</td>
+   <td>2017年8月13日</td>
+   <td>2017年8月13日</td>
+   <td><a href="https://github.com/mikechengwei">@mikechengwei</a>（Mike）</td>
    <td></td>
    <td></td>
   </tr>
@@ -155,7 +155,7 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td>2017年8月1日</td>
    <td><a href="https://github.com/wangyangting">@wangyangting</a>（那伊抹微笑）</td>
    <td></td>
-   <td>命令行的使用，暂只翻译前面的描述，后面再视情况而定</td>
+   <td>UI REST API 的使用，暂只翻译前面的描述，后面再视情况而定</td>
   </tr>
   <tr>
    <td>是</td>
@@ -266,8 +266,8 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;◢ SQL</td>
    <td></td>
    <td>12 个工作日</td>
@@ -278,49 +278,49 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Storm SQL overview</td>
    <td>storm-sql.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月9日</td>
+   <td>2017年8月9日</td>
    <td><a href="https://github.com/needav">@needav</a>（needav）</td>
    <td></td>
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Storm SQL example</td>
    <td>storm-sql-example.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月9日</td>
+   <td>2017年8月9日</td>
    <td><a href="https://github.com/needav">@needav</a>（needav）</td>
    <td></td>
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Storm SQL reference</td>
    <td>storm-sql-reference.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月12日</td>
+   <td>2017年8月12日</td>
    <td><a href="https://github.com/needav">@needav</a>（needav）</td>
    <td></td>
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Storm SQL internal</td>
    <td>storm-sql-internal.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月12日</td>
+   <td>2017年8月12日</td>
    <td><a href="https://github.com/needav">@needav</a>（needav）</td>
    <td></td>
    <td></td>
@@ -345,7 +345,7 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
    <td></td>
    <td></td>
-   <td></td>
+   <td><a href="https://github.com/ssandl">@ssandl</a>（ssandl）</td>
    <td></td>
    <td></td>
   </tr>
@@ -495,7 +495,7 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
   </tr>
   <tr>
    <td>否</td>
-   <td>83%</td>
+   <td>92%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;◢ Intermediate</td>
    <td></td>
    <td>12 个工作日</td>
@@ -626,14 +626,14 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Joining Streams</td>
    <td>Joins.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td><a href="https://github.com/huangtianan">@huangtianan</a>（huangtianan）</td>
+   <td>1 个工作日</td>
+   <td>2017年8月14日</td>
+   <td>2017年8月14日</td>
+   <td><a href="https://github.com/mikechengwei">@mikechengwei</a>（Mike）</td>
    <td></td>
    <td></td>
   </tr>
@@ -711,7 +711,7 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
   </tr>
   <tr>
    <td>否</td>
-   <td>24%</td>
+   <td>71%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;◢ Integration With External Systems, and Other Libraries</td>
    <td></td>
    <td>12 个工作日</td>
@@ -770,26 +770,26 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Apache Solr Integration</td>
    <td>storm-solr.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月9日</td>
+   <td>2017年8月9日</td>
+   <td><a href="https://github.com/wangyangting">@wangyangting</a>（那伊抹微笑）</td>
    <td></td>
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Apache Cassandra Integration</td>
    <td>storm-cassandra.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月9日</td>
+   <td>2017年8月9日</td>
+   <td><a href="https://github.com/chenyyx">@chenyyx</a>（Joy yx）</td>
    <td></td>
    <td></td>
   </tr>
@@ -806,14 +806,14 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;JMS Integration</td>
    <td>storm-jms.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月14日</td>
+   <td>2017年8月14日</td>
+   <td><a href="https://github.com/stealthsMrs">@stealthsMrs</a>（stealthsMrs）</td>
    <td></td>
    <td></td>
   </tr>
@@ -830,14 +830,14 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Event Hubs Intergration</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>storm-eventhubs.md</td>
+   <td>1 个工作日</td>
+   <td>2017年8月10日</td>
+   <td>2017年8月10日</td>
+   <td><a href="https://github.com/wangyangting">@wangyangting</a>（那伊抹微笑）</td>
    <td></td>
    <td></td>
   </tr>
@@ -854,14 +854,14 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MQTT Integration</td>
    <td>storm-mqtt.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月14日</td>
+   <td>2017年8月14日</td>
+   <td><a href="https://github.com/stealthsMrs">@stealthsMrs</a>（stealthsMrs）</td>
    <td></td>
    <td></td>
   </tr>
@@ -890,38 +890,38 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Kinesis Integration</td>
    <td>storm-kinesis.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月14日</td>
+   <td>2017年8月14日</td>
+   <td><a href="https://github.com/stealthsMrs">@stealthsMrs</a>（stealthsMrs）</td>
    <td></td>
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Druid Integration</td>
    <td>storm-druid.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月14日</td>
+   <td>2017年8月14日</td>
+   <td><a href="https://github.com/stealthsMrs">@stealthsMrs</a>（stealthsMrs）</td>
    <td></td>
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Kestrel Integration</td>
    <td>Kestrel-and-Storm.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月14日</td>
+   <td>2017年8月14日</td>
+   <td><a href="https://github.com/stealthsMrs">@stealthsMrs</a>（stealthsMrs）</td>
    <td></td>
    <td></td>
   </tr>
@@ -987,25 +987,25 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
   </tr>
   <tr>
    <td>否</td>
-   <td>0%</td>
+   <td>67%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;◢ Advanced</td>
    <td></td>
    <td></td>
-   <td></td>
+   <td>2017年7月27日</td>
    <td></td>
    <td></td>
    <td></td>
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defining a non-JVM language DSL for Storm</td>
    <td>Defining-a-non-jvm-language-dsl-for-storm.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月9日</td>
+   <td>2017年8月9日</td>
+   <td><a href="https://github.com/wangyangting">@wangyangting</a>（那伊抹微笑）</td>
    <td></td>
    <td></td>
   </tr>
@@ -1022,15 +1022,15 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
    <td></td>
   </tr>
   <tr>
-   <td>否</td>
-   <td>0%</td>
+   <td>是</td>
+   <td>100%</td>
    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Implementation docs</td>
    <td>Implementation-docs.md</td>
-   <td></td>
-   <td></td>
-   <td></td>
-   <td></td>
+   <td>1 个工作日</td>
+   <td>2017年8月9日</td>
+   <td>2017年8月9日</td>
+   <td><a href="https://github.com/wangyangting">@wangyangting</a>（那伊抹微笑）</td>
    <td></td>
    <td></td>
   </tr>
-</table> 
+</table>
