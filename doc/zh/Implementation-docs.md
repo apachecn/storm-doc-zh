@@ -1,13 +1,15 @@
 ---
-title: Storm Internal Implementation
+title: Storm 内部实现
 layout: documentation
 documentation: true
 ---
-This section of the wiki is dedicated to explaining how Storm is implemented. You should have a good grasp of how to use Storm before reading these sections. 
 
-- [Structure of the codebase](Structure-of-the-codebase.html)
-- [Lifecycle of a topology](Lifecycle-of-a-topology.html)
-- [Message passing implementation](Message-passing-implementation.html)
+wiki 的这一部分专门解释 Storm 是如何实现的.
+在阅读该部分之前，您应该很好地掌握如何使用 Storm.
+
+- [代码库的结构](Structure-of-the-codebase.html)
+- [topology 的生命周期](Lifecycle-of-a-topology.html)
+- [message 传递实现](Message-passing-implementation.html)
 - [Metrics](Metrics.html)
 - [Nimbus HA](nimbus-ha-design.html)
 - [Storm SQL](storm-sql-internal.html)

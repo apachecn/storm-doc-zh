@@ -1,11 +1,13 @@
 ---
-title: Defining a Non-JVM DSL for Storm
+title: 针对 Storm 定义一个不是 JVM 的 DSL
 layout: documentation
 documentation: true
 ---
-The right place to start to learn how to make a non-JVM DSL for Storm is [storm-core/src/storm.thrift]({{page.git-blob-base}}/storm-core/src/storm.thrift). Since Storm topologies are just Thrift structures, and Nimbus is a Thrift daemon, you can create and submit topologies in any language.
 
-When you create the Thrift structs for spouts and bolts, the code for the spout or bolt is specified in the ComponentObject struct:
+针对 Storm 开始学习如何使用非 JVM 的 DSL 的正确的地址是 [storm-core/src/storm.thrift]({{page.git-blob-base}}/storm-core/src/storm.thrift).
+由于 Storm topologies 只是 Thrift 的结构，Nimbus 是 Thrift 守护进程，您可以使用任何语言创建和提交 topologies.
+
+当你针对 spouts 和 bolts 创建 Thrift 结构时, spout 和 bolt 的代码指定在 ComponentObject 结构中:
 
 ```
 union ComponentObject {
@@ -15,24 +17,27 @@ union ComponentObject {
 }
 ```
 
-For a Python DSL, you would want to make use of "2" and "3". ShellComponent lets you specify a script to run that component (e.g., your python code). And JavaObject lets you specify native java spouts and bolts for the component (and Storm will use reflection to create that spout or bolt).
+针对 Python DSL，您需要使用 "2" 和 "3".
+ShellComponent 可以让你指定一个脚本来运行组件（例如，你的 python 代码）.
+并且针对组件（Storm 将使用反射来创建 spout 和 bolt）JavaObject 可以让你指定本地的 java spouts 和 bolts.
 
-There's a "storm shell" command that will help with submitting a topology. Its usage is like this:
+以下是一个 "storm shell" 命令，它可以提交 topology. 用法如下:
 
 ```
 storm shell resources/ python topology.py arg1 arg2
 ```
 
-storm shell will then package resources/ into a jar, upload the jar to Nimbus, and call your topology.py script like this:
+Storm Shell resources/ 下的东西包装到一个 jar 中，将 jar 上传到 Nimbus，并像下面这样调用你的 topology.py 脚本:
 
 ```
 python topology.py arg1 arg2 {nimbus-host} {nimbus-port} {uploaded-jar-location}
 ```
 
-Then you can connect to Nimbus using the Thrift API and submit the topology, passing {uploaded-jar-location} into the submitTopology method. For reference, here's the submitTopology definition:
+然后您可以使用 Thrift API 连接到 Nimbus，并提交 topology，将 {uploaded-jar-location} 传递到 submitTopology 方法.
+作为参考，这里是 submitTopology 定义:
 
 ```java
 void submitTopology(1: string name, 2: string uploadedJarLocation, 3: string jsonConf, 4: StormTopology topology) throws (1: AlreadyAliveException e, 2: InvalidTopologyException ite);
 ```
 
-Finally, one of the key things to do in a non-JVM DSL is make it easy to define the entire topology in one file (the bolts, spouts, and the definition of the topology).
+最后，在非 JVM DSL 中要做的一件重要的事情是，可以轻松地在一个文件（bolts，spouts 和 topology 的定义）中定义整个 topology.
