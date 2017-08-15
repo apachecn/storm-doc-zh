@@ -1,15 +1,13 @@
 # Storm Druid Bolt and TridentState
 
-This module provides core Storm and Trident bolt implementations for writing data to [Druid](http://druid.io/) data store.
-This implementation uses Druid's [Tranquility library](https://github.com/druid-io/tranquility) to send messages to druid.
+该模块提供了将数据写入[Druid](http://druid.io/) 数据存储的核心Strom和Trident bolt(螺栓)的实现。
+该实现使用Druid's的[Tranquility库](https://github.com/druid-io/tranquility)向druid发送消息。
 
-Some of the implementation details are borrowed from existing [Tranquility Storm Bolt](https://github.com/druid-io/tranquility/blob/master/docs/storm.md).
-This new Bolt added to support latest storm release and maintain the bolt in the storm repo.
+一些实施细节从现有的借用 [Tranquility Storm Bolt](https://github.com/druid-io/tranquility/blob/master/docs/storm.md).
+这个新的Bolt(螺栓)增加了支持最新的storm释放，并保持在storm回购的bolt(螺栓)。
 
 ### Core Bolt
-Below example describes the usage of core bolt which is `org.apache.storm.druid.bolt.DruidBeamBolt`
-By default this Bolt expects to receive tuples in which "event" field gives your event type.
-This logic can be changed by implementing ITupleDruidEventMapper interface.
+下面的例子描述了使用 `org.apache.storm.druid.bolt.DruidBeamBolt`的核心bolt(螺栓)默认情况下，该bolt(螺栓)希望收到元组，其中"事件"字段提供您的事件类型。可以通过实现ITupleDruidEventMapper接口来更改此逻辑。
 
 ```java
 
@@ -40,8 +38,8 @@ This logic can be changed by implementing ITupleDruidEventMapper interface.
 
 ```
 
-### Sample Beam Factory Implementation
-Druid bolt must be supplied with a BeamFactory. You can implement one of these using the [DruidBeams builder's] (https://github.com/druid-io/tranquility/blob/master/core/src/main/scala/com/metamx/tranquility/druid/DruidBeams.scala) "buildBeam()" method.
+### 样品工厂实现
+Druid bolt 必须配置一个 BeamFactory. 您可以使用它们其中一个来实现 [DruidBeams builder's] (https://github.com/druid-io/tranquility/blob/master/core/src/main/scala/com/metamx/tranquility/druid/DruidBeams.scala) "buildBeam()" method.
 See the [Configuration documentation](https://github.com/druid-io/tranquility/blob/master/docs/configuration.md) for details.
 For more details refer [Tranquility library](https://github.com/druid-io/tranquility) docs.
 

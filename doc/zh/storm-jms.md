@@ -1,30 +1,29 @@
 ---
-title: Storm JMS Integration
+title: Storm JMS 集成
 layout: documentation
 documentation: true
 ---
 
-## About Storm JMS
-Storm JMS is a generic framework for integrating JMS messaging within the Storm framework.
+## 关于 Storm JMS
+Storm JMS是在Storm框架内集成JMS消息传递的通过框架。
+
+Storm-JMS 允许您通过JMS spout(喷口)将数据注入到Storm，并通过通用JMS bolt(螺栓)从Storm 消费数据。
+
+JMS Spout(喷口)和Bolt(螺栓)都是数据不可知的。要使用它们，您需要提供一个简单的Java类，用于桥接JMS和Storm
+API 以及封装和特定域的逻辑。
 
 
-Storm-JMS allows you to inject data into Storm via a generic JMS spout, as well as consume data from Storm via a generic JMS bolt.
+## 组件
 
-Both the JMS Spout and JMS Bolt are data agnostic. To use them, you provide a simple Java class that bridges the JMS and Storm APIs and encapsulates and domain-specific logic.
-
-## Components
-
-### JMS Spout
-The JMS Spout component allows for data published to a JMS topic or queue to be consumed by a Storm topology.
-
-A JMS Spout connects to a JMS Destination (topic or queue), and emits Storm "Tuple" objects based on the content of the JMS message received.
+### JMS Spout(喷口)
+JMS Spout(喷口)组件允许将发布到JMS主题或队列的数据由Storm拓扑消费。
+JMS Spout(喷口)连接到JMS目标(主题或队列)，并根据收到的JMS消息的内容发送给Storm "Tuple"对象。
 
 
-### JMS Bolt
-The JMS Bolt component allows for data within a Storm topology to be published to a JMS destination (topic or queue).
+### JMS Bolt(螺栓)
+JMS Bolt(螺栓)组件允许将Storm 拓扑中的数据发布到JMS目标（主题或队列）。
 
-A JMS Bolt connects to a JMS Destination, and publishes JMS Messages based on the Storm "Tuple" objects it receives.
-
+JMS Bolt(螺栓)连接到JMS目标，并根据接收的Storm "Tuple"对象发布JMS消息。
 
 [Example Topology](storm-jms-example.html)
 
