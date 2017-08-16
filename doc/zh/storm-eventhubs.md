@@ -1,5 +1,5 @@
 ---
-title: Azue Event Hubs Integration
+title: Azue Event Hubs 集成
 layout: documentation
 documentation: true
 ---

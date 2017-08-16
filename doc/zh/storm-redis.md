@@ -1,5 +1,5 @@
 ---
-title: Storm Redis Integration
+title: Storm Redis 集成
 layout: documentation
 documentation: true
 ---

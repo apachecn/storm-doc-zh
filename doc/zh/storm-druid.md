@@ -1,4 +1,10 @@
-# Storm Druid Bolt and TridentState
+---
+title: Storm Druid 集成
+layout: documentation
+documentation: true
+---
+
+# Storm Druid Bolt 和 TridentState
 
 该模块提供了将数据写入[Druid](http://druid.io/) 数据存储的核心Strom和Trident bolt(螺栓)的实现。
 该实现使用Druid's的[Tranquility库](https://github.com/druid-io/tranquility)向druid发送消息。

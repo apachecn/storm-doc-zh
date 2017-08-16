@@ -1,5 +1,5 @@
 ---
-title: Storm Elasticsearch Integration
+title: Storm Elasticsearch 集成
 layout: documentation
 documentation: true
 ---
@@ -20,7 +20,8 @@ EsIndexBolt indexBolt = new EsIndexBolt(esConfig, tupleMapper);
 
 ## EsPercolateBolt (org.apache.storm.elasticsearch.bolt.EsPercolateBolt)
 
-EsPercolateBolt将tuples直接流入Elasticsearch。 tuples用于发送渗透请求到指定的索引和类型组合。 用户应该确保```EsTupleMapper```可以从输入元组中提取“source”，“index”，“type”，“index”和“type”用于识别目标索引和类型，“source”是一个文档 在JSON格式的字符串将发送到渗透请求到弹性搜索。
+EsPercolateBolt将tuples直接流入Elasticsearch。 tuples用于发送渗透请求到指定的索引和类型组合。 用户应该确保```EsTupleMapper``` 可以从输入元组中提取“source”，“index”，“type”，“index”和“type”用于识别目标索引和类型，“source”是一个文档 在JSON格式的字符串将发送到渗透请求到弹性搜索。
+
 ```java
 EsConfig esConfig = new EsConfig(clusterName, new String[]{"localhost:9300"});
 EsTupleMapper tupleMapper = new DefaultEsTupleMapper();

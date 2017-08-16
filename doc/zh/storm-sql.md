@@ -1,5 +1,5 @@
 ---
-title: Storm SQL integration
+title: Storm SQL 集成
 layout: documentation
 documentation: true
 ---

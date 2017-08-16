@@ -1,5 +1,5 @@
 ---
-title: Storm JDBC Integration
+title: Storm JDBC 集成
 layout: documentation
 documentation: true
 ---
