@@ -1,21 +1,21 @@
 ---
-title: The Internals of Storm SQL
+title: Storm SQL 内部实现
 layout: documentation
 documentation: true
 ---
 
-This page describes the design and the implementation of the Storm SQL integration.
+本页描述了 Storm SQL 的设计和实现.
 
-## Overview
+## 概览
 
-SQL is a well-adopted yet complicated standard. Several projects including Drill, Hive, Phoenix and Spark have invested significantly in their SQL layers. One of the main design goal of StormSQL is to leverage the existing investments for these projects. StormSQL leverages [Apache Calcite](///calcite.apache.org) to implement the SQL standard. StormSQL focuses on compiling the SQL statements to Storm / Trident topologies so that they can be executed in Storm clusters.
+SQL是一个很好使用但又复杂的标准. 包括 Drill，Hive，Phoenix 和 Spark 在内的几个项目都在其 SQL 层面上投入了大量资金. StormSQL 的主要设计目标之一是利用这些项目的现有资源. StormSQL 利用[Apache Calcite](///calcite.apache.org) 来实现 SQL 标准. StormSQL 专注于将 SQL 语句编译成Storm / Trident 拓扑，以便它们可以在 Storm 集群中执行.
 
-Figure 1 describes the workflow of executing a SQL query in StormSQL. First, users provide a sequence of SQL statements. StormSQL parses the SQL statements and translates them to a Calcite logical plan. A logical plan consists of a sequence of SQL logical operators that describe how the query should be executed irrespective to the underlying execution engines. Some examples of logical operators include `TableScan`, `Filter`, `Projection` and `GroupBy`.
+图1描述了在 StormSQL 中执行 SQL 查询的工作流程. 首先，用户提供了一系列 SQL 语句. StormSQL 解析 SQL 语句并将其转换为 Calcite 逻辑计划. 逻辑计划由一系列 SQL 逻辑运算符组成，描述如何执行查询而不考虑底层执行引擎. 逻辑运算符的一些示例包括 `TableScan`, `Filter`, `Projection` 和`GroupBy`.
 
 <div align="center">
 <img title="Workflow of StormSQL" src="images/storm-sql-internal-workflow.png" style="max-width: 80rem"/>
 
-<p>Figure 1: Workflow of StormSQL.</p>
+<p>图 1: StormSQL 工作流.</p>
 </div>
 
 The next step is to compile the logical execution plan down to a physical execution plan. A physical plan consists of physical operators that describes how to execute the SQL query in *StormSQL*. Physical operators such as `Filter`, `Projection`, and `GroupBy` are directly mapped to operations in Trident topologies. StormSQL also compiles expressions in the SQL statements into Java code blocks and plugs them into the Trident functions which will be compiled once and executed in runtime.

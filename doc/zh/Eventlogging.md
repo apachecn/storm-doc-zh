@@ -1,21 +1,20 @@
 ---
-title: Topology event inspector
+title: 拓扑事件检查器
 layout: documentation
 documentation: true
 ---
 
-# Introduction
+# 简介
 
-Topology event inspector provides the ability to view the tuples as it flows through different stages in a storm topology.
-This could be useful for inspecting the tuples emitted at a spout or a bolt in the topology pipeline while the topology is running, without stopping or redeploying the topology. The normal flow of tuples from the spouts to the bolts is not affected by turning on event logging.
+拓扑事件检查器提供了在storm拓扑的不同阶段时查看元组的功能。
+这可以用于在拓扑运行时检查在拓扑管线中的a spout(喷口)或a bolt(螺栓)处发射的元组，而不用停止或重新部署拓扑。从the spouts(喷口)到the bolts(螺栓)元组的正常流动是不受找开事件记录的影响。
 
-## Enabling event logging
+## 启用事件日志记录
 
-Note: Event logging needs to be enabled first by setting the storm config "topology.eventlogger.executors" to a non zero value. Please see
-the [Configuration](#config) section for more details.
+注意：首先事件日志记录需要将storm的"topolopy.eventlogger.executors"参数设置成非零的值。
+详情请查询 [Configuration](#config) 章节内容。
 
-Events can be logged by clicking the "Debug" button under the topology actions in the topology view. This logs the
-tuples from all the spouts and bolts in a topology at the specified sampling percentage.
+可以通过在拓扑视图中的拓扑操作下单击“调试”按钮来记录事件。这会记录来自所有spouts（喷口）和bolts(螺栓)的元组以指定的采样百分比在拓扑中。
 
 <div align="center">
 <img title="Enable Eventlogging" src="images/enable-event-logging-topology.png" style="max-width: 80rem"/>
@@ -23,8 +22,8 @@ tuples from all the spouts and bolts in a topology at the specified sampling per
 <p>Figure 1: Enable event logging at topology level.</p>
 </div>
 
-You could also enable event logging at a specific spout or bolt level by going to the corresponding component page and
-clicking "Debug" under component actions.
+您还可以通过转到相应的组件页面来启用特定(spout)喷口或(bolt)螺栓级别的事件记录和
+单击组件操作下的“调试”。
 
 <div align="center">
 <img title="Enable Eventlogging at component level" src="images/enable-event-logging-spout.png" style="max-width: 80rem"/>
@@ -32,10 +31,10 @@ clicking "Debug" under component actions.
 <p>Figure 2: Enable event logging at component level.</p>
 </div>
 
-## Viewing the event logs
-The Storm "logviewer" should be running for viewing the logged tuples. If not already running log viewer can be started by running the "bin/storm logviewer" command from the storm installation directory. For viewing the tuples, go to the specific spout or bolt component page from storm UI and click on the "events" link under the component summary (as highlighted in Figure 2 above).
+## 查看事件日志
+Storm "logviewer" 应该运行查看已记录的元组。如果没有运行，则可以从Storm安装目录运行“bin/storm logviewer” 命令启动日志查看器。要查看元组，请从Storm UI中访问特定的spout(喷口)或bolt(螺栓)组件页面，然后单击组件摘要下的“事件”链接(如上图2所示)。
 
-This would open up a view like below where you can navigate between different pages and view the logged tuples.
+这将打开一个如下所示的视图，您可以在不同的页面之间导航并查看自己已记录的元组。
 
 <div align="center">
 <img title="Viewing logged tuples" src="images/event-logs-view.png" style="max-width: 80rem"/>
@@ -43,13 +42,13 @@ This would open up a view like below where you can navigate between different pa
 <p>Figure 3: Viewing the logged events.</p>
 </div>
 
-Each line in the event log contains an entry corresponding to a tuple emitted from a specific spout/bolt in a comma separated format.
+事件日志中的每一行都包含一个与从特定spout(喷口)/bolt(螺栓)(已逗号分隔的格式)发出的元组相对应的条目。
 
 `Timestamp, Component name, Component task-id, MessageId (in case of anchoring), List of emitted values`
 
-## Disabling the event logs
+## 禁用事件日志
 
-Event logging can be disabled at a specific component or at the topology level by clicking the "Stop Debug" under the topology or component actions in the Storm UI.
+可以通过在Storm UI中的拓扑或组件操作下单击“停止调试”，在特定组件或拓扑级别上禁用事件日志。
 
 <div align="center">
 <img title="Disable Eventlogging at topology level" src="images/disable-event-logging-topology.png" style="max-width: 80rem"/>
@@ -58,7 +57,7 @@ Event logging can be disabled at a specific component or at the topology level b
 </div>
 
 ## <a name="config"></a>Configuration
-Eventlogging works by sending the events (tuples) from each component to an internal eventlogger bolt. By default Storm does not start any event logger tasks, but this can be easily changed by setting the below parameter while running your topology (by setting it in storm.yaml or passing options via command line).
+事件记录通过将事件(元组)从每个组件发送到内部事件日志记录工具。默认情况下，Storm不会启动任何事件记录器任务，但可以通过在运行拓扑时设置以下参数(通过在storm.yaml中设置或通过命令传递选项)轻松更改事件记录器任务。
 
 | Parameter  | Meaning |
 | -------------------------------------------|-----------------------|
@@ -67,9 +66,8 @@ Eventlogging works by sending the events (tuples) from each component to an inte
 | "topology.eventlogger.executors": nil      | One event logger task per worker. |
 
 
-## Extending eventlogging
-Storm provides an `IEventLogger` interface which is used by the event logger bolt to log the events. The default implementation for this is a FileBasedEventLogger which logs the events to an events.log file ( `logs/workers-artifacts/<topology-id>/<worker-port>/events.log`). Alternate implementations of the `IEventLogger` interface can be added to extend the event logging functionality (say build a search index or log the events in a database etc)
-
+## 扩展事件日志
+Strom提供了一个“IEventLogger”接口，由事件记录器螺栓用于记录事件。这个默认的实现是FileBasedEventLogger,它将事件记录到一个事件中。日志文件（`logs/workers-artifacts/<topology-id>/<worker-port>/events.log`）。可以添加“IEventLogger”接口的替代实现来扩展事件记录功能（例如，构建搜索索引或将事件记录到数据库中）
 ```java
 /**
  * EventLogger interface for logging the event info to a sink like log file or db

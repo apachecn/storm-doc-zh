@@ -3,85 +3,86 @@ title: Transactional Topologies
 layout: documentation
 documentation: true
 ---
-**NOTE**: Transactional topologies have been deprecated -- use the [Trident](Trident-tutorial.html) framework instead.
+**请注意**: Transactional topologies 已经摒弃 -- 使用 [Trident](Trident-tutorial.html)  框架替代。
 
 __________________________________________________________________________
 
-Storm [guarantees data processing](Guaranteeing-message-processing.html) by providing an at least once processing guarantee. The most common question asked about Storm is "Given that tuples can be replayed, how do you do things like counting on top of Storm? Won't you overcount?"
+Storm [guarantees data processing](Guaranteeing-message-processing.html)  （保证数据处理）至少一次。关于 Storm 问的最多的问题就是 "当 tuples 重发时，你会如何做呢？你会重复计算吗？"
 
-Storm 0.7.0 introduces transactional topologies, which enable you to get exactly once messaging semantics for pretty much any computation. So you can do things like counting in a fully-accurate, scalable, and fault-tolerant way.
+Storm 0.7.0 版本介绍了 transactional topologies.使得你可以在复杂的计算中做到 exactly once 的消息语义.所以你可以以一种完全精准的，可伸缩，容错的方式执行程序。
 
-Like [Distributed RPC](Distributed-RPC.html), transactional topologies aren't so much a feature of Storm as they are a higher level abstraction built on top of Storm's primitives of streams, spouts, bolts, and topologies.
+和 [Distributed RPC](Distributed-RPC.html)一样，transactional topologies 并不是Storm的一种功能，而是基于 Storm 原语（streams,spouts,bolts,topologies）构建的高级抽象。
 
-This page explains the transactional topology abstraction, how to use the API, and provides details as to its implementation.
+这一页用来解释 transactional topology 抽象，如何使用API，并提供API实现的细节。
 
 ## Concepts
 
-Let's build up to Storm's abstraction for transactional topologies one step at a time. Let's start by looking at the simplest possible approach, and then we'll iterate on the design until we reach Storm's design.
+我们一起来构建 transactional topologies （事务性拓扑）的第一步.我们先从简单的方法开始，不断的完善达到我们想要的设计。
 
 ### Design 1
 
-The core idea behind transactional topologies is to provide a _strong ordering_ on the processing of data. The simplest manifestation of this, and the first design we'll look at, is processing the tuples one at a time and not moving on to the next tuple until the current tuple has been successfully processed by the topology.
+transactional topologies （事务性拓扑） 背后核心的思想就是对数据的处理提供严格的顺序性.严格的顺序性就是说，在处理tuples的时候，topology（拓扑）将当前 tuple 成功处理完后才可以进行下一个 tuple 处理。
 
-Each tuple is associated with a transaction id. If the tuple fails and needs to be replayed, then it is emitted with the exact same transaction id. A transaction id is an integer that increments for every tuple, so the first tuple will have transaction id `1`, the second id `2`, and so on.
+每个tuple 都和一个 transaction id 关联.当 tuple 失败需要重新处理的时候，tuple 会绑定相同的 transaction id 重新发送.tuple 的transaction id 是自增长的，所以第一个 tuple 的 transaction id 是`1`，第二个就是`2`，以此类推.
 
-The strong ordering of tuples gives you the capability to achieve exactly-once semantics even in the case of tuple replay. Let's look at an example of how you would do this.
+tuples的严格顺序性使得你在 tuple 重新处理的时候可以保证 exactly-once语义.我们来看一个例子。
 
-Suppose you want to do a global count of the tuples in the stream. Instead of storing just the count in the database, you instead store the count and the latest transaction id together as one value in the database. When your code updates the count in the db, it should update the count *only if the transaction id in the database differs from the transaction id for the tuple currently being processed*. Consider the two cases:
+假设你想要计算 stream中 tuples的总数.原来你可能只会将 count 总数存储在数据库中，但是你现在将 count 总数和最新的 transaction id 存储在数据库中。在程序更新 db 中的count的时候，只有*当数据库中的transaction id和当前处理的 tuple 的transaction id 不同的时候*，才会更新 count 总数.考虑下面两种场景：
 
-1. *The transaction id in the database is different than the current transaction id:* Because of the strong ordering of transactions, we know for sure that the current tuple isn't represented in that count. So we can safely increment the count and update the transaction id.
-2. *The transaction id is the same as the current transaction id:* Then we know that this tuple is already incorporated into the count and can skip the update. The tuple must have failed after updating the database but before reporting success back to Storm.
+1. *数据库中的 transaction id 和当前 transaction id 不同:* 因为 transactions（事务）的严格顺序性，我们可以确定当前的 tuple 并不代表 count 总数。所以我们安全的自增 count,并更新 transaction id。
+2. *数据库中的 transaction id 和当前 transaction id 相同:* 那么我们知道这个 tuple 已经被并入计数，可以跳过更新.这个 tuple 一定在第一次更新数据库之后失败过，在第二次处理成功后汇报之前.
 
-This logic and the strong ordering of transactions ensures that the count in the database will be accurate even if tuples are replayed.  Credit for this trick of storing a transaction id in the database along with the value goes to the Kafka devs, particularly [this design document](http://incubator.apache.org/kafka/07/design.html).
+这种合理的和强一致性的事务保证了如果tuple失败了重新处理，保存在数据库中的count也是准确的. 将 transaction id 存储到数据库和将 value 发送到kafka 设计是一样的，可以看 [this design document](http://incubator.apache.org/kafka/07/design.html).
 
-Furthermore, notice that the topology can safely update many sources of state in the same transaction and achieve exactly-once semantics. If there's a failure, any updates that already succeeded will skip on the retry, and any updates that failed will properly retry. For example, if you were processing a stream of tweeted urls, you could update a database that stores a tweet count for each url as well as a database that stores a tweet count for each domain.
+另外，topology 可以在相同的事务中的更新许多状态源，并保证 exactly-once 语义.如果有失败，成功更新的会跳过重试，失败更新的会进行重试. 例如，你要处理 tweeted urls 的stream,你可以存储每一个 url 的 tweet 数量，也可以存储每一个 domain（域名）的 tweet 数量.
 
-There is a significant problem though with this design of processing one tuple at time. Having to wait for each tuple to be _completely processed_ before moving on to the next one is horribly inefficient. It entails a huge amount of database calls (at least one per tuple), and this design makes very little use of the parallelization capabilities of Storm. So it isn't very scalable.
+上面这种设计对在某一时刻处理一个 tuple 有一个比较严重的问题。必须等待每个 tuple 处理完成后，才可以进行下一个处理,这是非常低效的.这种设计需要大量的数据库调用（至少每个 tuple 一次），这个设计很少用到并行，所以它不是可扩展的.
 
 ### Design 2
 
-Instead of processing one tuple at a time, a better approach is to process a batch of tuples for each transaction. So if you're doing a global count, you would increment the count by the number of tuples in the entire batch. If a batch fails, you replay the exact batch that failed. Instead of assigning a transaction id to each tuple, you assign a transaction id to each batch, and the processing of the batches is strongly ordered. Here's a diagram of this design:
+相对于一次只能处理一个 tuple，更好的方式就是在每个 transaction（事务）中批处理 tuples.所以如果你要做一个全局的计数，每次增加的是整个 batch 的数量.如果 batch 失败了，你需要重新处理这个失败的 batch . 相比于之前你要对每一个 tuple 分配一个 transaction id，现在是对每个 batch 分配一个 transaction id。并且处理 batch 也是严格有序的.下面是这个设计的图表：
 
 ![Storm cluster](images/transactional-batches.png)
 
-So if you're processing 1000 tuples per batch, your application will do 1000x less database operations than design 1. Additionally, it takes advantage of Storm's parallelization capabilities as the computation for each batch can be parallelized.
+所以如果你每一个 batch 处理 1000 个 tuples,相比于 design 1（设计1）你会少做 1000x 数量级的 数据库操作.另外，这种设计利用了 Storm 的并行计算特性，每一个batch都可以并行计算.
 
-While this design is significantly better than design 1, it's still not as resource-efficient as possible. The workers in the topology spend a lot of time being idle waiting for the other portions of the computation to finish. For example, in a topology like this:
+虽然这种设计优于 design 1（设计1），但是它仍然不能有效的利用资源.topology中的workers会花费大量的时间等待其他部分的计算完成。例如，一个 topology（拓扑）像下面这样：
 
 ![Storm cluster](images/transactional-design-2.png)
 
-After bolt 1 finishes its portion of the processing, it will be idle until the rest of the bolts finish and the next batch can be emitted from the spout.
+当 bolt 1 完成部分处理后，它所在的 worker 将是空闲的，直到剩余的 bolt 完成后，下一个 batch 才会从spout发送出来.
 
 ### Design 3 (Storm's design)
 
-A key realization is that not all the work for processing batches of tuples needs to be strongly ordered. For example, when computing a global count, there's two parts to the computation:
+一个关键的实现就是并不是所有处理 batch 的工作都要严格有序。例如，当计算一个全局计数，需要计算两部分：
 
-1. Computing the partial count for the batch
-2. Updating the global count in the database with the partial count
+1. 计算每一个 batch 的局部 count
+2. 通过局部 count 更新数据库里的全局 count
 
-The computation of #2 needs to be strongly ordered across the batches, but there's no reason you shouldn't be able to _pipeline_ the computation of the batches by computing #1 for many batches in parallel. So while batch 1 is working on updating the database, batches 2 through 10 can compute their partial counts.
+第二部分在计算 batch 过程中需要严格有序，但是没有理由不并行计算第一部分。所以当 batch 1 正在更新数据库时，batch 2到10 可以计算他们的局部 count.
 
-Storm accomplishes this distinction by breaking the computation of a batch into two phases:
+Storm 不同之处在于将 batch 计算分成两部分来完成：
 
-1. The processing phase: this is the phase that can be done in parallel for many batches
-2. The commit phase: The commit phases for batches are strongly ordered. So the commit for batch 2 is not done until the commit for batch 1 has been successful.
+1. 处理阶段：这个阶段是可以并行处理 batches 的。
+2. 提交阶段：提交阶段，batches是严格有序的.所以 batch 2必须等到 batch 1提交成功后才可以进行提交.
 
-The two phases together are called a "transaction". Many batches can be in the processing phase at a given moment, but only one batch can be in the commit phase. If there's any failure in the processing or commit phase for a batch, the entire transaction is replayed (both phases).
+这两个阶段合起来称之为 “transaction”（事务）。许多 batch 在某一时间内处于处理阶段，但只有一个 batch 处于提交阶段。如果处理阶段或者提交失败有失败的话，将重新处理 batch（两个阶段都会重新处理）.
 
 ## Design details
 
-When using transactional topologies, Storm does the following for you:
+当使用 transactional topologies ，Storm 为你提供以下信息：
 
-1. *Manages state:* Storm stores in Zookeeper all the state necessary to do transactional topologies. This includes the current transaction id as well as the metadata defining the parameters for each batch.
-2. *Coordinates the transactions:* Storm will manage everything necessary to determine which transactions should be processing or committing at any point.
-3. *Fault detection:* Storm leverages the acking framework to efficiently determine when a batch has successfully processed, successfully committed, or failed. Storm will then replay batches appropriately. You don't have to do any acking or anchoring -- Storm manages all of this for you.
-4. *First class batch processing API*: Storm layers an API on top of regular bolts to allow for batch processing of tuples. Storm manages all the coordination for determining when a task has received all the tuples for that particular transaction. Storm will also take care of cleaning up any accumulated state for each transaction (like the partial counts).
+1. *Manages state:* Storm 执行 transactional topologies 的时候，将所有的状态存储到 zookeeper.其中包括当前的 transaction id，也包括定义每个 batch 参数的 metadata信息.
+2. *Coordinates the transactions:* Storm会管理一切必要的事情，来确定 transaction 什么时候处理或者提交.
+3. *Fault detection:* Storm利用acking框架来有效地确定批处理成功处理，成功提交或失败的时间。Storm 然后会适当地重新处理 batch 。你不必做任何暗示或anchoring  - Strom管理所有这一切。
+4. *First class batch processing API*: Storm 在常规螺栓之上层叠一个API，以允许批量处理 tuples。 Storm管理所有协调，以确定任务何时已经接收到该特定事务的所有 tuples。Storm 也将照顾清理每笔交易的任何累计状态（如部分计数）。
 
-Finally, another thing to note is that transactional topologies require a source queue that can replay an exact batch of messages. Technologies like [Kestrel](https://github.com/robey/kestrel) can't do this. [Apache Kafka](http://incubator.apache.org/kafka/index.html) is a perfect fit for this kind of spout, and [storm-kafka](https://github.com/apache/storm/tree/master/external/storm-kafka) contains a transactional spout implementation for Kafka.
+最后需要注意的是， transactional topologies（事务拓扑）需要一个可以重播一批精确信息的 source queue.像 [Kestrel](https://github.com/robey/kestrel) 是无法做到的. [Apache Kafka](http://incubator.apache.org/kafka/index.html) 非常适合当这个 spout,
+, 而且 [storm-kafka](https://github.com/apache/storm/tree/master/external/storm-kafka) 包含一个用于 Kafka 的事务性 spout 实现.
 
 ## The basics through example
 
-You build transactional topologies by using [TransactionalTopologyBuilder](javadocs/org/apache/storm/transactional/TransactionalTopologyBuilder.html). Here's the transactional topology definition for a topology that computes the global count of tuples from the input stream. This code comes from [TransactionalGlobalCount]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/TransactionalGlobalCount.java) in storm-starter.
+你通过使用  [TransactionalTopologyBuilder](javadocs/org/apache/storm/transactional/TransactionalTopologyBuilder.html) 构建 transactional topologies .下面是一个 topology（拓扑）的 transactional topology 定义，用来计算输入 tuples 的总数. 代码来自于 storm-starter 的[TransactionalGlobalCount]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/TransactionalGlobalCount.java) .
 
 ```java
 MemoryTransactionalSpout spout = new MemoryTransactionalSpout(DATA, new Fields("word"), PARTITION_TAKE_PER_BATCH);
@@ -92,13 +93,14 @@ builder.setBolt("sum", new UpdateGlobalCount())
         .globalGrouping("partial-count");
 ```
 
-`TransactionalTopologyBuilder` takes as input in the constructor an id for the transactional topology, an id for the spout within the topology, a transactional spout, and optionally the parallelism for the transactional spout. The id for the transactional topology is used to store state about the progress of topology in Zookeeper, so that if you restart the topology it will continue where it left off.
+`TransactionalTopologyBuilder` 将构造函数的输入作为 transactional topology 的id，还有 topology 内的 spout id，一个事务性的 spout，还有事务性 spout 的并行度.transactional topology 的id 是用来在Zookeeper中存储 topology 的处理状态用的，以便如果重新启动 topology后，将从停止的地方继续运行.
 
-A transactional topology has a single `TransactionalSpout` that is defined in the constructor of `TransactionalTopologyBuilder`. In this example, `MemoryTransactionalSpout` is used which reads in data from an in-memory partitioned source of data (the `DATA` variable). The second argument defines the fields for the data, and the third argument specifies the maximum number of tuples to emit from each partition per batch of tuples. The interface for defining your own transactional spouts is discussed later on in this tutorial.
-
-Now on to the bolts. This topology parallelizes the computation of the global count. The first bolt, `BatchCount`, randomly partitions the input stream using a shuffle grouping and emits the count for each partition. The second bolt, `UpdateGlobalCount`, does a global grouping and sums together the partial counts to get the count for the batch. It then updates the global count in the database if necessary.
-
-Here's the definition of `BatchCount`:
+transactional topology 有一个 `TransactionalSpout`，`TransactionalSpout`在`TransactionalTopologyBuilder` 构造器中定义.在这个例子中，`MemoryTransactionalSpout` 用于从内存中分区的数据源（`DATA`变量）中读取数据。第二个参数定义数据的字段，第三个参数指定了每批 tuples 发出的 tuple最大数量.用于定义自己的 transactional spouts 将在本教程后面讨论。
+ 
+ 
+然后就是 bolts,这个 topology（拓扑）并行计划全局 count.第一个 Bolt `BatchCount` 使用 shuffle grouping 随机分割 input stream。第二个 Bolt `UpdateGlobalCount` 使用 global grouping，并将局部 count相加来获取 batch count. 如果有需要，它会更新数据库中的全局 count.
+ 
+下面是 `BatchCount` 的定义：
 
 ```java
 public static class BatchCount extends BaseBatchBolt {
@@ -130,26 +132,27 @@ public static class BatchCount extends BaseBatchBolt {
 }
 ```
 
-A new instance of this object is created for every batch that's being processed. The actual bolt this runs within is called [BatchBoltExecutor](https://github.com/apache/storm/blob/0.7.0/src/jvm/org/apache/storm/coordination/BatchBoltExecutor.java) and manages the creation and cleanup for these objects.
+BatchCount 在每一个 bacth 被处理的时候，都会实例化.真正运行 bolt 的是  [BatchBoltExecutor](https://github.com/apache/storm/blob/0.7.0/src/jvm/org/apache/storm/coordination/BatchBoltExecutor.java) ，用来管理这些对象的创建和清理.
 
-The `prepare` method parameterizes this batch bolt with the Storm config, the topology context, an output collector, and the id for this batch of tuples. In the case of transactional topologies, the id will be a [TransactionAttempt](javadocs/org/apache/storm/transactional/TransactionAttempt.html) object. The batch bolt abstraction can be used in Distributed RPC as well which uses a different type of id for the batches. `BatchBolt` can actually be parameterized with the type of the id, so if you only intend to use the batch bolt for transactional topologies, you can extend `BaseTransactionalBolt` which has this definition:
+`prepare` 方法使用 Storm config，topology上下文，output collector,这个批次 tuples的id来进行参数设置。在transactional topologies（事务拓扑）中，id将是一个  [TransactionAttempt](javadocs/org/apache/storm/transactional/TransactionAttempt.html) 对象。这个 batch bolt 的后巷可以在 distributed rpc 中使用，也可以使用不同类型的id. `BatchBolt` 也可以使用 id 的类型配置参数，因此如果你打算在 transactional topologies（事务拓扑）中使用 batch bolt，你可以继承`BaseTransactionalBolt`:
+
 
 ```java
 public abstract class BaseTransactionalBolt extends BaseBatchBolt<TransactionAttempt> {
 }
 ```
 
-All tuples emitted within a transactional topology must have the `TransactionAttempt` as the first field of the tuple. This lets Storm identify which tuples belong to which batches. So when you emit tuples you need to make sure to meet this requirement.
+所有在transactional topology（事务拓扑）中发送的 tuples 必须让 `TransactionAttempt` 作为第一个字段，这可以让Storm 知道 tuple属于哪个 batch.所以当你发送 tuple的时候，必须保证这个要求.
 
-The `TransactionAttempt` contains two values: the "transaction id" and the "attempt id". The "transaction id" is the unique id chosen for this batch and is the same no matter how many times the batch is replayed. The "attempt id" is a unique id for this particular batch of tuples and lets Storm distinguish tuples from different emissions of the same batch. Without the attempt id, Storm could confuse a replay of a batch with tuples from a prior time that batch was emitted. This would be disastrous.
+`TransactionAttempt` 包含两个值："transaction id"和  "attempt id". "transaction id" 是batch的唯一性标识，同一个batch无论重复多少次处理，都不会改变. "attempt id" 是 batch中 tuple的唯一标识，Storm用来区分相同 batch中不同的tuples。 没有 attempt id， Storm 可能会从 bacth发送之前开始重新处理。这是很可怕的.
 
-The transaction id increases by 1 for every batch emitted. So the first batch has id "1", the second has id "2", and so on.
+每个 batch 发送的时候，transaction id 都加1.所以，第一个 batch 的id是1，第二个就是2，以此类推.
 
-The `execute` method is called for every tuple in the batch. You should accumulate state for the batch in a local instance variable every time this method is called. The `BatchCount` bolt increments a local counter variable for every tuple.
+batch中的每个 tuple都会调用 `execute` 方法. 在每次调用这个方法的时候，你应该在本地实例变量中累计 batch 的状态. `BatchCount` bolt 通过本地 counter 对每个 tuple 自增.
 
-Finally, `finishBatch` is called when the task has received all tuples intended for it for this particular batch. `BatchCount` emits the partial count to the output stream when this method is called.
+最后，当任务接受到指定的 batch 的所有tuples时，会调用 `finishBatch` 方法.当调用此方法时，`BatchCount` 会向 output stream 发出局部的count.
 
-Here's the definition of `UpdateGlobalCount`:
+下面是 `UpdateGlobalCount` 的定义：
 
 ```java
 public static class UpdateGlobalCount extends BaseTransactionalBolt implements ICommitter {
@@ -195,86 +198,86 @@ public static class UpdateGlobalCount extends BaseTransactionalBolt implements I
 }
 ```
 
-`UpdateGlobalCount` is specific to transactional topologies so it extends `BaseTransactionalBolt`. In the `execute` method, `UpdateGlobalCount` accumulates the count for this batch by summing together the partial batches. The interesting stuff happens in `finishBatch`.
+`UpdateGlobalCount` 对于 transactional topologies  是特殊的，所以它继承`BaseTransactionalBolt` 类.在 `execute` 方法中，`UpdateGlobalCount` 通过将局部 batch累加在一起得到此 batch 的count.有趣的事情发生在 `finishBatch` 方法中.
 
-First, notice that this bolt implements the `ICommitter` interface. This tells Storm that the `finishBatch` method of this bolt should be part of the commit phase of the transaction. So calls to `finishBatch` for this bolt will be strongly ordered by transaction id (calls to `execute` on the other hand can happen during either the processing or commit phases). An alternative way to mark a bolt as a committer is to use the `setCommitterBolt` method in `TransactionalTopologyBuilder` instead of `setBolt`.
+首先，你会看到这个 Bolt 实现了 `ICommitter` 接口.这就告诉Storm `finishBatch` 方法是事务提交阶段的一部分.所以调用 `finishBatch` 将会按照 transaction id 严格有序（另一方面，execute的调用可能发生在处理阶段或者提交阶段）。将 Bolt 标记为 committer的另外一种方式就是 在 `TransactionalTopologyBuilder` 中使用`setCommitterBolt` 方法，而不是 `setBolt`。
 
-The code for `finishBatch` in `UpdateGlobalCount` gets the current value from the database and compares its transaction id to the transaction id for this batch. If they are the same, it does nothing. Otherwise, it increments the value in the database by the partial count for this batch.
+`UpdateGlobalCount` 中的 `finishBatch` 的代码从数据库获取当前值，并将 transaction id 与此批次的 transaction id 进行比较。如果他们是一样的，它什么都不做。否则，数据库中的值就增加此batch 的局部 count。
 
-A more involved transactional topology example that updates multiple databases idempotently can be found in storm-starter in the [TransactionalWords]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/TransactionalWords.java) class.
+在 [TransactionalWords]({{page.git-blob-base}}/examples/storm-starter/src/jvm/org/apache/storm/starter/TransactionalWords.java) 类中的storm-start中可以找到更多涉及到更新多个数据库的transactional topology示例.
 
 ## Transactional Topology API
 
-This section outlines the different pieces of the transactional topology API.
+本节概述了事务拓扑API的不同部分。
 
 ### Bolts
 
-There are three kinds of bolts possible in a transactional topology:
+transactional topology（事务拓扑）中有三种 Bolt：
 
-1. [BasicBolt](javadocs/org/apache/storm/topology/base/BaseBasicBolt.html): This bolt doesn't deal with batches of tuples and just emits tuples based on a single tuple of input.
-2. [BatchBolt](javadocs/org/apache/storm/topology/base/BaseBatchBolt.html): This bolt processes batches of tuples. `execute` is called for each tuple, and `finishBatch` is called when the batch is complete.
-3. BatchBolt's that are marked as committers: The only difference between this bolt and a regular batch bolt is when `finishBatch` is called. A committer bolt has `finishedBatch` called during the commit phase. The commit phase is guaranteed to occur only after all prior batches have successfully committed, and it will be retried until all bolts in the topology succeed the commit for the batch. There are two ways to make a `BatchBolt` a committer, by having the `BatchBolt` implement the [ICommitter](javadocs/org/apache/storm/transactional/ICommitter.html) marker interface, or by using the `setCommiterBolt` method in `TransactionalTopologyBuilder`.
+1. [BasicBolt](javadocs/org/apache/storm/topology/base/BaseBasicBolt.html): 这个 Bolt 不处理 batches of tuples，只基于单个tuple输入发送tuples.
+2. [BatchBolt](javadocs/org/apache/storm/topology/base/BaseBatchBolt.html): 这个 Bolt 处理 batches of tuples,对于每个 tuple 调用`execute`，并在处理完 batch后调用 `finishBatch` 方法。
+3. BatchBolt's that are marked as committers: 这个 Bolt 和常规的 `Batch Bolt` 之间的唯一区别是调用finishBatch时。Committer bolt 已经在提交阶段调用`finishBatch` 方法。提交阶段只有在所有先前 batch 成功提交之后才能保证发生，并且将重新尝试，直到 topology（拓扑）结构中的所有 Bolt 成功完成批处理的提交。有两种方式使 BatchBolt成为 committer，通过使`BatchBolt` 实现 [ICommitter](javadocs/org/apache/storm/transactional/ICommitter.html) 标记接口，或者通过在 `TransactionalTopologyBuilder` 中使用`setCommiterBolt` 方法.
 
 #### Processing phase vs. commit phase in bolts
 
-To nail down the difference between the processing phase and commit phase of a transaction, let's look at an example topology:
+为了确定 transaction（事务）的处理阶段和提交阶段之间的差异，我们来看一个示例 topology（拓扑）：
 
 ![Storm cluster](images/transactional-commit-flow.png)
 
-In this topology, only the bolts with a red outline are committers.
+在这种 topology（拓扑）中，只有具有红色轮廓的 Bolts 才是 committers。
 
-During the processing phase, bolt A will process the complete batch from the spout, call `finishBatch` and send its tuples to bolts B and C. Bolt B is a committer so it will process all the tuples but finishBatch won't be called. Bolt C also will not have `finishBatch` called because it doesn't know if it has received all the tuples from Bolt B yet (because Bolt B is waiting for the transaction to commit). Finally, Bolt D will receive any tuples Bolt C emitted during invocations of its `execute` method.
+在处理阶段，Bolt A将从 Spout 处理完整的 batch ，调用 `finishBatch` 并将 tuples 发送到 Bolt B和C.Bolt B是一个 committer，因此它将处理所有的 tuple，但是不会调用 `finishBatch`。 Bolt C也不会有`finishBatch` 调用，因为它不知道它是否已经收到Bolt B的所有tuple（因为Bolt B正在等待事务提交）。最后，Bolt D将在其 `execute` 方法的调用期间接收 Bolt C 的tuple.
 
-When the batch commits, `finishBatch` is called on Bolt B. Once it finishes, Bolt C can now detect that it has received all the tuples and will call `finishBatch`. Finally, Bolt D will receive its complete batch and call `finishBatch`.
+当 batch 提交时，将在Bolt B上调用 `finishBatch` 。一旦完成，Bolt C现在可以检测到它已经接收到所有的 tuple，并将调用 `finishBatch`。最后，Bolt D将收到完整的 batch 并调用 `finishBatch`。
 
-Notice that even though Bolt D is a committer, it doesn't have to wait for a second commit message when it receives the whole batch. Since it receives the whole batch during the commit phase, it goes ahead and completes the transaction.
+请注意，即使Bolt D是 committer，它在收到整个 batch 时也不必等待第二个提交消息。由于它在提交阶段收到整个batch ，所以它将继续并完成 transaction（事务）事务。
 
-Committer bolts act just like batch bolts during the commit phase. The only difference between committer bolts and batch bolts is that committer bolts will not call `finishBatch` during the processing phase of a transaction.
+Committer bolts 在提交阶段就像 batch bolts 那样运行。committer bolts 和 batch bolts之间的唯一区别是committer bolts在 transaction（拓扑）的处理阶段不会调用 `finishBatch`。
 
 #### Acking
 
-Notice that you don't have to do any acking or anchoring when working with transactional topologies. Storm manages all of that underneath the hood. The acking strategy is heavily optimized.
+请注意，在使用transactional topologies（事务拓扑）时，您不必执行任何操作或 anchoring。Storm管理下面的所有这些。acking 策略被大量优化。
 
 #### Failing a transaction
 
-When using regular bolts, you can call the `fail` method on `OutputCollector` to fail the tuple trees of which that tuple is a member. Since transactional topologies hide the acking framework from you, they provide a different mechanism to fail a batch (and cause the batch to be replayed). Just throw a [FailedException](javadocs/org/apache/storm/topology/FailedException.html). Unlike regular exceptions, this will only cause that particular batch to replay and will not crash the process.
+当使用常规 bolts 时，可以在 `OutputCollector` 上调用 `fail` 方法来使该 tuple 的成员的 tuples tree失败。由于transactional topologies（事务拓扑) 隐藏了您的acking框架，因此它们提供了一种不同的机制来使 batch 失败（并导致 batch 被重播）。只是抛出一个 [FailedException](javadocs/org/apache/storm/topology/FailedException.html). 与常规异常不同，这只会导致特定 batch 重播，并且不会使进程崩溃。
 
 ### Transactional spout
 
-The `TransactionalSpout` interface is completely different from a regular `Spout` interface. A `TransactionalSpout` implementation emits batches of tuples and must ensure that the same batch of tuples is always emitted for the same transaction id.
+`TransactionalSpout` 接口与普通Spout接口完全不同。 `TransactionalSpout` 实现发送批量的 tuples，并且必须确保为相同的事务ID始终发出同一批 tuples。
 
-A transactional spout looks like this while a topology is executing:
+topology（拓扑）拓扑正在执行时，transactional spout 看起来像这样：
 
 ![Storm cluster](images/transactional-spout-structure.png)
 
-The coordinator on the left is a regular Storm spout that emits a tuple whenever a batch should be emitted for a transaction. The emitters execute as a regular Storm bolt and are responsible for emitting the actual tuples for the batch. The emitters subscribe to the "batch emit" stream of the coordinator using an all grouping.
+左边的 coordinator（协调器） 是一个常规的Storm spout，每当一个批处理被发送到一个事务中时，它会发出一个 tuple。emitters（发射器）作为常规Storm bolt 执行，并负责发射 batch 的实际 tuples。emitters（发射器）使用 all grouping 订阅 coordinator（协调器）的“batch emit” stream。
 
-The need to be idempotent with respect to the tuples it emits requires a `TransactionalSpout` to store a small amount of state. The state is stored in Zookeeper.
+对于它发出的 tuple，需要是等幂的，需要一个 `TransactionalSpout` 来存储少量的状态。状态存储在Zookeeper中。
 
-The details of implementing a `TransactionalSpout` are in [the Javadoc](javadocs/org/apache/storm/transactional/ITransactionalSpout.html).
+实现 `TransactionalSpout` 的细节在  [the Javadoc](javadocs/org/apache/storm/transactional/ITransactionalSpout.html) 中.
 
 #### Partitioned Transactional Spout
 
-A common kind of transactional spout is one that reads the batches from a set of partitions across many queue brokers. For example, this is how [TransactionalKafkaSpout]({{page.git-tree-base}}/external/storm-kafka/src/jvm/org/apache/storm/kafka/TransactionalKafkaSpout.java) works. An `IPartitionedTransactionalSpout` automates the bookkeeping work of managing the state for each partition to ensure idempotent replayability. See [the Javadoc](javadocs/org/apache/storm/transactional/partitioned/IPartitionedTransactionalSpout.html) for more details.
+一种常见的事务性出水口是从许多队列经纪人的一组分区中读取批次的。例如，这是 [TransactionalKafkaSpout]({{page.git-tree-base}}/external/storm-kafka/src/jvm/org/apache/storm/kafka/TransactionalKafkaSpout.java) 的工作原理。 `IPartitionedTransactionalSpout`会自动执行管理每个分区的状态的记账工作，以确保幂等重播。有关详细信息。 请参阅 [the Javadoc](javadocs/org/apache/storm/transactional/partitioned/IPartitionedTransactionalSpout.html) 
 
 ### Configuration
 
-There's two important bits of configuration for transactional topologies:
+transactional topologies（事务性拓扑）有两个重要的配置位：
 
-1. *Zookeeper:* By default, transactional topologies will store state in the same Zookeeper instance as used to manage the Storm cluster. You can override this with the "transactional.zookeeper.servers" and "transactional.zookeeper.port" configs.
-2. *Number of active batches permissible at once:* You must set a limit to the number of batches that can be processed at once. You configure this using the "topology.max.spout.pending" config. If you don't set this config, it will default to 1.
+1. *Zookeeper:* 默认情况下，transactional topologies（事务拓扑）将在用于管理Storm集群的Zookeeper实例中存储状态。您可以使用“transactional.zookeeper.servers”和“transactional.zookeeper.port”配置覆盖此配置。
+2. *Number of active batches permissible at once:* 您必须对可以一次处理的 batches 数设置限制。您可以使用“topology.max.spout.pending”配置进行配置。如果您没有设置此配置，它将默认为1。
 
 ## What if you can't emit the same batch of tuples for a given transaction id?
 
-So far the discussion around transactional topologies has assumed that you can always emit the exact same batch of tuples for the same transaction id. So what do you do if this is not possible?
+到目前为止，关于 transactional topologies（事务拓扑）的讨论假设您可以随时为相同的事务ID发出完全相同批次 tuple 。那么如果不可能，你该怎么办？
 
-Consider an example of when this is not possible. Suppose you are reading tuples from a partitioned message broker (stream is partitioned across many machines), and a single transaction will include tuples from all the individual machines. Now suppose one of the nodes goes down at the same time that a transaction fails. Without that node, it is impossible to replay the same batch of tuples you just played for that transaction id. The processing in your topology will halt as its unable to replay the identical batch. The only possible solution is to emit a different batch for that transaction id than you emitted before. Is it possible to still achieve exactly-once messaging semantics even if the batches change?
+考虑一下这个不可能的例子。假设您正在从分区消息代理读取 tuple （流在许多机器上分区），单个事务将包含所有单个机器的 tuple 。现在假设其中一个节点在事务失败的同时下降。没有那个节点，就不可能重播刚刚为该事务ID播放的同一批 tuples。您的 topology（拓扑）拓扑中的处理将停止，因为它无法重播相同的批处理。唯一可能的解决方案是为该事务ID发出不同于之前发出的不同批处理。即使 batch 更改，仍然可以实现一次消息传递语义？
 
-It turns out that you can still achieve exactly-once messaging semantics in your processing with a non-idempotent transactional spout, although this requires a bit more work on your part in developing the topology.
+事实证明，您仍然可以使用非幂等的事务性端口在处理过程中实现完全一致的消息传递语义，尽管这在开发 topology（拓扑）中需要更多的工作。
 
-If a batch can change for a given transaction id, then the logic we've been using so far of "skip the update if the transaction id in the database is the same as the id for the current transaction" is no longer valid. This is because the current batch is different than the batch for the last time the transaction was committed, so the result will not necessarily be the same. You can fix this problem by storing a little bit more state in the database. Let's again use the example of storing a global count in the database and suppose the partial count for the batch is stored in the `partialCount` variable.
+如果 batch 可以更改给定的事务ID，那么我们迄今为止使用的逻辑“如果数据库中的事务ID与当前事务的id相同，则跳过更新”不再有效。这是因为当前批次与上次 transaction 提交的 batch 不同，因此结果不一定相同。您可以通过在数据库中存储更多的状态来解决此问题。我们再次使用在数据库中存储全局计数的示例，并假设批次的部分计数存储在partialCount变量中。
 
-Instead of storing a value in the database that looks like this:
+而不是在数据库中存储一个如下所示的值：
 
 ```java
 class Value {
@@ -283,7 +286,7 @@ class Value {
 }
 ```
 
-For non-idempotent transactional spouts you should instead store a value that looks like this:
+对于非幂等事务端口，您应该存储一个如下所示的值：
 
 ```java
 class Value {
@@ -293,16 +296,16 @@ class Value {
 }
 ```
 
-The logic for the update is as follows:
+更新的逻辑如下：
 
-1. If the transaction id for the current batch is the same as the transaction id in the database, set `val.count = val.prevCount + partialCount`.
-2. Otherwise, set `val.prevCount = val.count`, `val.count = val.count + partialCount` and `val.txid = batchTxid`.
+1. 如果当前 batch 的 transaction id 与数据库中的 transaction id 相同，请设置`val.count = val.prevCount + partialCount`。
+2. 否则，设置`val.prevCount = val.count，val.count = val.count + partialCount和val.txid = batchTxid`。
 
-This logic works because once you commit a particular transaction id for the first time, all prior transaction ids will never be committed again.
+这个逻辑是有效的，因为一旦你第一次提交一个特定的事务id，所有的事务id都不会再被提交。
 
-There's a few more subtle aspects of transactional topologies that make opaque transactional spouts possible.
+transactional topologies （事务拓扑）有一些更细微的方面，使不透明的transactional spouts 口成为可能.
 
-When a transaction fails, all subsequent transactions in the processing phase are considered failed as well. Each of those transactions will be re-emitted and reprocessed. Without this behavior, the following situation could happen:
+当 transaction 失败时，处理阶段中的所有后续 transaction 也被认为是失败的。这些 transactions 将被重新排放和再处理。没有这种行为，可能会发生以下情况：
 
 1. Transaction A emits tuples 1-50
 2. Transaction B emits tuples 51-100
@@ -312,7 +315,8 @@ When a transaction fails, all subsequent transactions in the processing phase ar
 6. Transaction B commits
 7. Transaction C emits tuples 101-150
 
-In this scenario, tuples 41-50 are skipped. By failing all subsequent transactions, this would happen instead:
+
+在这种情况下，跳过 tuple 41-50。由于所有后续 transactions 失败，将会发生：
 
 1. Transaction A emits tuples 1-50
 2. Transaction B emits tuples 51-100
@@ -323,17 +327,19 @@ In this scenario, tuples 41-50 are skipped. By failing all subsequent transactio
 6. Transaction B commits
 7. Transaction C emits tuples 91-140
 
-By failing all subsequent transactions on failure, no tuples are skipped. This also shows that a requirement of transactional spouts is that they always emit where the last transaction left off.
 
-A non-idempotent transactional spout is more concisely referred to as an "OpaqueTransactionalSpout" (opaque is the opposite of idempotent). [IOpaquePartitionedTransactionalSpout](javadocs/org/apache/storm/transactional/partitioned/IOpaquePartitionedTransactionalSpout.html) is an interface for implementing opaque partitioned transactional spouts, of which [OpaqueTransactionalKafkaSpout]({{page.git-tree-base}}/external/storm-kafka/src/jvm/org/apache/storm/kafka/OpaqueTransactionalKafkaSpout.java) is an example. `OpaqueTransactionalKafkaSpout` can withstand losing individual Kafka nodes without sacrificing accuracy as long as you use the update strategy as explained in this section.
+通过失败所有后续 transactions 失败，不会跳过 tuples。这也表明 transactions spout的要求是它们总是发出最后一个 transactions 处理的位置.
+
+
+一个非幂等的 transactional spout 更简明地称为“不透明的投资点”（不透明与幂幂相反）。 [IOpaquePartitionedTransactionalSpout](javadocs/org/apache/storm/transactional/partitioned/IOpaquePartitionedTransactionalSpout.html) 是一个用于实现不透明分区transactional spouts的接口，其中 [OpaqueTransactionalKafkaSpout]({{page.git-tree-base}}/external/storm-kafka/src/jvm/org/apache/storm/kafka/OpaqueTransactionalKafkaSpout.java) 是一个示例。只要您使用本节所述的更新策略，`OpaqueTransactionalKafkaSpout`可以承受丢失的单个Kafka节点，而不会牺牲精度。
 
 ## Implementation
 
-The implementation for transactional topologies is very elegant. Managing the commit protocol, detecting failures, and pipelining batches seem complex, but everything turns out to be a straightforward mapping to Storm's primitives.
+transactional topologies（事务拓扑）的实现非常优雅。管理提交协议，检测故障和流水线批处理似乎很复杂，但一切事情都是对Storm 原语的简单映射.
 
-How the data flow works:
+数据流程如何工作：
 
-Here's how transactional spout works:
+transactional spout 是如何工作的
 
 1. Transactional spout is a subtopology consisting of a coordinator spout and an emitter bolt
 2. The coordinator is a regular spout with a parallelism of 1
@@ -345,7 +351,7 @@ Here's how transactional spout works:
 8. All committing bolts subscribe to the commit stream using an all grouping, so that they will all receive a notification when the commit happens.
 9. Like the processing phase, the coordinator uses the acking framework to determine whether the commit phase succeeded or not. If it receives an "ack", it marks that transaction as complete in zookeeper.
 
-More notes:
+更多概念:
 
 - Transactional spouts are a sub-topology consisting of a spout and a bolt
   - the spout is the coordinator and contains a single task
