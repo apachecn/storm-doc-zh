@@ -1,5 +1,5 @@
 ---
-title: Storm SQL 语言
+title: Storm SQL 语言参考
 layout: documentation
 documentation: true
 ---
