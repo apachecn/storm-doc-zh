@@ -1,3 +1,9 @@
+---
+title: Storm Kinesis 集成
+layout: documentation
+documentation: true
+---
+
 #Storm Kinesis Spout
 提供的核心storm spout(喷口)，用户从Amzon Kinesis Streams 中的流中消费数据。它存储可以在zookeeper中提交的序列号，并在重新启动后默认启动消息记录。下面是创建使用spout的示例拓扑的代码示例。下面说明配置spout(喷口)时使用的每个对象。理想情况下，spout(喷口)任务的数量应等于运动时间碎片的数量。但是，每个任务都可以从多个分片中读取。
 

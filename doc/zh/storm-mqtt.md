@@ -1,5 +1,5 @@
 ---
-title: Storm MQTT(Message Queuing Telemetry Transport，消息队列遥测传输) 集成
+title: Storm MQTT(Message Queuing Telemetry Transport, 消息队列遥测传输) 集成
 layout: documentation
 documentation: true
 ---

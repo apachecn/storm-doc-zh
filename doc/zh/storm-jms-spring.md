@@ -1,11 +1,12 @@
 ---
-title: Storm JMS Integration
+title: Storm JMS 集成
 layout: documentation
 documentation: true
 ---
-###Connecting to JMS Using Spring's JMS Support
 
-Create a Spring applicationContext.xml file that defines one or more destination (topic/queue) beans, as well as a connecton factory.
+### 使用 Spring 的 JMS 支持连接到 JMS
+
+穿件一个 Spring 的 applicationContext.xml 文件, 它定义了一个或多个 destination (topic/queue) beans, 以及一个 connecton factory.
 
 	<?xml version="1.0" encoding="UTF-8"?>
 	<beans 

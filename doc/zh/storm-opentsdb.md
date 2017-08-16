@@ -1,25 +1,31 @@
-# Storm OpenTSDB Bolt and TridentState
-  
-OpenTSDB offers a scalable and highly available storage for time series data. It consists of a
-Time Series Daemon (TSD) servers along with command line utilities. Each TSD connects to the 
-configured HBase cluster to push/query the data.
+---
+title: Storm OpenTSDB 集成
+layout: documentation
+documentation: true
+---
 
-Time series data point consists of:
+# Storm OpenTSDB Bolt 和 TridentState
+
+OpenTSDB 为时间序列数据提供了可扩展且高可用性的存储.
+它由 Time Series Daemon (TSD) servers 以及命令行工具组成.
+每个 TSD 连接到配置的 HBase 集群以 push/query（推送/查询） 数据.
+
+时间序列数据点包括:
  - a metric name.
  - a UNIX timestamp (seconds or milliseconds since Epoch).
  - a value (64 bit integer or single-precision floating point value).
  - a set of tags (key-value pairs) that describe the time series the point belongs to.
 
-Storm bolt and trident state creates the above time series data from a tuple based on the given `TupleMetricPointMapper`
-  
-This module provides core Storm and Trident bolt implementations for writing data to OpenTSDB. 
+Storm bolt 和 trident state 从一个基于给定的 `TupleMetricPointMapper` 的 tuple 中创建了上面的时间序列数据.
 
-Time series data points are written with at-least-once guarantee and duplicate data points should be handled as mentioned [here](http://opentsdb.net/docs/build/html/user_guide/writing.html#duplicate-data-points) in OpenTSDB. 
+该模块提供了 core Storm 和 Trident bolt 实现, 用户将数据写入 OpenTSDB.
 
-## Examples
+时间序列数据点被写入时有 at-least-once（至少一次）的语义保证, 并且重复的数据点应该像 OpenTSDB 的 [这里](http://opentsdb.net/docs/build/html/user_guide/writing.html#duplicate-data-points) 提及的一样来处理.
+
+## 示例
 
 ### Core Bolt
-Below example describes the usage of core bolt which is `org.apache.storm.opentsdb.bolt.OpenTsdbBolt`
+下面的示例描述了 `org.apache.storm.opentsdb.bolt.OpenTsdbBolt` cord bolt 的使用方法
 
 ```java
 
