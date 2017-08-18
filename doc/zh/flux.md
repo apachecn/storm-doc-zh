@@ -184,32 +184,17 @@ storm jar myTopology-0.1.0-SNAPSHOT.jar org.apache.storm.flux.Flux --local my_co
 ```
 usage: storm jar <my_topology_uber_jar.jar> org.apache.storm.flux.Flux
              [options] <topology-config.yaml>
- -d,--dry-run                 Do not run or deploy the topology. Just
-                              build, validate, and print information about
-                              the topology.
- -e,--env-filter              Perform environment variable substitution.
-                              Replace keys identified with `${ENV-[NAME]}`
-                              will be replaced with the corresponding
-                              `NAME` environment value
- -f,--filter <file>           Perform property substitution. Use the
-                              specified file as a source of properties,
-                              and replace keys identified with {$[property
-                              name]} with the value defined in the
-                              properties file.
- -i,--inactive                Deploy the topology, but do not activate it.
- -l,--local                   Run the topology in local mode.
- -n,--no-splash               Suppress the printing of the splash screen.
- -q,--no-detail               Suppress the printing of topology details.
- -r,--remote                  Deploy the topology to a remote cluster.
- -R,--resource                Treat the supplied path as a classpath
-                              resource instead of a file.
- -s,--sleep <ms>              When running locally, the amount of time to
-                              sleep (in ms.) before killing the topology
-                              and shutting down the local cluster.
- -z,--zookeeper <host:port>   When running in local mode, use the
-                              ZooKeeper at the specified <host>:<port>
-                              instead of the in-process ZooKeeper.
-                              (requires Storm 0.9.3 or later)
+ -d,--dry-run                 不运行/部署这个拓扑，仅仅是构建、验证和打印这个拓扑的相关信息。
+ -e,--env-filter              执行环境变量的替换。 以形式为 `${ENV-[NAME]}` 定义的替换关键字将会替换 `NAME` 对应的环境变量值。
+ -f,--filter <file>           执行属性替换。使用一个指定的文件作为属性的源，然后形式为 {$[property name]} 的替换关键字将会替换在这个属性文件中的值。.
+ -i,--inactive                部署但是不激活这个拓扑。
+ -l,--local                   在local的模式下运行拓扑。
+ -n,--no-splash               抑制版权页的输出。
+ -q,--no-detail               抑制拓扑详情的输出。
+ -r,--remote                  将拓扑部署到远端的簇。
+ -R,--resource                使用提供的路径来作为classpath的源文件以代替文件。
+ -s,--sleep <ms>              当在本地运行时，在killing一个拓扑和关闭本地簇之前需要sleep的时间（以ms为单位）
+ -z,--zookeeper <host:port>   当以local模式运行时，使用ZooKeeper的特定<host:port>而不是同进程的的ZooKeeper。（要求在Storm的0.9.3或之后的版本）  
 ```
 
 **注意：** Flux为了避免在使用到 `storm` 命令时产生命令行开关冲突，所以允许任何其他的命令行开关来表达 `storm` 这一命令。
