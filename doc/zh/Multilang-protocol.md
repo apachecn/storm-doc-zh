@@ -3,9 +3,9 @@ title: 多语言协议
 layout: documentation
 documentation: true
 ---
-本页介绍了Storm 0.7.1中的multilang 协议。0.7.1之前的版本使用了一个有些不同的协议，文档位于 [here](Storm-multi-language-protocol-(versions-0.7.0-and-below\).html).
+本页介绍了Storm 0.7.1中的多语言协议。0.7.1之前的版本使用了一个有些不同的协议，文档位于 [here](Storm-multi-language-protocol-(versions-0.7.0-and-below\).html).
 
-# Storm 多朗协议
+# Storm 多语言协议
 
 ## Shell 组件
 
