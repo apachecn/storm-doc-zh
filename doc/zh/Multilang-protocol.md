@@ -1,5 +1,5 @@
 ---
-title: 多朗协议
+title: 多语言协议
 layout: documentation
 documentation: true
 ---
