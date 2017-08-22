@@ -4,32 +4,27 @@ layout: documentation
 documentation: true
 ---
 
-Provides core Storm and Trident spout implementations for consuming data from Apache Kafka 0.8.x.
+提供核心的 Storm 和Trident 的spout实现，用来从Apache Kafka 0.8x版本消费数据.
 
 ##Spouts
-We support both Trident and core Storm spouts. For both spout implementations, we use a BrokerHost interface that
-tracks Kafka broker host to partition mapping and kafkaConfig that controls some Kafka related parameters.
+我们支持 Trident 和 core Storm 的spout.对于这两种spout实现，我们使用BorkerHosts接口来跟踪Kafka broker host partition 映射关系，用KafkaConfig来控制Kafka 相关参数.
 
 ###BrokerHosts
-In order to initialize your Kafka spout/emitter you need to construct an instance of the marker interface BrokerHosts.
-Currently, we support the following two implementations:
+为了初始化 Kafka spout/emitter，你需要构造一个 BrokerHosts 标记接口的实例。当前，我们支持以下两种实现方式.
 
 ####ZkHosts
-ZkHosts is what you should use if you want to dynamically track Kafka broker to partition mapping. This class uses
-Kafka's ZooKeeper entries to track brokerHost -> partition mapping. You can instantiate an object by calling
+如果你想要动态的跟踪Kafka broker partition 映射关系，你应该使用ZkHosts。这个类使用 Kafka Zookeeper实体跟踪 brokerHost->分区映射.
+你可以调用下面的方法来得到一个实例.
 ```java
     public ZkHosts(String brokerZkStr, String brokerZkPath)
     public ZkHosts(String brokerZkStr)
 ```
-Where brokerZkStr is just ip:port (e.g. localhost:2181). brokerZkPath is the root directory under which all the topics and
-partition information is stored. By default this is /brokers which is what the default Kafka implementation uses.
+ZkStr 字符串格式是 ip:port（例如：localhost:2181）.brokerZkPath 是存储所有 topic 和 partition信息的zk 根路径.默认情况下，Kafka使用 /brokers路径.
 
-By default, the broker-partition mapping is refreshed every 60 seconds from ZooKeeper. If you want to change it, you
-should set host.refreshFreqSecs to your chosen value.
+默认情况下，broker-partition 映射关系60s秒从Zookeeper刷新一次.如果你想要改变这个时间，你需要设置 host.refreshFreqSecs 配置.
 
 ####StaticHosts
-This is an alternative implementation where broker -> partition information is static. In order to construct an instance
-of this class, you need to first construct an instance of GlobalPartitionInformation.
+这是一种可替代的实现，broker->partition 信息是静态的.要构造这个类的实例，你需要先构造一个 GlobalPartitionInformation 的实例.
 
 ```java
     Broker brokerForPartition0 = new Broker("localhost");//localhost:9092
@@ -43,25 +38,22 @@ of this class, you need to first construct an instance of GlobalPartitionInforma
 ```
 
 ###KafkaConfig
-The second thing needed for constructing a kafkaSpout is an instance of KafkaConfig.
+构造一个KafkaSpout的实例，第二件事情就是要实例化KafkaConfig。
 ```java
     public KafkaConfig(BrokerHosts hosts, String topic)
     public KafkaConfig(BrokerHosts hosts, String topic, String clientId)
 ```
 
-The BrokerHosts can be any implementation of BrokerHosts interface as described above. The topic is name of Kafka topic.
-The optional ClientId is used as a part of the ZooKeeper path where the spout's current consumption offset is stored.
+BrokerHosts可以通过多个BrokerHosts接口实现.topic 就是Kafka topic 的名称.可选择的ClientId就是当前消费的offset存储的zk的路径.
 
-There are 2 extensions of KafkaConfig currently in use.
+有两个KafkaConfig 继承类正在被使用.
 
-Spoutconfig is an extension of KafkaConfig that supports additional fields with ZooKeeper connection info and for controlling
-behavior specific to KafkaSpout. The Zkroot will be used as root to store your consumer's offset. The id should uniquely
-identify your spout.
+Spoutconfig是KafkaConfig的扩展，它支持Zookeeper 连接信息的其他字段，并且可以控制KafkaSpout的行为.Zkroot就是用来存储消费者offset信息的根路径.id是唯一的，用来标识spout.
 ```java
 public SpoutConfig(BrokerHosts hosts, String topic, String zkRoot, String id);
 public SpoutConfig(BrokerHosts hosts, String topic, String id);
 ```
-In addition to these parameters, SpoutConfig contains the following fields that control how KafkaSpout behaves:
+除此之外，SpoutConfig包含下面这些字段，用来控制KafkaSpout的行为：
 ```java
     // setting for how often to save the current Kafka offset to ZooKeeper
     public long stateUpdateIntervalMs = 2000;
@@ -81,12 +73,12 @@ In addition to these parameters, SpoutConfig contains the following fields that 
     public int retryLimit = -1;     
 
 ```
-Core KafkaSpout only accepts an instance of SpoutConfig.
+核心KafkaSpout只接口一个SpoutConfig实例
 
-TridentKafkaConfig is another extension of KafkaConfig.
-TridentKafkaEmitter only accepts TridentKafkaConfig.
+TridentKafkaConfig是KafkaConfig的另外一个扩展. 
+TridentKafkaEmitter只接受TridentKafkaConfig作为参数.
 
-The KafkaConfig class also has bunch of public variables that controls your application's behavior. Here are defaults:
+KafkaConfig类也有一些公共变量来控制你的应用程序的行为。以下是默认值：
 ```java
     public int fetchSizeBytes = 1024 * 1024;
     public int socketTimeoutMs = 10000;
@@ -100,33 +92,29 @@ The KafkaConfig class also has bunch of public variables that controls your appl
     public int metricsTimeBucketSizeInSecs = 60;
 ```
 
-Most of them are self explanatory except MultiScheme.
+除MultiScheme之外，大部分都可以读命名就可以理解。
 ###MultiScheme
-MultiScheme is an interface that dictates how the ByteBuffer consumed from Kafka gets transformed into a storm tuple. It
-also controls the naming of your output field.
+MultiScheme 是一个用来规定 ByteBuffer 如何Kafka 消费，并转换成一个 storm tuple.并且会控制 output field的命名.
 
 ```java
   public Iterable<List<Object>> deserialize(ByteBuffer ser);
   public Fields getOutputFields();
 ```
 
-The default `RawMultiScheme` just takes the `ByteBuffer` and returns a tuple with the ByteBuffer converted to a `byte[]`. The name of the outputField is "bytes". There are alternative implementations like `SchemeAsMultiScheme` and `KeyValueSchemeAsMultiScheme` which can convert the `ByteBuffer` to `String`.
+默认的 `RawMultiScheme` 接受 `ByteBuffer` 参数，并返回一个 tuple.就是将ByteBuffer 转换成 `byte[]`.outPutField 的名称是 “bytes”。还有可替换的的实现，像 `SchemeAsMultiScheme` 和 `KeyValueSchemeAsMultiScheme`，他们会将 `ByteBuffer` 转换成 `String`.
 
-There is also an extension of `SchemeAsMultiScheme`, `MessageMetadataSchemeAsMultiScheme`,
-which has an additional deserialize method that accepts the message `ByteBuffer` in addition to the `Partition` and `offset` associated with the message.
+当然还有个`SchemeAsMultiScheme` 的扩展类，`MessageMetadataSchemeAsMultiScheme`，MessageMetadataSchemeAsMultiScheme有一个额外的反序列化方法，会接受ByteBuffer 信息，还会伴随着`Partition` 和 `offset` 信息.
+
 
 ```java
 public Iterable<List<Object>> deserializeMessageWithMetadata(ByteBuffer message, Partition partition, long offset)
 
 ```
 
-This is useful for auditing/replaying messages from arbitrary points on a Kafka topic, saving the partition and offset of each message of a discrete stream instead of persisting the entire message.
+上面这个方法对于审计/重新处理Kafka topic上任意一个点的消息非常有用，保存了每条消息的partition和offset,而不是保留整个消息.
 
 ###Failed message retry
-FailedMsgRetryManager is an interface which defines the retry strategy for a failed message. Default implementation is ExponentialBackoffMsgRetryManager which retries with exponential delays
-between consecutive retries. To use a custom implementation, set SpoutConfig.failedMsgRetryManagerClass to the full classname
-of implementation. Here is the interface 
-
+FailedMsgRetryManager是一个定义失败消息的重试策略的接口。默认实现是ExponentialBackoffMsgRetryManager，它在连续重试之间以指数延迟重试。要使用自定义实现，请将SpoutConfig.failedMsgRetryManagerClass设置为完整的实现类名称。下面是接口：
 ```java
     // Spout initialization can go here. This can be called multiple times during lifecycle of a worker. 
     void prepare(SpoutConfig spoutConfig, Map stormConf);
@@ -164,13 +152,9 @@ of implementation. Here is the interface
 ``` 
 
 #### Version incompatibility
-In Storm versions prior to 1.0, the MultiScheme methods accepted a `byte[]` instead of `ByteBuffer`. The `MultScheme` and the related
-Scheme apis were changed in version 1.0 to accept a ByteBuffer instead of a byte[].
+在1.0之前的Storm版本中，MultiScheme方法接受一个 `byte []` 而不是 `ByteBuffer`。 MultScheme和相关的方案apis在版本1.0中被更改为接受ByteBuffer而不是byte []。
 
-This means that pre 1.0 kafka spouts will not work with Storm versions 1.0 and higher. While running topologies in Storm version 1.0
-and higher, it must be ensured that the storm-kafka version is at least 1.0. Pre 1.0 shaded topology jars that bundles
-storm-kafka classes must be rebuilt with storm-kafka version 1.0 for running in clusters with storm 1.0 and higher.
-
+这意味着，在1.0版及更高版本之前，1.0版的kafka spouts将无法使用。在Storm 1.0及更高版本中运行拓扑时，必须确保storm-kafka版本至少为1.0。1.0之前的 topology jar 必须重新和storm-kafka 1.0版本构建，以便在Storm 1.0及更高版本的群集中运行。
 ### Examples
 
 #### Core Spout
@@ -194,37 +178,30 @@ OpaqueTridentKafkaSpout spout = new OpaqueTridentKafkaSpout(spoutConf);
 
 ### How KafkaSpout stores offsets of a Kafka topic and recovers in case of failures
 
-As shown in the above KafkaConfig properties, you can control from where in the Kafka topic the spout begins to read by
-setting `KafkaConfig.startOffsetTime` as follows:
+如上面的KafkaConfig属性所示，您可以通过设置 `KafkaConfig.startOffsetTime` 来控制从Kafka topic 的哪个端口开始读取，如下所示：
 
-1. `kafka.api.OffsetRequest.EarliestTime()`:  read from the beginning of the topic (i.e. from the oldest messages onwards)
-2. `kafka.api.OffsetRequest.LatestTime()`: read from the end of the topic (i.e. any new messsages that are being written to the topic)
-3. A Unix timestamp aka seconds since the epoch (e.g. via `System.currentTimeMillis()`):
-   see [How do I accurately get offsets of messages for a certain timestamp using OffsetRequest?](https://cwiki.apache.org/confluence/display/KAFKA/FAQ#FAQ-HowdoIaccuratelygetoffsetsofmessagesforacertaintimestampusingOffsetRequest?) in the Kafka FAQ
+1. `kafka.api.OffsetRequest.EarliestTime()`: 从topic 初始位置读取消息 (例如，从最老的那个消息开始)
+2. `kafka.api.OffsetRequest.LatestTime()`: 从topic尾部开始读取消息 (例如，新写入topic的信息)
+3. 一个Unix时间戳，从当前 epoch 开始.（例如，可以通过System.currentTimeMillis(）），具体的可以查看Kafka FAQ中的 [How do I accurately get offsets of messages for a certain timestamp using OffsetRequest?](https://cwiki.apache.org/confluence/display/KAFKA/FAQ#FAQ-HowdoIaccuratelygetoffsetsofmessagesforacertaintimestampusingOffsetRequest?) .
 
-As the topology runs the Kafka spout keeps track of the offsets it has read and emitted by storing state information
-under the ZooKeeper path `SpoutConfig.zkRoot+ "/" + SpoutConfig.id`.  In the case of failures it recovers from the last
-written offset in ZooKeeper.
 
-> **Important:**  When re-deploying a topology make sure that the settings for `SpoutConfig.zkRoot` and `SpoutConfig.id`
-> were not modified, otherwise the spout will not be able to read its previous consumer state information (i.e. the
-> offsets) from ZooKeeper -- which may lead to unexpected behavior and/or to data loss, depending on your use case.
+当topology（拓扑）运行Kafka Spout ，并跟踪读取和发送的offset，并将状态信息存储到zk path  `SpoutConfig.zkRoot+ "/" + SpoutConfig.id`.在故障的情况下，它会从ZooKeeper的最后一次写入偏移中恢复。
 
-This means that when a topology has run once the setting `KafkaConfig.startOffsetTime` will not have an effect for
-subsequent runs of the topology because now the topology will rely on the consumer state information (offsets) in
-ZooKeeper to determine from where it should begin (more precisely: resume) reading.
-If you want to force the spout to ignore any consumer state information stored in ZooKeeper, then you should
-set the parameter `KafkaConfig.ignoreZkOffsets` to `true`.  If `true`, the spout will always begin reading from the
-offset defined by `KafkaConfig.startOffsetTime` as described above.
+> **Important:**  新部署topology（拓扑）时，请确保`SpoutConfig.zkRoot`和`SpoutConfig.id`的设置未被修改，
+> 否则spout将无法从ZooKeeper中读取以前的消费者状态信息（即偏移量）导致意外的行为和/或数据丢失，具体取决于您的用例。
+
+
+这意味着当topology（拓扑）运行一旦设置`KafkaConfig.startOffsetTime`将不会对 topology（拓扑）的后续运行产生影响，
+因为现在 topology（拓扑）将依赖于ZooKeeper中的消费者状态信息（偏移量）来确定从哪里开始（更多准确地：简历）阅读。
+如果要强制该端口忽略存储在ZooKeeper中的任何消费者状态信息，则应将参数`KafkaConfig.ignoreZkOffsets` 设置为true。如果为`true`，
+则如上所述，spout 将始终从`KafkaConfig.startOffsetTime`定义的偏移量开始读取。
 
 
 ## Using storm-kafka with different versions of Kafka
 
-Storm-kafka's Kafka dependency is defined as `provided` scope in maven, meaning it will not be pulled in
-as a transitive dependency. This allows you to use a version of Kafka dependency-compatible with your Kafka cluster.
+Storm-kafka的Kafka依赖关系在maven中scope 定义为 `provided` ，这意味着它不会被作为传递依赖。这允许您使用与Kafka集群兼容的Kafka依赖关系版本。
 
-When building a project with storm-kafka, you must explicitly add the Kafka dependency. For example, to
-use Kafka 0.8.1.1 built against Scala 2.10, you would use the following dependency in your `pom.xml`:
+当使用storm-kafka构建项目时，必须明确地添加Kafka依赖项。例如，要使用针对Scala 2.10构建的Kafka 0.8.1.1，您将在 `pom.xml` 中使用以下依赖关系：
 
 ```xml
         <dependency>
@@ -244,40 +221,33 @@ use Kafka 0.8.1.1 built against Scala 2.10, you would use the following dependen
         </dependency>
 ```
 
-Note that the ZooKeeper and log4j dependencies are excluded to prevent version conflicts with Storm's dependencies.
+请注意，排除ZooKeeper和log4j依赖关系以防止与Storm的依赖关系发生版本冲突。
 
-You can also override the kafka dependency version while building from maven, with parameter `storm.kafka.version` and `storm.kafka.artifact.id`
-e.g. `mvn clean install -Dstorm.kafka.artifact.id=kafka_2.11 -Dstorm.kafka.version=0.9.0.1`
+您还可以覆盖从maven构建的kafka依赖关系版本，其中包含参数`storm.kafka.version`和`storm.kafka.artifact.id`，例如`mvn clean install -Dstorm.kafka.artifact.id = kafka_2.11 -Dstorm.kafka.version = 0.9.0.1`
 
-When selecting a kafka dependency version, you should ensure -
- 1. kafka api is compatible with storm-kafka. Currently, only 0.9.x and 0.8.x client API is supported by storm-kafka
- module. If you want to use a higher version, storm-kafka-client module should be used instead.
- 2. The kafka client selected by you should be wire compatible with the broker. e.g. 0.9.x client will not work with
- 0.8.x broker.
+选择kafka依赖版本时，您应该确保  -
+1. kafka api与storm-kafka兼容。目前，storm-kafka模块仅支持0.9.x和0.8.x客户端API。如果要使用更高版本，应该使用storm-kafka-client模块替换。
+2. 您选择的kafka客户端应与 broker 兼容。例如0.9.x客户端将无法使用0.8.x broker。
 
 
 ##Writing to Kafka as part of your topology
-You can create an instance of org.apache.storm.kafka.bolt.KafkaBolt and attach it as a component to your topology or if you
-are using trident you can use org.apache.storm.kafka.trident.TridentState, org.apache.storm.kafka.trident.TridentStateFactory and
-org.apache.storm.kafka.trident.TridentKafkaUpdater.
+您可以创建一个org.apache.storm.kafka.bolt.KafkaBolt的实例，并将其作为组件附加到 topology（拓扑）中，或者如果您使用Trident，则可以使用org.apache.storm.kafka.trident.TridentState，org.apache .storm.kafka.trident.TridentStateFactory和org.apache.storm.kafka.trident.TridentKafkaUpdater。
 
-You need to provide implementation of following 2 interfaces
+您需要提供以下2个接口的实现:
 
 ###TupleToKafkaMapper and TridentTupleToKafkaMapper
-These interfaces have 2 methods defined:
+这个接口有下面两个方法:
 
 ```java
     K getKeyFromTuple(Tuple/TridentTuple tuple);
     V getMessageFromTuple(Tuple/TridentTuple tuple);
 ```
 
-As the name suggests, these methods are called to map a tuple to Kafka key and Kafka message. If you just want one field
-as key and one field as value, then you can use the provided FieldNameBasedTupleToKafkaMapper.java
-implementation. In the KafkaBolt, the implementation always looks for a field with field name "key" and "message" if you
-use the default constructor to construct FieldNameBasedTupleToKafkaMapper for backward compatibility
-reasons. Alternatively you could also specify a different key and message field by using the non default constructor.
-In the TridentKafkaState you must specify what is the field name for key and message as there is no default constructor.
-These should be specified while constructing and instance of FieldNameBasedTupleToKafkaMapper.
+顾名思义，这些方法被称为将 tuple 映射到Kafka key 和Kafka消息。
+如果您只需要一个字段作为键和一个字段作为值，则可以使用提供的FieldNameBasedTupleToKafkaMapper.java实现。
+在KafkaBolt中，如果使用默认构造函数构造FieldNameBasedTupleToKafkaMapper，则实现始终会查找字段名称为“key”和“message”的字段，以实现向后兼容性的原因。
+或者，您也可以使用非默认构造函数指定不同的键和消息字段。在TridentKafkaState中，您必须指定键和消息的字段名称，因为没有默认构造函数。
+在构造FieldNameBasedTupleToKafkaMapper实例时应该指定这些。
 
 ###KafkaTopicSelector and trident KafkaTopicSelector
 This interface has only one method
@@ -286,32 +256,29 @@ public interface KafkaTopicSelector {
     String getTopics(Tuple/TridentTuple tuple);
 }
 ```
-The implementation of this interface should return the topic to which the tuple's key/message mapping needs to be published
-You can return a null and the message will be ignored. If you have one static topic name then you can use
-DefaultTopicSelector.java and set the name of the topic in the constructor.
-`FieldNameTopicSelector` and `FieldIndexTopicSelector` use to support decided which topic should to push message from tuple.
-User could specify the field name or field index in tuple ,selector will use this value as topic name which to publish message.
-When the topic name not found , `KafkaBolt` will write messages into default topic .
-Please make sure the default topic have created .
+该接口的实现应该返回要发送 tuple的密钥/消息映射的topic,您可以返回一个null，该消息将被忽略。
+如果您有一个静态的topic 名称，那么可以使用DefaultTopicSelector.java并在构造函数中设置主题的名称。
+ `FieldNameTopicSelector`和`FieldIndexTopicSelector`用于支持决定哪个topic 应该从tuple 送消息。
+ 用户可以在tuple中指定字段名称或字段索引，selector将使用该值作为发布消息的topic 名称。
+当找不到topic 名称时，`KafkaBolt`会将消息写入默认topic。请确保已创建默认topic。
 
 ### Specifying Kafka producer properties
-You can provide all the produce properties in your Storm topology by calling `KafkaBolt.withProducerProperties()` and `TridentKafkaStateFactory.withProducerProperties()`. Please see  http://kafka.apache.org/documentation.html#newproducerconfigs
-Section "Important configuration properties for the producer" for more details.
+`TridentKafkaStateFactory.withProducerProperties（）`来提供Storm拓扑中的所有生产属性。有关详细信息，请参阅http://kafka.apache.org/documentation.html#newproducerconfigs“ producer 的重要配置属性”部分。
 
 ###Using wildcard kafka topic match
-You can do a wildcard topic match by adding the following config
+您可以通过添加以下配置来进行通配符 topic 匹配
 ```
      Config config = new Config();
      config.put("kafka.topic.wildcard.match",true);
 
 ```
 
-After this you can specify a wildcard topic for matching e.g. clickstream.*.log.  This will match all streams matching clickstream.my.log, clickstream.cart.log etc
+之后，您可以指定一个通配符 topic ，以匹配例如点击流。*记录。这将匹配所有流匹配clickstream.my.log，clickstream.cart.log等
 
 
 ###Putting it all together
 
-For the bolt :
+对于bolt:
 ```java
         TopologyBuilder builder = new TopologyBuilder();
 
@@ -342,7 +309,7 @@ For the bolt :
         StormSubmitter.submitTopology("kafkaboltTest", conf, builder.createTopology());
 ```
 
-For Trident:
+对于 Trident:
 
 ```java
         Fields fields = new Fields("word", "count");
@@ -373,3 +340,7 @@ For Trident:
         Config conf = new Config();
         StormSubmitter.submitTopology("kafkaTridentTest", conf, topology.build());
 ```
+
+
+### Committer Sponsors
+P. Taylor Goetz (ptgoetz@apache.org)
