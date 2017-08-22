@@ -4,31 +4,29 @@ layout: documentation
 documentation: true
 ---
 
-A framework for creating and deploying Apache Storm streaming computations with less friction.
+一个框架，为了让创建和部署Apache Storm“流”计算遇上更方便快捷
 
-## Definition
-**flux** |fləks| _noun_
+## 定义
+**flux** |fləks| _名词_
 
-1. The action or process of flowing or flowing out
-2. Continuous change
-3. In physics, the rate of flow of a fluid, radiant energy, or particles across a given area
-4. A substance mixed with a solid to lower its melting point
+1. 流动或者流出的这个动作过程 这个动作或者流出的过程
+2. 持续不断的改变
+3. 在物理中，表明液体、辐射能或者颗粒在指定区域内的流速
+4. 一个混合了固体用来降低其熔点的物质
 
-## Rationale
-Bad things happen when configuration is hard-coded. No one should have to recompile or repackage an application in
-order to change configuration.
+## 基本原理
+当配置很难被编程的时候会发生糟糕的事情。没有人应因为需要修改配置而重新编译或者重新打包一个应用。
 
-## About
-Flux is a framework and set of utilities that make defining and deploying Apache Storm topologies less painful and
-deveoper-intensive.
+## 相关
+Flux是一个用来让规定和部署Apache Storm拓扑不那么费劲的框架和一系列工具。
 
-Have you ever found yourself repeating this pattern?:
+你是否发现你总是重复这样的模式？:
 
 ```java
 
 public static void main(String[] args) throws Exception {
-    // logic to determine if we're running locally or not...
-    // create necessary config options...
+    // 返回的逻辑值用来判断我们是否在本地上运行
+    // 创建必要的配置选项...
     boolean runLocal = shouldRunLocal();
     if(runLocal){
         LocalCluster cluster = new LocalCluster();
@@ -39,79 +37,68 @@ public static void main(String[] args) throws Exception {
 }
 ```
 
-Wouldn't something like this be easier:
+像这样的操作会不会更容易一些呢:
 
 ```bash
 storm jar mytopology.jar org.apache.storm.flux.Flux --local config.yaml
 ```
 
-or:
+或者:
 
 ```bash
 storm jar mytopology.jar org.apache.storm.flux.Flux --remote config.yaml
 ```
 
-Another pain point often mentioned is the fact that the wiring for a Topology graph is often tied up in Java code,
-and that any changes require recompilation and repackaging of the topology jar file. Flux aims to alleviate that
-pain by allowing you to package all your Storm components in a single jar, and use an external text file to define
-the layout and configuration of your topologies.
+另一个比较经常提及的麻烦点在于由于写拓扑图常常是和Java代码紧密结合的，所以任何对它的修改都需要重新编译和重新打包拓扑的jar文件。Flux的目标是允许你将你所有的Storm组件打包在一个单独的jar文件中，然后使用另一个文本文件来规定你的拓扑的布局和配置。通过这样的方式，缓解这一个麻烦。
 
-## Features
+## 特点
 
- * Easily configure and deploy Storm topologies (Both Storm core and Microbatch API) without embedding configuration
-   in your topology code
- * Support for existing topology code (see below)
- * Define Storm Core API (Spouts/Bolts) using a flexible YAML DSL
- * YAML DSL support for most Storm components (storm-kafka, storm-hdfs, storm-hbase, etc.)
- * Convenient support for multi-lang components
- * External property substitution/filtering for easily switching between configurations/environments (similar to Maven-style
-   `${variable.name}` substitution)
+ * 安装和部署Storm拓扑（包括Storm core和Microbatch API）简单，而不是用内嵌的配置方法在你的拓扑代码中安装和部署。
+ * 支持已有的拓扑代码（如下可见）
+ * 通过使用灵活的YAML DSL定义Storm Core API（Spouts/Bolts）。
+ * YAML DSL支持大多数的Storm组件 (storm-kafka, storm-hdfs, storm-hbase, 等等.)
+ * 对多语言的组件有便捷的支持
+ * 为了更简便地在配置/环境间转换，使用了外部属性的置换/过滤（类似于Maven风格的`${variable.name}`置换）。
 
-## Usage
+## 用法
 
-To use Flux, add it as a dependency and package all your Storm components in a fat jar, then create a YAML document
-to define your topology (see below for YAML configuration options).
+为了使用Flux，把它添加到依赖包中，然后把你所有的Storm组件打包成一个很大的jar文件，再然后创建一个YAML文件来定义你的拓扑（下面有YAML配置选项）。
 
-### Building from Source
-The easiest way to use Flux, is to add it as a Maven dependency in you project as described below.
+### 通过源码来构建
+使用Flux最简单的方法就是将它作为Maven依赖包添加到项目中，如下面描述的那样。
 
-If you would like to build Flux from source and run the unit/integration tests, you will need the following installed
-on your system:
+如果你要从源代码中创建Flux并进行单元/集成的测试，你需要在你的系统上按照如下操作来安装：
 
 * Python 2.6.x or later
 * Node.js 0.10.x or later
 
-#### Building with unit tests enabled:
+#### 创建能够使用单元测试的命令：
 
 ```
 mvn clean install
 ```
 
-#### Building with unit tests disabled:
-If you would like to build Flux without installing Python or Node.js you can simply skip the unit tests:
+#### 创建不能够使用单元测试的命令：
+如果你希望在不安装Python和Node.js的情况下构建Flux，你可以跳过这个单元测试：
 
 ```
 mvn clean install -DskipTests=true
 ```
 
-Note that if you plan on using Flux to deploy topologies to a remote cluster, you will still need to have Python
-installed since it is required by Apache Storm.
+需要注意，如果你打算使用Flux来给远程的簇部署拓扑，你仍然需要安装Python，因为Apche Storm要求这么做。
 
-
-#### Building with integration tests enabled:
+#### 创建能够使用集成测试的命令：
 
 ```
 mvn clean install -DskipIntegration=false
 ```
 
 
-### Packaging with Maven
-To enable Flux for your Storm components, you need to add it as a dependency such that it's included in the Storm
-topology jar. This can be accomplished with the Maven shade plugin (preferred) or the Maven assembly plugin (not
-recommended).
+### 和Maven一起打包
+为了保证Flux能对你的Storm组件有效，你需要把Flux当做依赖包添加，这样才能让它包含在Storm的拓扑jar文件中。这个可以通过Maven shade插件（推荐）或者Maven assembly插件（不推荐）来完成。
 
-#### Flux Maven Dependency
-The current version of Flux is available in Maven Central at the following coordinates:
+#### Flux Maven依赖包
+Flux现在的版本可以在以下的合作方的Maven中心获得：
 ```xml
 <dependency>
     <groupId>org.apache.storm</groupId>
@@ -120,7 +107,7 @@ The current version of Flux is available in Maven Central at the following coord
 </dependency>
 ```
 
-Using shell spouts and bolts requires additional Flux Wrappers library:
+使用shell的spouts和bolt要求附加的Flux Wrappers库：
 ```xml
 <dependency>
     <groupId>org.apache.storm</groupId>
@@ -129,11 +116,11 @@ Using shell spouts and bolts requires additional Flux Wrappers library:
 </dependency>
 ```
 
-#### Creating a Flux-Enabled Topology JAR
-The example below illustrates Flux usage with the Maven shade plugin:
+#### 创建一个允许使用Flux的拓扑JAR文件
+下述的例子阐述了如何配合Maven shade插件使用Flux：
 
  ```xml
-<!-- include Flux and user dependencies in the shaded jar -->
+<!-- 在shaded jar文件中包含FLux和用户依赖包 -->
 <dependencies>
     <!-- Flux include -->
     <dependency>
@@ -148,10 +135,10 @@ The example below illustrates Flux usage with the Maven shade plugin:
         <version>${storm.version}</version>
     </dependency>
 
-    <!-- add user dependencies here... -->
+    <!-- 在这里添加用户依赖包... -->
 
 </dependencies>
-<!-- create a fat jar that includes all dependencies -->
+<!-- 创建一个包括所有依赖包的大大的jar文件 -->
 <build>
     <plugins>
         <plugin>
@@ -184,10 +171,8 @@ The example below illustrates Flux usage with the Maven shade plugin:
 </build>
  ```
 
-### Deploying and Running a Flux Topology
-Once your topology components are packaged with the Flux dependency, you can run different topologies either locally
-or remotely using the `storm jar` command. For example, if your fat jar is named `myTopology-0.1.0-SNAPSHOT.jar` you
-could run it locally with the command:
+### 部署和运行Flux拓扑
+一旦你的拓扑组件和Flux的依赖包一起打包后，你就可以通过使用 `storm jar` 命令在本地或者远端运行不同的拓扑。比如说，如果你的大大的jar文件命名为 `myTopology-0.1.0-SNAPSHOT.jar` ，你可以使用以下的命令在本地运行它：
 
 
 ```bash
@@ -195,49 +180,32 @@ storm jar myTopology-0.1.0-SNAPSHOT.jar org.apache.storm.flux.Flux --local my_co
 
 ```
 
-### Command line options
+### 命令行的参数选项
 ```
 usage: storm jar <my_topology_uber_jar.jar> org.apache.storm.flux.Flux
              [options] <topology-config.yaml>
- -d,--dry-run                 Do not run or deploy the topology. Just
-                              build, validate, and print information about
-                              the topology.
- -e,--env-filter              Perform environment variable substitution.
-                              Replace keys identified with `${ENV-[NAME]}`
-                              will be replaced with the corresponding
-                              `NAME` environment value
- -f,--filter <file>           Perform property substitution. Use the
-                              specified file as a source of properties,
-                              and replace keys identified with {$[property
-                              name]} with the value defined in the
-                              properties file.
- -i,--inactive                Deploy the topology, but do not activate it.
- -l,--local                   Run the topology in local mode.
- -n,--no-splash               Suppress the printing of the splash screen.
- -q,--no-detail               Suppress the printing of topology details.
- -r,--remote                  Deploy the topology to a remote cluster.
- -R,--resource                Treat the supplied path as a classpath
-                              resource instead of a file.
- -s,--sleep <ms>              When running locally, the amount of time to
-                              sleep (in ms.) before killing the topology
-                              and shutting down the local cluster.
- -z,--zookeeper <host:port>   When running in local mode, use the
-                              ZooKeeper at the specified <host>:<port>
-                              instead of the in-process ZooKeeper.
-                              (requires Storm 0.9.3 or later)
+ -d,--dry-run                 不运行/部署这个拓扑，仅仅是构建、验证和打印这个拓扑的相关信息。
+ -e,--env-filter              执行环境变量的替换。 以形式为 `${ENV-[NAME]}` 定义的替换关键字将会替换 `NAME` 对应的环境变量值。
+ -f,--filter <file>           执行属性替换。使用一个指定的文件作为属性的源，然后形式为 {$[property name]} 的替换关键字将会替换在这个属性文件中的值。.
+ -i,--inactive                部署但是不激活这个拓扑。
+ -l,--local                   在local的模式下运行拓扑。
+ -n,--no-splash               抑制版权页的输出。
+ -q,--no-detail               抑制拓扑详情的输出。
+ -r,--remote                  将拓扑部署到远端的簇。
+ -R,--resource                使用提供的路径来作为classpath的源文件以代替文件。
+ -s,--sleep <ms>              当在本地运行时，在killing一个拓扑和关闭本地簇之前需要sleep的时间（以ms为单位）
+ -z,--zookeeper <host:port>   当以local模式运行时，使用ZooKeeper的特定<host:port>而不是同进程的的ZooKeeper。（要求在Storm的0.9.3或之后的版本）  
 ```
 
-**NOTE:** Flux tries to avoid command line switch collision with the `storm` command, and allows any other command line
-switches to pass through to the `storm` command.
+**注意：** Flux为了避免在使用到 `storm` 命令时产生命令行开关冲突，所以允许任何其他的命令行开关来表达 `storm` 这一命令。
 
-For example, you can use the `storm` command switch `-c` to override a topology configuration property. The following
-example command will run Flux and override the `nimbus.seeds` configuration:
+举例来说，你可以使用`storm`的命令开关`-c`来覆盖拓扑配置性能。下述举例的命令就可以运行Flux并且覆盖`nimbus.seeds`这一配置：
 
 ```bash
 storm jar myTopology-0.1.0-SNAPSHOT.jar org.apache.storm.flux.Flux --remote my_config.yaml -c 'nimbus.seeds=["localhost"]'
 ```
 
-### Sample output
+### 输出例子
 ```
 ███████╗██╗     ██╗   ██╗██╗  ██╗
 ██╔════╝██║     ██║   ██║╚██╗██╔╝
@@ -265,35 +233,34 @@ count --SHUFFLE--> log
 Submitting topology: 'shell-topology' to remote cluster...
 ```
 
-## YAML Configuration
-Flux topologies are defined in a YAML file that describes a topology. A Flux topology
-definition consists of the following:
+## YAML配置
+Flux拓扑在YAML文件中被顶迎来描述一个拓扑。一个Flux拓扑定义由以下几项组成：
 
-  1. A topology name
-  2. A list of topology "components" (named Java objects that will be made available in the environment)
-  3. **EITHER** (A DSL topology definition):
-      * A list of spouts, each identified by a unique ID
-      * A list of bolts, each identified by a unique ID
-      * A list of "stream" objects representing a flow of tuples between spouts and bolts
-  4. **OR** (A JVM class that can produce a `org.apache.storm.generated.StormTopology` instance:
-      * A `topologySource` definition.
-
+  1. 一个拓扑的名字
+  2. 一个拓扑组件的列表（被命名为Java对象，用以可以在环境中可以调用）
+  3. **第三选项或者第四选项** （一个DSL拓扑定义）:
+      * 一个spouts的列表，每一个项通过一个唯一的ID被识别
+      * 一个bolts的列表，每一个项通过一个唯一的ID被识别
+      * 一个“stream”对象的列表，用来表示spouts和bolts之间的流的元组。
+  4. **第三选项或者第四选项** (一个可以创建 `org.apache.storm.generated.StormTopology` 实例的JVM类）：
+      * 一个 `topologySource` 定义。
 
 
-For example, here is a simple definition of a wordcount topology using the YAML DSL:
+
+举个例子，这里有一个使用YAML DSL的简单wordcount拓扑：
 
 ```yaml
 name: "yaml-topology"
 config:
   topology.workers: 1
 
-# spout definitions
+# spout定义
 spouts:
   - id: "spout-1"
     className: "org.apache.storm.testing.TestWordSpout"
     parallelism: 1
 
-# bolt definitions
+# bolt定义
 bolts:
   - id: "bolt-1"
     className: "org.apache.storm.testing.TestWordCounter"
@@ -302,9 +269,9 @@ bolts:
     className: "org.apache.storm.flux.wrappers.bolts.LogInfoBolt"
     parallelism: 1
 
-#stream definitions
+# stream定义
 streams:
-  - name: "spout-1 --> bolt-1" # name isn't used (placeholder for logging, UI, etc.)
+  - name: "spout-1 --> bolt-1" #name暂时未用上（可以在logging,UI等中作为placeholder）
     from: "spout-1"
     to: "bolt-1"
     grouping:
@@ -319,28 +286,23 @@ streams:
 
 
 ```
-## Property Substitution/Filtering
-It's common for developers to want to easily switch between configurations, for example switching deployment between
-a development environment and a production environment. This can be accomplished by using separate YAML configuration
-files, but that approach would lead to unnecessary duplication, especially in situations where the Storm topology
-does not change, but configuration settings such as host names, ports, and parallelism paramters do.
+## 属性替换/过滤
+对于开发者而言，想要简单地转换配置是常有的事，例如在开发环境和生产环境中转换部署。这可以通过使用分开的YAML配置文件来实现，但是这个方法会导致配置文件中多出一些多余的重复内容，尤其是在一些Storm拓扑没有改变但是配置设置例如主机名，端口和并行性参数改变了的情况。
 
-For this case, Flux offers properties filtering to allow you two externalize values to a `.properties` file and have
-them substituted before the `.yaml` file is parsed.
+对于这种情况，Flux提供了属性过滤（properties filtering）方法允许你个给一个 `.properties` 文件赋两个具体的值，并且让他们在 `.yaml` 文件被解析前被替代。
 
-To enable property filtering, use the `--filter` command line option and specify a `.properties` file. For example,
-if you invoked flux like so:
+为了实现属性过滤功能，使用 `--filter` 命令行选项，并且具体制定一个 `.properties` 文件。举个例子，如果你像这样调用flux：
 
 ```bash
 storm jar myTopology-0.1.0-SNAPSHOT.jar org.apache.storm.flux.Flux --local my_config.yaml --filter dev.properties
 ```
-With the following `dev.properties` file:
+并且 `dev.properties` 内容如下：
 
 ```properties
 kafka.zookeeper.hosts: localhost:2181
 ```
 
-You would then be able to reference those properties by key in your `.yaml` file using `${}` syntax:
+你在这之后就可以通过你 `.yaml` 文件中的属性关键字，使用 `${}` 语法来引用它：
 
 ```yaml
   - id: "zkHosts"
@@ -349,23 +311,19 @@ You would then be able to reference those properties by key in your `.yaml` file
       - "${kafka.zookeeper.hosts}"
 ```
 
-In this case, Flux would replace `${kafka.zookeeper.hosts}` with `localhost:2181` before parsing the YAML contents.
+在这个例子中，Flux可以在YAML内容被解析前使用 `localhost:2181` 来替换 `${kafka.zookeeper.hosts}` 。
 
-### Environment Variable Substitution/Filtering
-Flux also allows environment variable substitution. For example, if an environment variable named `ZK_HOSTS` if defined,
-you can reference it in a Flux YAML file with the following syntax:
+### 环境变量替换/过滤Environment Variable Substitution/Filtering
+Flux同样也允许环境变量替换。举个例子，如果名为`ZK_HOSTS` 的环境变量名被定义了，你可以通过以下的语法在Flux的YAML文件中引用它：
 
 ```
 ${ENV-ZK_HOSTS}
 ```
 
-## Components
-Components are essentially named object instances that are made available as configuration options for spouts and
-bolts. If you are familiar with the Spring framework, components are roughly analagous to Spring beans.
+## 组件
+组件从本质来说是对象实例，用来在对spouts和bolts的配置选项中获取。如果你对Spring框架很熟悉，这里的组件大概就类比于Spring中的beans
 
-Every component is identified, at a minimum, by a unique identifier (String) and a class name (String). For example,
-the following will make an instance of the `org.apache.storm.kafka.StringScheme` class available as a reference under the key
-`"stringScheme"` . This assumes the `org.apache.storm.kafka.StringScheme` has a default constructor.
+每一个组件都是可被识别的，至少是可以通过一个唯一的标识符（字符串）和一个类名（字符串）。举个例子，以下的例子将会创建一个 `org.apache.storm.kafka.StringScheme` 类的实例作为关键字 `"stringScheme"` 的引用。这里我们假设这个类 `org.apache.storm.kafka.StringScheme` 有一个默认的构造函数。
 
 ```yaml
 components:
@@ -373,12 +331,10 @@ components:
     className: "org.apache.storm.kafka.StringScheme"
 ```
 
-### Contructor Arguments, References, Properties and Configuration Methods
+### 构造函数参数，引用，属性和配置方法
 
-####Constructor Arguments
-Arguments to a class constructor can be configured by adding a `contructorArgs` element to a components.
-`constructorArgs` is a list of objects that will be passed to the class' constructor. The following example creates an
-object by calling the constructor that takes a single string as an argument:
+####构造函数参数
+为了给一个类的构造函数添加参数，我们添加 `contructorArgs` 这个元素给组件。 `contructorArgs` 是一个列表，其元素是对象。这个列表会被传递给类的构造函数们。以下的这个例子通过调用一个把单个字符串作为参数的构造函数来创建一个对象：
 
 ```yaml
   - id: "zkHosts"
@@ -387,12 +343,10 @@ object by calling the constructor that takes a single string as an argument:
       - "localhost:2181"
 ```
 
-####References
-Each component instance is identified by a unique id that allows it to be used/reused by other components. To
-reference an existing component, you specify the id of the component with the `ref` tag.
+####引用
+每一个组件实例都通过一个唯一的id可悲其他组件重复使用。为了引用一个已存在的组件，你需要在使用 `ref` 这个标签的时候指明这个组件的id。
 
-In the following example, a component with the id `"stringScheme"` is created, and later referenced, as a an argument
-to another component's constructor:
+在以下的例子中，一个名为的组件被创建，之后将被作为另一个组件的构造函数的参数被引用：
 
 ```yaml
 components:
@@ -404,11 +358,10 @@ components:
     constructorArgs:
       - ref: "stringScheme" # component with id "stringScheme" must be declared above.
 ```
-**N.B.:** References can only be used after (below) the object they point to has been declared.
+**注意:** 引用只能在对象被声明后使用。
 
-####Properties
-In addition to calling constructors with different arguments, Flux also allows you to configure components using
-JavaBean-like setter methods and fields declared as `public`:
+####属性
+除去允许在调用构造函数的时候传进不同的参数，Flux同样允许在配置组件的时候使用被声明为 `public` 的类似JavaBean的setter方法和域：
 
 ```yaml
   - id: "spoutConfig"
@@ -429,19 +382,14 @@ JavaBean-like setter methods and fields declared as `public`:
         ref: "stringMultiScheme"
 ```
 
-In the example above, the `properties` declaration will cause Flux to look for a public method in the `SpoutConfig` with
-the signature `setIgnoreZkOffsets(boolean b)` and attempt to invoke it. If a setter method is not found, Flux will then
-look for a public instance variable with the name `ignoreZkOffsets` and attempt to set its value.
+在上述的例子中，如果声明了 `properties` ，Flux将会在 `SpoutConfig` 中找一个名字为 `setIgnoreZkOffsets(boolean b)` 的函数并试图调用它。如果这样的一个setter函数没有找到，Flux就会找一个公有的叫 `ignoreZkOffsets` 的实例变量并且将它进行设置。
 
-References may also be used as property values.
+引用也可能被作为属性值来使用。
 
-####Configuration Methods
-Conceptually, configuration methods are similar to Properties and Constructor Args -- they allow you to invoke an
-arbitrary method on an object after it is constructed. Configuration methods are useful for working with classes that
-don't expose JavaBean methods or have constructors that can fully configure the object. Common examples include classes
-that use the builder pattern for configuration/composition.
+####配置方法
+从概念上来说，配置方法可能类似于属性和构造函数的参数 —— 他们允许一个对象在创建后可以调用任意的方法。对于有一些类，它们没有暴露JavaBean的方法或者没有能够将整个对象都配置好的构造函数，配置方法对这种类就十分有用。一些常见的例子包括了哪些使用构造器模式来配置/整合的类。
 
-The following YAML example creates a bolt and configures it by calling several methods:
+接下来的YAML例子创建了一个bolt并且通过几个方法进行了配置：
 
 ```yaml
 bolts:
@@ -461,7 +409,7 @@ bolts:
           - "bar"
 ```
 
-The signatures of the corresponding methods are as follows:
+对应方法的标识如下：
 
 ```java
     public void withFoo(String foo);
@@ -469,13 +417,12 @@ The signatures of the corresponding methods are as follows:
     public void withFooBar(String foo, String bar);
 ```
 
-Arguments passed to configuration methods work much the same way as constructor arguments, and support references as
-well.
+传递给配置方法的参数和构造函数中的参数作用一样，并且也支持引用。
 
-### Using Java `enum`s in Contructor Arguments, References, Properties and Configuration Methods
-You can easily use Java `enum` values as arguments in a Flux YAML file, simply by referencing the name of the `enum`.
+### 在沟早期的参数，引用，属性和配制方法中使用Java的 `enum`s in Contructor Arguments, References, Properties and Configuration Methods
+你可以在Flux YAML文件中轻松通过引用 `enum` 的名字将其值作为参数。
 
-For example, [Storm's HDFS module]() includes the following `enum` definition (simplified for brevity):
+比如， [Storm's HDFS 模块]() 包含了以下 `enum` 的定义（为了简洁而简化过）：
 
 ```java
 public static enum Units {
@@ -483,13 +430,13 @@ public static enum Units {
 }
 ```
 
-And the `org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy` class has the following constructor:
+ `org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy` 这个类有如下的构造器：
 
 ```java
 public FileSizeRotationPolicy(float count, Units units)
 
 ```
-The following Flux `component` definition could be used to call the constructor:
+以下的Flux `component` 定义可以被用来调用这个构造器：
 
 ```yaml
   - id: "rotationPolicy"
@@ -499,16 +446,15 @@ The following Flux `component` definition could be used to call the constructor:
       - MB
 ```
 
-The above definition is functionally equivalent to the following Java code:
+上述的定义和下面的Java代码从功能上来说是一样的：
 
 ```java
 // rotate files when they reach 5MB
 FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f, Units.MB);
 ```
 
-## Topology Config
-The `config` section is simply a map of Storm topology configuration parameters that will be passed to the
-`org.apache.storm.StormSubmitter` as an instance of the `org.apache.storm.Config` class:
+## 拓扑配置
+ `config` 这个区段仅仅是Storm拓扑配置参数的一个图，将会作为 `org.apache.storm.Config` 类的实例传给 `org.apache.storm.StormSubmitter` ：
 
 ```yaml
 config:
@@ -517,24 +463,21 @@ config:
   topology.message.timeout.secs: 30
 ```
 
-# Existing Topologies
-If you have existing Storm topologies, you can still use Flux to deploy/run/test them. This feature allows you to
-leverage Flux Constructor Arguments, References, Properties, and Topology Config declarations for existing topology
-classes.
+# 已经存在的拓扑
+如果你有已经存在的Storm拓扑，你仍然可以用Flux来部署/运行/测试它们。这个特点允许你按照已有的拓扑类来改变Flux构造参数，引用，属性和拓扑配置声明。
 
-The easiest way to use an existing topology class is to define
-a `getTopology()` instance method with one of the following signatures:
+使用已有拓扑类最简单的方法就是通过下面的方法定义一个名为 `getTopology()` 的实例方法：
 
 ```java
 public StormTopology getTopology(Map<String, Object> config)
 ```
-or:
+或者：
 
 ```java
 public StormTopology getTopology(Config config)
 ```
 
-You could then use the following YAML to configure your topology:
+你接下来就可以使用YAML来部署你的拓扑：
 
 ```yaml
 name: "existing-topology"
@@ -542,8 +485,7 @@ topologySource:
   className: "org.apache.storm.flux.test.SimpleTopology"
 ```
 
-If the class you would like to use as a topology source has a different method name (i.e. not `getTopology`), you can
-override it:
+如果你想用来作为拓扑源的类有一个不同的方法名（比如不叫），那么你可以把它重写：
 
 ```yaml
 name: "existing-topology"
@@ -552,19 +494,16 @@ topologySource:
   methodName: "getTopologyWithDifferentMethodName"
 ```
 
-__N.B.:__ The specified method must accept a single argument of type `java.util.Map<String, Object>` or
-`org.apache.storm.Config`, and return a `org.apache.storm.generated.StormTopology` object.
+__注意：__ 这个指定的方法必须接受一个单一的类型是 `java.util.Map<String, Object>` 或者 `org.apache.storm.Config` 的类，然后返回一个 `org.apache.storm.generated.StormTopology` 对象。
 
 # YAML DSL
-## Spouts and Bolts
-Spout and Bolts are configured in their own respective section of the YAML configuration. Spout and Bolt definitions
-are extensions to the `component` definition that add a `parallelism` parameter that sets the parallelism  for a
-component when the topology is deployed.
+## Spouts 和 Bolts
+Spout和Bolts是在YAML配置中各自的区域中被配置。Spout和Bolt的定义是 `组件（component）` 定义的拓展。在组件的基础上添加了 `并行度（parallelism）`参数，用于当一个拓扑被部署的时候设置组件的并行度。
 
-Because spout and bolt definitions extend `component` they support constructor arguments, references, and properties as
+因为spout和bolt定义继承了 `组件（component）` ，所以它们也支持构造函数参数，引用，属性。Because spout and bolt definitions extendthey support constructor arguments, references, and properties as
 well.
 
-Shell spout example:
+Shell spout的例子：
 
 ```yaml
 spouts:
@@ -579,7 +518,7 @@ spouts:
     parallelism: 1
 ```
 
-Kafka spout example:
+Kafka spout的例子：
 
 ```yaml
 components:
@@ -596,7 +535,7 @@ components:
     constructorArgs:
       - "localhost:2181"
 
-# Alternative kafka config
+# 可选的kafka配置
 #  - id: "kafkaConfig"
 #    className: "org.apache.storm.kafka.KafkaConfig"
 #    constructorArgs:
@@ -636,7 +575,7 @@ spouts:
 
 ```
 
-Bolt Examples:
+Bolt 例子：
 
 ```yaml
 # bolt definitions
@@ -662,30 +601,29 @@ bolts:
     # ...
 ```
 ## Streams and Stream Groupings
-Streams in Flux are represented as a list of connections (Graph edges, data flow, etc.) between the Spouts and Bolts in
-a topology, with an associated Grouping definition.
+Flux中的“流”被表示为一列在Spouts和Bolts之间的“连接”（如图的边，数据流等），在连接定义的同时有一个关联的“分组”定义。
 
-A Stream definition has the following properties:
+一个“流”定义有如下的属性：
 
-**`name`:** A name for the connection (optional, currently unused)
+**`name`:** 一个“连接”的名字（可选的，当下不会马上使用）
 
-**`from`:** The `id` of a Spout or Bolt that is the source (publisher)
+**`from`:** 作为源头的Spout或者Bolt的 `id`（类似于出版商）
 
-**`to`:** The `id` of a Spout or Bolt that is the destination (subscriber)
+**`to`:** 作为目的地的Spout或者Bolt的 `id` （类似于订阅者）
 
-**`grouping`:** The stream grouping definition for the Stream
+**`grouping`:** 为了“流”而产生的“流分组”定义
 
-A Grouping definition has the following properties:
+一个“分组”定义有以下的属性：
 
-**`type`:** The type of grouping. One of `ALL`,`CUSTOM`,`DIRECT`,`SHUFFLE`,`LOCAL_OR_SHUFFLE`,`FIELDS`,`GLOBAL`, or `NONE`.
+**`type`:** 分组的类型。下列值中任选一个 `ALL`、`CUSTOM`、`DIRECT`、`SHUFFLE`、`LOCAL_OR_SHUFFLE`、`FIELDS`、`GLOBAL`、或者 `NONE`。
 
-**`streamId`:** The Storm stream ID (Optional. If unspecified will use the default stream)
+**`streamId`:** Storm “流”的ID（可选的，如果没有指定则会使用默认流）
 
-**`args`:** For the `FIELDS` grouping, a list of field names.
+**`args`:** 当 `type` 的值为 `FIELDS` 时，一系列域的名字。
 
-**`customClass`** For the `CUSTOM` grouping, a definition of custom grouping class instance
+**`customClass`** 当 `type` 的值为 `CUSTOM` 时，自定义的“分组”类实例的定义
 
-The `streams` definition example below sets up a topology with the following wiring:
+如下例的 `流（streams）` 的定义案例建立起了一个如下的线路拓扑：
 
 ```
     kafka-spout --> splitsentence --> count --> log
@@ -693,10 +631,10 @@ The `streams` definition example below sets up a topology with the following wir
 
 
 ```yaml
-#stream definitions
-# stream definitions define connections between spouts and bolts.
-# note that such connections can be cyclical
-# custom stream groupings are also supported
+# 流（stream）定义
+# “流”的定义定了在spouts和bolts之间的“连接”。
+# 注意这样的“连接”可能是循环的
+# 自定义的“流分组”也被支持
 
 streams:
   - name: "kafka --> split" # name isn't used (placeholder for logging, UI, etc.)
@@ -719,13 +657,10 @@ streams:
       type: SHUFFLE
 ```
 
-### Custom Stream Groupings
-Custom stream groupings are defined by setting the grouping type to `CUSTOM` and defining a `customClass` parameter
-that tells Flux how to instantiate the custom class. The `customClass` definition extends `component`, so it supports
-constructor arguments, references, and properties as well.
+### 自定义“流分组”
+自定义的流分组是通过设置分组的类型为 `CUSTOM` 并且定义一个 `customClass` 参数，该参数告诉Flux如何实例化一个自定义类。这个 `customClass` 定义继承自 `组件（component）`，所以它也支持构造函数参数，引用和属性。
 
-The example below creates a Stream with an instance of the `org.apache.storm.testing.NGrouping` custom stream grouping
-class.
+如下的例子创建了一个”流“，并且使用了一个类型为 `org.apache.storm.testing.NGrouping` 的自定义“流分组”类。
 
 ```yaml
   - name: "bolt-1 --> bolt2"
@@ -739,11 +674,10 @@ class.
           - 1
 ```
 
-## Includes and Overrides
-Flux allows you to include the contents of other YAML files, and have them treated as though they were defined in the
-same file. Includes may be either files, or classpath resources.
+## “包含”和“重写”
+FLux允许包含其他YAML文件的内容，并且把它们当做在一个文件中定义的一样。可以包含文件或者路径源文件。
 
-Includes are specified as a list of maps:
+“包含”是通过一系列的maps来指定的：
 
 ```yaml
 includes:
@@ -752,21 +686,20 @@ includes:
     override: false
 ```
 
-If the `resource` property is set to `true`, the include will be loaded as a classpath resource from the value of the
-`file` attribute, otherwise it will be treated as a regular file.
+如果 `resource` 的值为 `true`，“包含”将会从 `file` 这个属性值中来加载路径源文件，否则它会被当做是普通的文件。 
 
-The `override` property controls how includes affect the values defined in the current file. If `override` is set to
-`true`, values in the included file will replace values in the current file being parsed. If `override` is set to
-`false`, values in the current file being parsed will take precedence, and the parser will refuse to replace them.
+`override` 属性控制着“包含”要如何影响定义在当前文件中的值。如果 `override` 的值是
+`true`，那么file值将会替代现在的文件被解析。如果 `override` 的值是
+`false`，那么当前文件正在解析的值会有优先权，并且解析器会拒绝将它们替换掉。
 
-**N.B.:** Includes are not yet recursive. Includes from included files will be ignored.
+**注意：** “包含”现今不是循环的，包含文件中的包含将会被忽视。
 
 
-## Basic Word Count Example
+## 基本的Word Count例子
 
-This example uses a spout implemented in JavaScript, a bolt implemented in Python, and a bolt implemented in Java
+这个例子使用了在JavaScript中实现的spout，Python中实现的bolt，和另一个在Java中实现的bolt。
 
-Topology YAML config:
+拓扑 YAML 配置：
 
 ```yaml
 ---
@@ -774,7 +707,7 @@ name: "shell-topology"
 config:
   topology.workers: 1
 
-# spout definitions
+# spout 定义
 spouts:
   - id: "sentence-spout"
     className: "org.apache.storm.flux.wrappers.spouts.FluxShellSpout"
@@ -786,7 +719,7 @@ spouts:
       - ["word"]
     parallelism: 1
 
-# bolt definitions
+# bolt 定义
 bolts:
   - id: "splitsentence"
     className: "org.apache.storm.flux.wrappers.bolts.FluxShellBolt"
@@ -805,13 +738,13 @@ bolts:
     className: "org.apache.storm.testing.TestWordCounter"
     parallelism: 1
 
-#stream definitions
-# stream definitions define connections between spouts and bolts.
-# note that such connections can be cyclical
-# custom stream groupings are also supported
+#stream 定义
+# “流”定义定义了在spouts和bolts之间的连接
+# 注意“连接”可能是循环的
+# 自定义“流分组”也是被支持的
 
 streams:
-  - name: "spout --> split" # name isn't used (placeholder for logging, UI, etc.)
+  - name: "spout --> split" # name没有被使用（ 是logging，UI等中的占位符）
     from: "sentence-spout"
     to: "splitsentence"
     grouping:
@@ -832,11 +765,10 @@ streams:
 ```
 
 
-## Micro-Batching (Trident) API Support
-Currenty, the Flux YAML DSL only supports the Core Storm API, but support for Storm's micro-batching API is planned.
+## Micro-Batching (Trident) API 支持
+虽然目前Flux DSL只支持核心Storm API（the COre Storm API），但是对Storm的micro-batching API的支持正在计划中。
 
-To use Flux with a Trident topology, define a topology getter method and reference it in your YAML config:
-
+为了和Trident拓扑一起使用Flux，在你的YAML配置中定义一个拓扑的getter方法和引用：
 ```yaml
 name: "my-trident-topology"
 
@@ -845,6 +777,6 @@ config:
 
 topologySource:
   className: "org.apache.storm.flux.test.TridentTopologySource"
-  # Flux will look for "getTopology", this will override that.
+  # FLux将会寻找 "getTopology"方法, 这个会用来重写之前那个
   methodName: "getTopologyWithDifferentMethodName"
 ```
