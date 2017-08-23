@@ -1,39 +1,33 @@
 ---
-title: Multi-Lang Protocol
+title: 多语言协议
 layout: documentation
 documentation: true
 ---
-This page explains the multilang protocol as of Storm 0.7.1. Versions prior to 0.7.1 used a somewhat different protocol, documented [here](Storm-multi-language-protocol-(versions-0.7.0-and-below\).html).
+本页介绍了Storm 0.7.1中的多语言协议。0.7.1之前的版本使用了一个有些不同的协议，文档位于 [here](Storm-multi-language-protocol-(versions-0.7.0-and-below\).html).
 
-# Storm Multi-Language Protocol
+# Storm 多语言协议
 
-## Shell Components
+## Shell 组件
 
-Support for multiple languages is implemented via the ShellBolt,
-ShellSpout, and ShellProcess classes.  These classes implement the
-IBolt and ISpout interfaces and the protocol for executing a script or
-program via the shell using Java's ProcessBuilder class.
+通过ShellBolt,ShellSpout和ShellProcess类实现对多语言的支持。这些类实现IBolt和ISpout接口以及执行脚本的协议或程序通过Shell使用Java的ProcessBuilder类。
 
-### Packaging of shell scripts
+### 包装Shell脚本
 
-By default the ShellProcess assumes that your code is packaged inside of your topology jar under the resources subdirectory of your jar and by default will change the current working directory of
-the executable process to be that resources directory extracted from the jar.
-A jar file does not store permissions of the files in it.  This includes the execute bit that would allow a shell script to be laoded and run by the operating systme. 
-As such in most examples the scripts are of the form `python mybolt.py` because the python executable is already on the supervisor and mybolt is packaged in the resources directory of the jar.
+默认情况下，ShellPorcess假定您的代码打包在您的jar的resources子目录下的拓扑Jar内，默认情况会更改当前的工作目录，该可执行线程是从Jar中提取的资源目录。一个Jar没有存储其中文件的权限。这包括允许Shell脚本由操作系统加载和运行的执行位。因此，在大多数示例中，脚本具有`python mybolt.py`的形式，因为python可执行文件已经在主管上，mybolt忆打包在jar的资源目录中。
 
-If you want to package something more complicated, like a new version of python itself, you need to instead use the blob store for this and a `.tgz` archive that does support permissions.
+如果你想打包更复杂的东西，像一个新版本的python本身，你需要改用blod这个存储和一个支持权限的`.tgz` 档案。
 
-See the docs on the [Blob Store](distcache-blobstore.html) for more details on how to ship a jar.
+可以看这个文档 [Blob Store](distcache-blobstore.html) 有更加详细的说明怎么运送jar的细节。
 
-To make a ShellBolt/ShellSpout work with executables + scripts shipped in the blob store dist cache add
+使用ShellBolt/ShellSpout与可执行文件+脚本一起发布在blod store cache中。
 
 ```
 changeChildCWD(false);
 ```
 
-in the constructor of your ShellBolt/ShellSpout.  The shell command will then be relative to the cwd of the worker.  Where the sym-links to the resources are.
+在ShellBolt/ShellSpout的构造函数中。shell命令将相对于工作者的cwd。哪里的资源链接。
 
-So if I shipped python with a symlink named `newPython` and a python ShellSpout I shipped into `shell_spout.py` I would have a something like
+所以如果我发送python与一个名为`newPython`和一个python ShellSpout的符号链接我并发送到`shell_spout.py`，我会有如下写法
 
 ```
 public MyShellSpout() {
@@ -42,42 +36,35 @@ public MyShellSpout() {
 }
 ```
 
-## Output fields
+## 输出字段
 
-Output fields are part of the Thrift definition of the topology. This means that when you multilang in Java, you need to create a bolt that extends ShellBolt, implements IRichBolt, and declare the fields in `declareOutputFields` (similarly for ShellSpout).
+输出字段是Thrift拓扑定义的一部分。这就意味着当您在java中的multing时，您需要创建一个扩展ShellBolt的bolt,实现IRichBolt,并声明`declareOutputFields`(类似于ShellSpout)中的字段。
 
-You can learn more about this on [Concepts](Concepts.html)
+您可以学习更多关于 [Concepts](Concepts.html)
 
-## Protocol Preamble
+## 协议序言
 
-A simple protocol is implemented via the STDIN and STDOUT of the
-executed script or program. All data exchanged with the process is
-encoded in JSON, making support possible for pretty much any language.
+一个简单的协议是通过STDIN和STDOUT来实现的执行脚本或程序。与该过程交换的所有数据为JSON格式，几乎可以支持任何语言。
 
-# Packaging Your Stuff
+# 包装你的东西
 
-To run a shell component on a cluster, the scripts that are shelled
-out to must be in the `resources/` directory within the jar submitted
-to the master.
+要在集群上运行Shell组件，那就是shelled的脚本必须在jar中提供的`resources/`目录中给master。
 
-However, during development or testing on a local machine, the resources
-directory just needs to be on the classpath.
+但是，在本地机器的开发或测试过程中，资源目录只需要在类路径中。
 
-## The Protocol
+## 协议
 
 Notes:
 
-* Both ends of this protocol use a line-reading mechanism, so be sure to
-trim off newlines from the input and to append them to your output.
-* All JSON inputs and outputs are terminated by a single line containing "end". Note that this delimiter is not itself JSON encoded.
-* The bullet points below are written from the perspective of the script writer's
-STDIN and STDOUT.
+* 该协议的两端使用线读机制，所以一定要从输入中剪掉换行符并将其追加到输出中。
+* 所有JSON输入和输出都由包含"end"的单行终止。请注意，此分隔符本身不是JSON编码的。
+* 下面的项目符号是从脚本作者的角度编写的STDIN和STDOUT。
 
-### Initial Handshake
+### 初始化握手
 
-The initial handshake is the same for both types of shell components:
+两种类型的shell组件的初始化握手是相同的：
 
-* STDIN: Setup info. This is a JSON object with the Storm configuration, a PID directory, and a topology context, like this:
+* STDIN: 设置信息。这是一个具有Storm配置，PID目录和拓扑上下文的JSON对象，像这样：
 
 ```
 {
@@ -119,59 +106,49 @@ The initial handshake is the same for both types of shell components:
 }
 ```
 
-Your script should create an empty file named with its PID in this directory. e.g.
-the PID is 1234, so an empty file named 1234 is created in the directory. This
-file lets the supervisor know the PID so it can shutdown the process later on.
+您的脚本应该在此目录中创建一个以其PID命名的空文件。例如，PID为1234，因此在目录中创建名为1234的空文件。这个文件让主管知道PID,以便稍后关闭该过程。
 
-As of Storm 0.10.0, the context sent by Storm to shell components has been
-enhanced substantially to include all aspects of the topology context available
-to JVM components.  One key addition is the ability to determine a shell
-component's source and targets (i.e., inputs and outputs) in the topology via
-the `stream->target->grouping` and `source->stream->grouping` dictionaries.  At
-the innermost level of these nested dictionaries, groupings are represented as
-a dictionary that minimally has a `type` key, but can also have a `fields` key
-to specify which fields are involved in a `FIELDS` grouping.
+从Storm 0.10.0起，Storm发送到shell组件的上下文一直是大大增强包括可用于JVM组件的拓扑上下文的所有方面。一个关键的补充是能够确定拓扑结构中的shell组件的源和目标（即输入和输出）`stream->target->grouping` and `source->stream->grouping` 字典。在这些嵌套字典的最内层，分组被表示为一个最低限度具有`type`键的字典，但也可以有一个`fields`键，指定`FIELDS`分组中涉及哪些字段。
 
-* STDOUT: Your PID, in a JSON object, like `{"pid": 1234}`. The shell component will log the PID to its log.
+* STDOUT: 你的PID，在JSON对象中，像 `{"pid": 1234}`。shell组件将PID记录到其日志中。
 
-What happens next depends on the type of component:
+接下来会发生什么取决于组件的类型：
 
 ### Spouts
 
-Shell spouts are synchronous. The rest happens in a while(true) loop:
+Shell spouts 是同步的. 其余的发生在一段时间(true)循环：
 
-* STDIN: Either a next, ack, activate, deactivate or fail command.
+* STDIN: 下一个，ack,激活，停用或失败命令。
 
-"next" is the equivalent of ISpout's `nextTuple`. It looks like:
+"next" 相当于ISpout's的`nextTuple`。看起来就像：
 
 ```
 {"command": "next"}
 ```
 
-"ack" looks like:
+"ack" 看起来像:
 
 ```
 {"command": "ack", "id": "1231231"}
 ```
 
-"activate" is the equivalent of ISpout's `activate`:
+"activate" 相当于ISpout's的 `activate`:
 ```
 {"command": "activate"}
 ```
 
-"deactivate" is the equivalent of ISpout's `deactivate`:
+"deactivate" 相当于ISpout's的 `deactivate`:
 ```
 {"command": "deactivate"}
 ```
 
-"fail" looks like:
+"fail" 看起来像:
 
 ```
 {"command": "fail", "id": "1231231"}
 ```
 
-* STDOUT: The results of your spout for the previous command. This can
-  be a sequence of emits and logs.
+* STDOUT: 您以前命令的输出结果。这可以是一系列发射和日志。
 
 An emit looks like:
 
@@ -190,9 +167,9 @@ An emit looks like:
 }
 ```
 
-If not doing an emit direct, you will immediately receive the task ids to which the tuple was emitted on STDIN as a JSON array.
+如果不直接执行emit,则将立即收到STDIN上以元数组发布的元组为JSON数组。
 
-A "log" will log a message in the worker log. It looks like:
+"log" 将在工作日志中记录一条消息。看起来像：
 
 ```
 {
@@ -202,22 +179,21 @@ A "log" will log a message in the worker log. It looks like:
 }
 ```
 
-* STDOUT: a "sync" command ends the sequence of emits and logs. It looks like:
+* STDOUT: "sync"命令结束发射和日志的顺序。看起来像：
 
 ```
 {"command": "sync"}
 ```
 
-After you sync, ShellSpout will not read your output until it sends another next, ack, or fail command.
+同步之后，ShellSpout将不会读取您的输出，直到它发送另一个next,ack，或fail命令。
 
-Note that, similarly to ISpout, all of the spouts in the worker will be locked up after a next, ack, or fail, until you sync. Also like ISpout, if you have no tuples to emit for a next, you should sleep for a small amount of time before syncing. ShellSpout will not automatically sleep for you.
-
+请注意，与ISpout类似，工作人员的所有spouts将在下一次，确认或失败后被锁定，直到您同步。也像ISpout,如果没有元组为下一个发出，您应该睡眠少量的时间才能同步。ShellSpout不会自动为您做睡眠。
 
 ### Bolts
 
-The shell bolt protocol is asynchronous. You will receive tuples on STDIN as soon as they are available, and you may emit, ack, and fail, and log at any time by writing to STDOUT, as follows:
+The shell bolt 是异步的. 您将在STDIN上收到元组，只要它们可用，您可以发出，确认或失败，并随时通过写入SDTOUT，如下所示:
 
-* STDIN: A tuple! This is a JSON encoded structure like this:
+* STDIN: 一个元组！这是一个这样的JSON编码结构: 
 
 ```
 {
@@ -250,15 +226,9 @@ The shell bolt protocol is asynchronous. You will receive tuples on STDIN as soo
 }
 ```
 
-If not doing an emit direct, you will receive the task ids to which
-the tuple was emitted on STDIN as a JSON array. Note that, due to the
-asynchronous nature of the shell bolt protocol, when you read after
-emitting, you may not receive the task ids. You may instead read the
-task ids for a previous emit or a new tuple to process. You will
-receive the task id lists in the same order as their corresponding
-emits, however.
+如果不直接执行emit，那么您将会收到在STDIN上发布元组的任务ids作为JSON数组。请注意，由于异步性质的shell bolt协议，当你读后你可以收不到任务的ids。你可以改为阅读要处理的先前发布或新元组的任务ids。但是你将按照相应的排放顺序接收任务id列表。
 
-An ack looks like:
+An ack 看起来像:
 
 ```
 {
@@ -268,7 +238,7 @@ An ack looks like:
 }
 ```
 
-A fail looks like:
+A fail 看起来像:
 
 ```
 {
@@ -278,7 +248,7 @@ A fail looks like:
 }
 ```
 
-A "log" will log a message in the worker log. It looks like:
+A "log" 将在工作日志中记录一条消息。看起来像：
 
 ```
 {
@@ -288,27 +258,19 @@ A "log" will log a message in the worker log. It looks like:
 }
 ```
 
-* Note that, as of version 0.7.1, there is no longer any need for a
-  shell bolt to 'sync'.
+* 请注意，从0.7.1版本起，不再需要一个shell bolt进行 '同步'操作。 
 
-### Handling Heartbeats (0.9.3 and later)
+### 心跳处理 (0.9.3 及以上)
 
-As of Storm 0.9.3, heartbeats have been between ShellSpout/ShellBolt and their
-multi-lang subprocesses to detect hanging/zombie subprocesses.  Any libraries
-for interfacing with Storm via multi-lang must take the following actions
-regarding hearbeats:
+直到Storm 0.9.3,心跳在ShellSpout/ShellBolt与它们之间多个子进程检测挂/子进程。任何通过多镜头与Storm进行连接的库，必须对听筒采取以下措施：
 
 #### Spout
 
-Shell spouts are synchronous, so subprocesses always send `sync` commands at the
-end of `next()`,  so you should not have to do much to support heartbeats for
-spouts.  That said, you must not let subprocesses sleep more than the worker
-timeout during `next()`.
+Shell spouts 是同步的,因此子流程总是在`next()`的末尾发送`sync`命令，所以你不必为支持spouts的心跳做很多工作。也就是说，在`next()`期间，不要让子进程睡眠超过工作超时。
 
 #### Bolt
 
-Shell bolts are asynchronous, so a ShellBolt will send heartbeat tuples to its
-subprocess periodically.  Heartbeat tuple looks like:
+Shell bolts 是异步的, 因此ShellBolt将定期向其子进程发送心跳元组。心跳元组看起来像：
 
 ```
 {
@@ -321,5 +283,4 @@ subprocess periodically.  Heartbeat tuple looks like:
 }
 ```
 
-When subprocess receives heartbeat tuple, it must send a `sync` command back to
-ShellBolt.
+当子进程接收到心跳元组时，它必须发送一个`sync`命令回到ShellBolt。
