@@ -4,14 +4,13 @@ layout: documentation
 documentation: true
 ---
 
-Storm components for interacting with HDFS file systems
+Storm组件和 HDFS 文件系统交互.
 
 
 ## Usage
-The following example will write pipe("|")-delimited files to the HDFS path hdfs://localhost:54310/foo. After every
-1,000 tuples it will sync filesystem, making that data visible to other HDFS clients. It will rotate files when they
-reach 5 megabytes in size.
 
+以下示例将pipe（“|”）分隔的文件写入HDFS路径hdfs://localhost:54310/foo。
+每1000个 tuple 之后，它将同步文件系统，使该数据对其他HDFS客户端可见。当它们达到5MB大小时，它将旋转文件。
 ```java
 // use "|" instead of "," for field delimiter
 RecordFormat format = new DelimitedRecordFormat()
@@ -35,22 +34,20 @@ HdfsBolt bolt = new HdfsBolt()
 ```
 
 ### Packaging a Topology
-When packaging your topology, it's important that you use the [maven-shade-plugin]() as opposed to the
-[maven-assembly-plugin]().
 
-The shade plugin provides facilities for merging JAR manifest entries, which the hadoop client leverages for URL scheme
-resolution.
+当打包你的 topology（拓扑）代码的时候，要使用[maven-shade-plugin]() 插件，不要使用[maven-assembly-plugin]()插件.
 
-If you experience errors such as the following:
+shade 插件提供了合并 Jar manifest entries 的功能，hadoop client 可以用来做URL scheme 方案.
+
+如果你经历了类似于下面的错误：
 
 ```
 java.lang.RuntimeException: Error preparing HdfsBolt: No FileSystem for scheme: hdfs
 ```
 
-it's an indication that your topology jar file isn't packaged properly.
+这表明你的 topology jar没有正确的打包.
 
-If you are using maven to create your topology jar, you should use the following `maven-shade-plugin` configuration to
-create your topology jar:
+如果你使用maven来创建你的topology jar，你应该使用下面  `maven-shade-plugin` 配置来创建你的 topology jar:
 
 ```xml
 <plugin>
@@ -83,7 +80,8 @@ create your topology jar:
 ```
 
 ### Specifying a Hadoop Version
-By default, storm-hdfs uses the following Hadoop dependencies:
+
+默认情况下，storm-hdfs使用下面的Hadoop依赖.
 
 ```xml
 <dependency>
@@ -110,10 +108,9 @@ By default, storm-hdfs uses the following Hadoop dependencies:
 </dependency>
 ```
 
-If you are using a different version of Hadoop, you should exclude the Hadoop libraries from the storm-hdfs dependency
-and add the dependencies for your preferred version in your pom.
+如果你使用的Hadoop版本不同，你可以移除storm-hdfs中 Hadoop依赖，并添加你自己的依赖到你的 pom中.
 
-Hadoop client version incompatibilites can manifest as errors like:
+Hadoop客户端版本不兼容，错误如：
 
 ```
 com.google.protobuf.InvalidProtocolBufferException: Protocol message contained an invalid tag (zero)
@@ -121,23 +118,20 @@ com.google.protobuf.InvalidProtocolBufferException: Protocol message contained a
 
 ## Customization
 
-### Record Formats
-Record format can be controlled by providing an implementation of the `org.apache.storm.hdfs.format.RecordFormat`
-interface:
+### Record Formats（记录格式化）
+记录格式化可以通过提供的`org.apache.storm.hdfs.format.RecordFormat`接口来控制：
 
 ```java
 public interface RecordFormat extends Serializable {
     byte[] format(Tuple tuple);
 }
 ```
-
-The provided `org.apache.storm.hdfs.format.DelimitedRecordFormat` is capable of producing formats such as CSV and
-tab-delimited files.
+提供的`org.apache.storm.hdfs.format.DelimitedRecordFormat`实现可以生成如 CSV 和 制表符分隔 的文件.
+T
 
 
 ### File Naming
-File naming can be controlled by providing an implementation of the `org.apache.storm.hdfs.format.FileNameFormat`
-interface:
+文件名称可以通过提供的`org.apache.storm.hdfs.format.FileNameFormat`接口来控制：
 
 ```java
 public interface FileNameFormat extends Serializable {
@@ -147,21 +141,20 @@ public interface FileNameFormat extends Serializable {
 }
 ```
 
-The provided `org.apache.storm.hdfs.format.DefaultFileNameFormat`  will create file names with the following format:
+提供的 `org.apache.storm.hdfs.format.DefaultFileNameFormat` 创建的文件名称格式如下：
 
      {prefix}{componentId}-{taskId}-{rotationNum}-{timestamp}{extension}
 
-For example:
+例如:
 
      MyBolt-5-7-1390579837830.txt
 
-By default, prefix is empty and extenstion is ".txt".
+默认情况下，前缀是空的，扩展标识是".txt".
 
 
 
 ### Sync Policies
-Sync policies allow you to control when buffered data is flushed to the underlying filesystem (thus making it available
-to clients reading the data) by implementing the `org.apache.storm.hdfs.sync.SyncPolicy` interface:
+同步策略允许你将 buffered data 缓冲到底层文件系统（从而client可以读取数据），通过实现`org.apache.storm.hdfs.sync.SyncPolicy` 接口：
 
 ```java
 public interface SyncPolicy extends Serializable {
@@ -169,15 +162,13 @@ public interface SyncPolicy extends Serializable {
     void reset();
 }
 ```
-The `HdfsBolt` will call the `mark()` method for every tuple it processes. Returning `true` will trigger the `HdfsBolt`
-to perform a sync/flush, after which it will call the `reset()` method.
-
-The `org.apache.storm.hdfs.sync.CountSyncPolicy` class simply triggers a sync after the specified number of tuples have
-been processed.
+ `HdfsBolt`  会为每个要处理的 tuple 调用 `mark()`方法.返回 `true` 会触发 `HdfsBolt`执行同步/刷新，之后会调用`reset()`方法.
+ 
+ `org.apache.storm.hdfs.sync.CountSyncPolicy`类可以简单的触发同步，当一定数量的tuple执行完成后.
 
 ### File Rotation Policies
-Similar to sync policies, file rotation policies allow you to control when data files are rotated by providing a
-`org.apache.storm.hdfs.rotation.FileRotation` interface:
+
+类似于同步策略,文件反转策略允许你通过 `org.apache.storm.hdfs.rotation.FileRotation` 接口来控制数据文件反转.
 
 ```java
 public interface FileRotationPolicy extends Serializable {
@@ -186,17 +177,16 @@ public interface FileRotationPolicy extends Serializable {
 }
 ``` 
 
-The `org.apache.storm.hdfs.rotation.FileSizeRotationPolicy` implementation allows you to trigger file rotation when
-data files reach a specific file size:
+`org.apache.storm.hdfs.rotation.FileSizeRotationPolicy`实现允许数据文件达到指定的文件大小后，触发文件反转.
 
 ```java
 FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f, Units.MB);
 ```
 
 ### File Rotation Actions
-Both the HDFS bolt and Trident State implementation allow you to register any number of `RotationAction`s.
-What `RotationAction`s do is provide a hook to allow you to perform some action right after a file is rotated. For
-example, moving a file to a different location or renaming it.
+
+HDFS bolt 和 Trident State实现允许你注册任意数量的`RotationAction`s.
+`RotationAction`s要做的就是提供一个hook，当文件反转后执行一些操作。例如，移动一个文件到不同的路径下，或者重命名.
 
 
 ```java
@@ -205,7 +195,7 @@ public interface RotationAction extends Serializable {
 }
 ```
 
-Storm-HDFS includes a simple action that will move a file after rotation:
+Storm-HDFS 包括一个简单的操作，反转后移动一个文件：
 
 ```java
 public class MoveFileAction implements RotationAction {
@@ -228,7 +218,7 @@ public class MoveFileAction implements RotationAction {
 }
 ```
 
-If you are using Trident and sequence files you can do something like this:
+如果你使用 Trident，并且是有序的文件，你可以像下面这样使用：
 
 ```java
         HdfsState.Options seqOpts = new HdfsState.SequenceFileOptions()
@@ -242,7 +232,7 @@ If you are using Trident and sequence files you can do something like this:
 
 ## Support for HDFS Sequence Files
 
-The `org.apache.storm.hdfs.bolt.SequenceFileBolt` class allows you to write storm data to HDFS sequence files:
+`org.apache.storm.hdfs.bolt.SequenceFileBolt`类允许你写入storm data 到连续的HDFS文件中：
 
 ```java
         // sync the filesystem after every 1k tuples
@@ -268,8 +258,8 @@ The `org.apache.storm.hdfs.bolt.SequenceFileBolt` class allows you to write stor
                 .withCompressionCodec("deflate");
 ```
 
-The `SequenceFileBolt` requires that you provide a `org.apache.storm.hdfs.bolt.format.SequenceFormat` that maps tuples to
-key/value pairs:
+`SequenceFileBolt` 需要你提供一个 `org.apache.storm.hdfs.bolt.format.SequenceFormat`，用来映射 tuples到 key/value pairs。
+
 
 ```java
 public interface SequenceFormat extends Serializable {
@@ -282,8 +272,8 @@ public interface SequenceFormat extends Serializable {
 ```
 
 ## Trident API
-storm-hdfs also includes a Trident `state` implementation for writing data to HDFS, with an API that closely mirrors
-that of the bolts.
+
+storm-hdfs 还包括一个 Trident `state` 实现，用于写入数据到HDFS，API类似于 bolts.
 
  ```java
          Fields hdfsFields = new Fields("field1", "field2");
@@ -310,7 +300,7 @@ that of the bolts.
                  .partitionPersist(factory, hdfsFields, new HdfsUpdater(), new Fields());
  ```
 
- To use the sequence file `State` implementation, use the `HdfsState.SequenceFileOptions`:
+要使用序列文件`State`实现，请使用`HdfsState.SequenceFileOptions`：
 
  ```java
         HdfsState.Options seqOpts = new HdfsState.SequenceFileOptions()
@@ -322,12 +312,14 @@ that of the bolts.
 ```
 
 ##Working with Secure HDFS
-If your topology is going to interact with secure HDFS, your bolts/states needs to be authenticated by NameNode. We 
-currently have 2 options to support this:
+
+如果您的拓扑将与安全的HDFS进行交互，则您的 bolts/states 需要通过NameNode进行身份验证。我们
+目前有2个选项支持：
+
 
 ### Using HDFS delegation tokens 
-Your administrator can configure nimbus to automatically get delegation tokens on behalf of the topology submitter user.
-The nimbus need to start with following configurations:
+您的管理员可以配置nimbus来代表拓扑提交者用户自动获取授权令牌。
+nimbus需要从以下配置开始：
 
 nimbus.autocredential.plugins.classes : ["org.apache.storm.hdfs.common.security.AutoHDFS"] 
 nimbus.credential.renewers.classes : ["org.apache.storm.hdfs.common.security.AutoHDFS"] 
@@ -338,31 +330,32 @@ less then 24 hours.)
 topology.hdfs.uri:"hdfs://host:port" (This is an optional config, by default we will use value of "fs.defaultFS" property
 specified in hadoop's core-site.xml)
 
-Your topology configuration should have:
+你的topology 配置应该包括：
 topology.auto-credentials :["org.apache.storm.hdfs.common.security.AutoHDFS"] 
 
-If nimbus did not have the above configuration you need to add it and then restart it. Ensure the hadoop configuration 
-files(core-site.xml and hdfs-site.xml) and the storm-hdfs jar with all the dependencies is present in nimbus's classpath. 
-Nimbus will use the keytab and principal specified in the config to authenticate with Namenode. From then on for every
-topology submission, nimbus will impersonate the topology submitter user and acquire delegation tokens on behalf of the
-topology submitter user. If topology was started with topology.auto-credentials set to AutoHDFS, nimbus will push the
-delegation tokens to all the workers for your topology and the hdfs bolt/state will authenticate with namenode using 
-these tokens.
+如果nimbus没有上述配置，您需要添加它，然后重新启动它。确保hadoop配置
+文件（core-site.xml和hdfs-site.xml）以及具有所有依赖项的storm-hdfs jar都存在于nimbus的类路径中。
+Nimbus将使用配置文件中指定的keytab和主体对Namenode进行身份验证。从那时起每一个
+topology 提交，nimbus将模拟拓扑提交者用户并代表代理令牌
+topology 提交者用户。如果通过将topology.auto-credentials设置为AutoHDFS启动 topology（拓扑），nimbus将推送
+将所有的工作人员的代理令牌用于您的 topology（拓扑），并且hdfs bolt / state将使用namenode进行身份验证
+这些令牌。
 
-As nimbus is impersonating topology submitter user, you need to ensure the user specified in hdfs.kerberos.principal 
-has permissions to acquire tokens on behalf of other users. To achieve this you need to follow configuration directions 
-listed on this link
+由于nimbus模拟拓扑提交者用户，您需要确保hdfs.kerberos.principal中指定的用户
+具有代表其他用户获取令牌的权限。要实现这一点，您需要遵循配置指导
+列在此链接上：
 http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Superusers.html
 
-You can read about setting up secure HDFS here: http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SecureMode.html.
+你可以看这里如何配置安全的HDFS: http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SecureMode.html.
 
 ### Using keytabs on all worker hosts
-If you have distributed the keytab files for hdfs user on all potential worker hosts then you can use this method. You should specify a 
-hdfs config key using the method HdfsBolt/State.withconfigKey("somekey") and the value map of this key should have following 2 properties:
+如果您已将hdfs用户的keytab文件分发给所有潜在的工作主机，那么可以使用此方法。你应该指定一个
+使用HdfsBolt / State.withconfigKey（“somekey”）方法的hdfs配置密钥，该密钥的值映射应具有以下2个属性:
 
 hdfs.keytab.file: "/path/to/keytab/"
 hdfs.kerberos.principal: "user@EXAMPLE.com"
 
-On worker hosts the bolt/trident-state code will use the keytab file with principal provided in the config to authenticate with 
-Namenode. This method is little dangerous as you need to ensure all workers have the keytab file at the same location and you need
-to remember this as you bring up new hosts in the cluster.
+在工作主机上，bolt/Ttrident-staet code 将使用配置中提供的主体的keytab文件进行认证
+Namenode会。这种方法很危险，因为您需要确保所有工作人员的keytab文件位于同一位置，您需要
+在集群中启动新主机时记住这一点
+
