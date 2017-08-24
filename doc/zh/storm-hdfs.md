@@ -11,6 +11,7 @@ Storm组件和 HDFS 文件系统交互.
 
 以下示例将pipe（“|”）分隔的文件写入HDFS路径hdfs://localhost:54310/foo。
 每1000个 tuple 之后，它将同步文件系统，使该数据对其他HDFS客户端可见。当它们达到5MB大小时，它将旋转文件。
+
 ```java
 // use "|" instead of "," for field delimiter
 RecordFormat format = new DelimitedRecordFormat()
