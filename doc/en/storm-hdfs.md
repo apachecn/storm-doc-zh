@@ -355,5 +355,5 @@ hdfs.kerberos.principal: "user@EXAMPLE.com"
 
 在workers 上，bolt/Ttrident-staet code 将使用配置中提供的主体的keytab文件进行认证
 Namenode。这种方法很危险，因为您需要确保所有 worker 的keytab文件位于同一位置，您需要
-在集群中启动新主机时记住这一点
+在集群中启动新主机时记住这一点.
 
