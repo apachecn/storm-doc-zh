@@ -15,6 +15,7 @@ github: [https://github.com/apachecn/storm-doc-zh](https://github.com/apachecn/s
 
 ## Storm 1.1.0 官方文档中文版
 
+* 2017-08-24: 更新整体的 [翻译进度](translate-progress.html) 为 96%, 基本上算是翻译完了.
 * 2017-08-15: 更新整体的 [翻译进度](translate-progress.html) 为 86%.
 * 2017-08-09: [Apache Storm 1.1.0 官方文档中文版](http://storm.apachecn.org/releases/cn/1.1.0/) 发布（[翻译进度](http://storm.apachecn.org/releases/cn/1.1.0/translate-progress.html) 63%）, 维护网址: [http://storm.apachecn.org/releases/cn/1.1.0/](http://storm.apachecn.org/releases/cn/1.1.0/)
 * 2017-07-26: 组织 [Apache Storm 1.1.0 官方文档中文版](http://storm.apachecn.org/releases/cn/1.1.0/) 翻译活动.
