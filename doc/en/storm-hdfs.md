@@ -347,13 +347,13 @@ http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Superuse
 你可以看这里如何配置安全的HDFS: http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SecureMode.html.
 
 ### Using keytabs on all worker hosts
-如果您已将hdfs用户的 keytab 文件分发给所有潜在的工作主机，那么可以使用此方法。你应该指定一个
+如果您已将hdfs用户的 keytab 文件分发给所有潜在的worker ，那么可以使用此方法。你应该指定一个
 使用HdfsBolt / State.withconfigKey（“somekey”）方法的hdfs配置密钥，该密钥的值映射应具有以下2个属性:
 
 hdfs.keytab.file: "/path/to/keytab/"
 hdfs.kerberos.principal: "user@EXAMPLE.com"
 
-在工作主机上，bolt/Ttrident-staet code 将使用配置中提供的主体的keytab文件进行认证
-Namenode会。这种方法很危险，因为您需要确保所有工作人员的keytab文件位于同一位置，您需要
+在workers 上，bolt/Ttrident-staet code 将使用配置中提供的主体的keytab文件进行认证
+Namenode。这种方法很危险，因为您需要确保所有 worker 的keytab文件位于同一位置，您需要
 在集群中启动新主机时记住这一点
 
