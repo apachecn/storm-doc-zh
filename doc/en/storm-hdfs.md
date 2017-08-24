@@ -313,7 +313,7 @@ storm-hdfs 还包括一个 Trident `state` 实现，用于写入数据到HDFS，
 
 ##Working with Secure HDFS
 
-如果您的拓扑将与安全的HDFS进行交互，则您的 bolts/states 需要通过NameNode进行身份验证。我们
+如果您的 topology（拓扑）将与安全的HDFS进行交互，则您的 bolts/states 需要通过NameNode进行身份验证。我们
 目前有2个选项支持：
 
 
@@ -323,25 +323,23 @@ nimbus需要从以下配置开始：
 
 nimbus.autocredential.plugins.classes : ["org.apache.storm.hdfs.common.security.AutoHDFS"] 
 nimbus.credential.renewers.classes : ["org.apache.storm.hdfs.common.security.AutoHDFS"] 
-hdfs.keytab.file: "/path/to/keytab/on/nimbus" (This is the keytab of hdfs super user that can impersonate other users.)
+hdfs.keytab.file: "/path/to/keytab/on/nimbus" (hdfs 超级管理员可以代理其他用户.)
 hdfs.kerberos.principal: "superuser@EXAMPLE.com" 
-nimbus.credential.renewers.freq.secs : 82800 (23 hours, hdfs tokens needs to be renewed every 24 hours so this value should be
-less then 24 hours.)
-topology.hdfs.uri:"hdfs://host:port" (This is an optional config, by default we will use value of "fs.defaultFS" property
-specified in hadoop's core-site.xml)
+nimbus.credential.renewers.freq.secs : 82800 (23 小时, hdfs tokens 需要每24个小时更新一次.)
+topology.hdfs.uri:"hdfs://host:port" (可选的配置, 默认情况下，我们会在core-site.xml 文件中指定 "fs.defaultFS" 属性)
 
 你的topology 配置应该包括：
 topology.auto-credentials :["org.apache.storm.hdfs.common.security.AutoHDFS"] 
 
 如果nimbus没有上述配置，您需要添加它，然后重新启动它。确保hadoop配置
 文件（core-site.xml和hdfs-site.xml）以及具有所有依赖项的storm-hdfs jar都存在于nimbus的类路径中。
-Nimbus将使用配置文件中指定的keytab和主体对Namenode进行身份验证。从那时起每一个
+Nimbus将使用配置文件中指定的 keytab 和主体对 Namenode 进行身份验证。从那时起每一个
 topology 提交，nimbus将模拟拓扑提交者用户并代表代理令牌
 topology 提交者用户。如果通过将topology.auto-credentials设置为AutoHDFS启动 topology（拓扑），nimbus将推送
 将所有的工作人员的代理令牌用于您的 topology（拓扑），并且hdfs bolt / state将使用namenode进行身份验证
 这些令牌。
 
-由于nimbus模拟拓扑提交者用户，您需要确保hdfs.kerberos.principal中指定的用户
+由于nimbus模拟topology（拓扑）提交者用户，您需要确保hdfs.kerberos.principal中指定的用户
 具有代表其他用户获取令牌的权限。要实现这一点，您需要遵循配置指导
 列在此链接上：
 http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Superusers.html
@@ -349,7 +347,7 @@ http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/Superuse
 你可以看这里如何配置安全的HDFS: http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-common/SecureMode.html.
 
 ### Using keytabs on all worker hosts
-如果您已将hdfs用户的keytab文件分发给所有潜在的工作主机，那么可以使用此方法。你应该指定一个
+如果您已将hdfs用户的 keytab 文件分发给所有潜在的工作主机，那么可以使用此方法。你应该指定一个
 使用HdfsBolt / State.withconfigKey（“somekey”）方法的hdfs配置密钥，该密钥的值映射应具有以下2个属性:
 
 hdfs.keytab.file: "/path/to/keytab/"
