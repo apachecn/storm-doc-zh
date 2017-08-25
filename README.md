@@ -1,18 +1,20 @@
 # Apache Storm 官方文档中文版
-![](doc/en/images/logo.png) 
-
-官网地址: [Apache Spark](http://storm.apache.org/): <http://storm.apache.org/>
+![](doc/en/images/logo.png)
 
 Apache Storm 是一个免费的，开源的，分布式的实时计算系统.
 
-## 正在翻译
+官方文档: <http://storm.apache.org>  
+中文文档: <http://storm.apachecn.org>
 
-[Apache Storm 1.1.0](http://storm.apachecn.org/releases/cn/1.1.0)（翻译中...）
+## 维护地址
+[github](https://github.com/apachecn/storm-doc-zh/): <https://github.com/apachecn/storm-doc-zh/>  
+[ApacheCN](http://www.apachecn.org): <http://storm.apachecn.org/releases/cn/1.1.0>
 
 维护地址: [Storm 1.1.0 官方文档中文版](http://storm.apachecn.org/releases/cn/1.1.0): [http://storm.apachecn.org/releases/cn/1.1.0](http://storm.apachecn.org/releases/cn/1.1.0)
 
 ## 历史版本
-[Storm 1.0.1 官方文档中文版](http://cwiki.apachecn.org/pages/viewpage.action?pageId=2884006): [http://cwiki.apachecn.org/pages/viewpage.action?pageId=2884006](http://cwiki.apachecn.org/pages/viewpage.action?pageId=2884006)（抱歉, 只翻译了一点点, 后面翻译其它的文档去了）
+[Storm 1.1.0 官方文档中文版](http://storm.apachecn.org/releases/cn/1.1.0) 整体翻译进度为 96%，更多细节请看 <http://storm.apachecn.org/releases/cn/1.1.0/translate-progress.html>  
+[Storm 1.0.1 官方文档中文版](http://cwiki.apachecn.org/pages/viewpage.action?pageId=2884006): [http://cwiki.apachecn.org/pages/viewpage.action?pageId=2884006](http://cwiki.apachecn.org/pages/viewpage.action?pageId=2884006)（抱歉, 只翻译了一点点, 后面翻译其它的文档去了，现在已经迭代到 Storm 1.1.0 的中文文档中）
 
 ## 参与翻译 & 发现错误
     1. 在 github 上 fork 该 repository.
@@ -55,19 +57,25 @@ Apache Storm 是一个免费的，开源的，分布式的实时计算系统.
 * [@stealthsMrs](https://github.com/stealthsMrs)（stealthsMrs）
 * [@youyj521](https://github.com/youyj521)（冷夜雨）
 * [@mikechengwei](https://github.com/mikechengwei)（mike）
+* [@needav](https://github.com/needav)（needav）
+* [@foxliuxiang](https://github.com/foxliuxiang)（foxliuxiang）
+* [@cybj123](https://github.com/cybj123)（cybj123）
+* [@ssandl](https://github.com/ssandl)（ssandl）
 
 ### 1.0.1
 请参阅: [http://cwiki.apachecn.org/pages/viewpage.action?pageId=11534485](http://cwiki.apachecn.org/pages/viewpage.action?pageId=11534485)
 
 ## 联系方式
-有任何建议反馈, 或想参与文档翻译, 麻烦联系下面的企鹅:
+有任何建议反馈, 或想参与文档翻译, 麻烦方式如下:
 * 企鹅: 1042658081
+* 企鹅群: 214293307
 
 ## 其它中文文档
 * [TensorFlow R1.2 中文文档](http://cwiki.apachecn.org/pages/viewpage.action?pageId=10030122)
 * [sklearn 0.18 中文文档](http://cwiki.apachecn.org/pages/viewpage.action?pageId=10030181)
 * [Spark 2.2.0 中文文档](http://spark.apachecn.org/docs/cn/2.2.0/)
 * [Spark 2.0.2 中文文档](http://cwiki.apachecn.org/pages/viewpage.action?pageId=2883613)
+* [Storm 1.1.0 中文文档](http://storm.apachecn.org/releases/cn/1.1.0)
 * [Kudu 1.4.0 中文文档](http://cwiki.apachecn.org/pages/viewpage.action?pageId=10813594)
 * [Zeppelin 0.7.2 中文文档](http://cwiki.apachecn.org/pages/viewpage.action?pageId=10030467)
 * [Elasticsearch 5.4 中文文档](http://cwiki.apachecn.org/pages/viewpage.action?pageId=4260364)
