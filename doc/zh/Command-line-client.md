@@ -4,8 +4,8 @@ layout: documentation
 documentation: true
 ---
 
-此页面描述了 "Storm" 命令行客户端可能使用的所有命令.
-要了解如何设置 "风暴" 客户端与远程群集的操作, 请按照 [安装开发环境](Setting-up-development-environment.html) 中的说明进行操作.
+此页面描述了 "storm" 命令行客户端可能使用的所有命令.
+要了解如何设置 "storm" 客户端与远程群集的操作, 请按照 [安装开发环境](Setting-up-development-environment.html) 中的说明进行操作.
 
 这些命令是:
 
