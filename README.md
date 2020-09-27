@@ -63,3 +63,14 @@ Apache Storm 是一个免费的，开源的，分布式的实时计算系统.
 
 * 企鹅: 1042658081
 * 企鹅群: 214293307
+
+
+## 下载
+
+### NPM
+
+```
+npm install -g storm-doc-zh
+storm-doc-zh <port>
+# 访问 http://localhost:{port} 查看文档
+```
