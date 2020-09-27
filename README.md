@@ -67,6 +67,14 @@ Apache Storm 是一个免费的，开源的，分布式的实时计算系统.
 
 ## 下载
 
+### PYPI
+
+```
+pip install storm-doc-zh
+storm-doc-zh <port>
+# 访问 http://localhost:{port} 查看文档
+```
+
 ### NPM
 
 ```
