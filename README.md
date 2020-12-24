@@ -17,6 +17,7 @@ Apache Storm 是一个免费的，开源的，分布式的实时计算系统.
 ## 维护地址
 
 +   [在线阅读](http://storm.apachecn.org)
++   [在线阅读（Gitee）](https://apachecn.gitee.io/storm-doc-zh/)
 +   [EPUB 格式](https://github.com/apachecn/storm-doc-zh/raw/dl/Storm%201.1.0%20%E4%B8%AD%E6%96%87%E6%96%87%E6%A1%A3.epub)
 +   [Github](https://github.com/apachecn/storm-doc-zh/)
 
